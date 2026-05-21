@@ -45,7 +45,7 @@ if exist "%USERPROFILE%\.yoda_gh_token" (
 )
 if "!GH_TOKEN!"=="" (
     set /p GH_TOKEN="  Enter GitHub token (ghp_...): "
-    if "!GH_TOKEN!"=="" (echo  No token - skipping release & goto :run)
+    if "!GH_TOKEN!"=="" (echo  No token - skipping release & goto :done)
     echo !GH_TOKEN!>"%USERPROFILE%\.yoda_gh_token"
 )
 echo  OK
@@ -64,6 +64,13 @@ echo process.stdout.write(p.version); >> "%TEMP%\yoda_bump.js"
 
 for /f %%v in ('node "%TEMP%\yoda_bump.js"') do set NEW_VER=%%v
 echo  Version: !NEW_VER!
+
+:: Remove large/generated files from git tracking
+git rm -r --cached installer/ >nul 2>&1
+git rm -r --cached node_modules/ >nul 2>&1
+git rm -r --cached dist/ >nul 2>&1
+git rm -r --cached vosk-model-small-en-us/ >nul 2>&1
+git rm -r --cached vosk-model-small-en-us-0.15/ >nul 2>&1
 
 :: Git push
 git remote set-url origin "https://!GH_TOKEN!@github.com/yodaaicreator/yoda.git" >nul 2>&1
@@ -98,7 +105,6 @@ echo  github.com/yodaaicreator/yoda/releases
 echo  ====================================
 echo.
 
-:run
-echo  Starting Yoda...
-start "" /b node_modules\.bin\electron.cmd .
-timeout /t 2 /nobreak >nul
+echo  Done. Run Yoda with run.bat
+
+:done
