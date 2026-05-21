@@ -1,0 +1,74 @@
+{
+  "name": "yoda",
+  "version": "1.0.20",
+  "description": "Yoda AI Assistant",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "build": "electron-builder --win --x64",
+    "dist": "electron-builder --win --x64 --publish always"
+  },
+  "build": {
+    "appId": "com.yoda.assistant",
+    "productName": "Yoda",
+    "copyright": "Copyright 2025 Kristian",
+    "directories": {
+      "output": "installer",
+      "buildResources": "assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "requestedExecutionLevel": "asInvoker"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "shortcutName": "Yoda",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "deleteAppDataOnUninstall": false,
+      "include": "installer.nsh"
+    },
+    "files": [
+      "src/**/*",
+      "assets/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "yoda_mic.py",
+        "to": "yoda_mic.py"
+      },
+      {
+        "from": "yoda_tts.py",
+        "to": "yoda_tts.py"
+      },
+      {
+        "from": "yoda_mouse.py",
+        "to": "yoda_mouse.py"
+      }
+    ],
+    "publish": {
+      "provider": "github",
+      "owner": "yodaaicreator",
+      "repo": "yoda"
+    }
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.20.0",
+    "electron-updater": "^6.3.0",
+    "electron-log": "^5.1.0"
+  },
+  "devDependencies": {
+    "electron": "42.0.1",
+    "electron-builder": "^26.8.1"
+  },
+  "author": "Kristian"
+}
