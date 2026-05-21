@@ -1,5 +1,19 @@
+# Generated - never commit
 node_modules/
-backups/
+installer/
 dist/
-.cache/
+build/
+__pycache__/
+*.pyc
+
+# Large model files - too big for GitHub
+vosk-model-small-en-us/
+vosk-model-small-en-us-0.15/
+*.zip
+
+# Temp/backup files
 *.bak
+*.bak*
+*.log
+.DS_Store
+Thumbs.db
