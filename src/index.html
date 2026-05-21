@@ -1922,8 +1922,8 @@ async function dispatch(text) {
   if (/volume down/.test(t)) return respond(await yoda.system({action:'volume-down'}))
   if (/\bmute\b/.test(t))   return respond(await yoda.system({action:'mute'}))
   if (/unmute/.test(t))      return respond(await yoda.system({action:'mute'}))
-  const vm = text.match(/volume\s+(\d+)/i)
-  if (vm) return respond(await yoda.system({action:'volume-set', value:parseInt(vm[1])}))
+  const volMatch = text.match(/volume\s+(\d+)/i)
+  if (volMatch) return respond(await yoda.system({action:'volume-set', value:parseInt(volMatch[1])}))
 
   // ── Media ──────────────────────────────────────────
   if (/pause|play.pause/.test(t))    return respond(await yoda.system({action:'media-play-pause'}))
@@ -2338,6 +2338,81 @@ async function dispatch(text) {
 
   // ── Fallback to AI ─────────────────────────────────
   console.log('[dispatch] -> queryAI')
+  // ── Conference commands ────────────────────────────
+  // ── Password generator ──────────────────────────────────────────────
+  if (/generate password|random password|new password/i.test(t)) {
+    const lenM = text.match(/(\d+)/);
+    const pw = generatePassword(lenM ? lenM[1] : 16)
+    return respond('Password: ' + pw + ' — copied to clipboard.')
+  }
+
+  // ── Jokes ─────────────────────────────────────────────────────────────
+  if (/tell.*joke|joke please|make me laugh/i.test(t)) return tellJoke()
+
+  // ── Coin / dice ───────────────────────────────────────────────────────
+  if (/flip.*coin|coin flip|heads or tails/i.test(t)) return flipCoin()
+  if (/roll.*dice|roll a die|dice roll/i.test(t)) {
+    const sides = text.match(/(\d+)/)
+    return rollDice(sides ? sides[1] : 6)
+  }
+  if (/random number/i.test(t)) {
+    const nums = text.match(/(\d+)[^\d]+(\d+)/);
+    return randomNumber(nums?nums[1]:1, nums?nums[2]:100)
+  }
+
+  // ── Stopwatch ─────────────────────────────────────────────────────────
+  if (/start stopwatch|stopwatch start/i.test(t)) return startStopwatch()
+  if (/stop stopwatch|stopwatch stop/i.test(t)) return stopStopwatch()
+
+  // ── Motivate ──────────────────────────────────────────────────────────
+  if (/motivate me|motivation|inspire me|quote/i.test(t)) return motivate()
+
+  // ── Alarm ─────────────────────────────────────────────────────────────
+  if (/set.*alarm|alarm at|wake me/i.test(t)) {
+    const timeM = text.match(/(\d{1,2}(?::\d{2})?)\s*([ap]m)?/i)
+    if (timeM) return setAlarm(timeM[1]+(timeM[2]||''))
+    return respond('What time should I set the alarm for?')
+  }
+
+  // ── Unit conversion ───────────────────────────────────────────────────
+  if (/convert|how many|in (miles|km|kg|lbs|fahrenheit|celsius|feet|meters|inches|cm)/i.test(t)) {
+    const m = text.match(/(\d+\.?\d*)\s*(km|miles|kg|lbs|celsius|fahrenheit|c|f|meters|feet|cm|inches|liters|gallons)/i)
+    const toM = text.match(/to\s+(km|miles|kg|lbs|celsius|fahrenheit|c|f|meters|feet|cm|inches|liters|gallons)/i) ||
+                text.match(/in\s+(km|miles|kg|lbs|celsius|fahrenheit|c|f|meters|feet|cm|inches|liters|gallons)/i)
+    if (m && toM) {
+      const result = convert(m[1], m[2], toM[1])
+      if (result) return respond(`${m[1]} ${m[2]} = ${result} ${toM[1]}.`)
+    }
+    return queryAI(text)
+  }
+
+  // ── Typing test ───────────────────────────────────────────────────────
+  if (/typing test|test my typing|how fast.*type/i.test(t)) return startTypingTest()
+
+  // ── Colour ────────────────────────────────────────────────────────────
+  if (/random colou?r|pick a colou?r/i.test(t)) return randomColour()
+
+  // ── Zen browser ───────────────────────────────────────────────────────
+  if (/open.*zen|launch.*zen|use.*zen|zen browser/i.test(t)) {
+    await openInZen('https://google.com')
+    return respond('Opening Zen browser.')
+  }
+
+  // ── focus mode etc ──────────────────────────────────────────────────
+  if (/focus mode|start focus/i.test(t)) {
+    const _m = text.match(/(\d+)\s*min/i)
+    return startFocus(_m ? parseInt(_m[1]) : 25)
+  }
+  if (/pomodoro/i.test(t))               return startPomodoro()
+  if (/stop focus|focus off/i.test(t))   return stopFocus()
+  if (/^search( for)? .+/i.test(text))   return webSearch(text.replace(/^search( for)? /i,'').trim())
+  if (/^(google|find) .+/i.test(text))   return webSearch(text.replace(/^(google|find) /i,'').trim())
+  if (/read clipboard/i.test(t))         return readClipboard()
+  if (/improve clipboard/i.test(t))      return improveClipboard()
+  if (/^(hi|hello|hey|howdy)[.!]?$/i.test(t)) return respond(getGreeting())
+  const _app = text.match(/^(?:open|launch|start|run)\s+(.+)/i)
+  if (_app)                              return launchApp(_app[1].trim())
+
   await queryAI(text)
 }
 
@@ -2665,11 +2740,7 @@ function showTranscript(){
   })
   c.scrollTop=c.scrollHeight
 }
-function greet(){
-  const g=['Ready. What do you need?','Yoda online.','All systems ready.','Good to go.','Back again.'][Math.floor(Math.random()*5)]
-  addMsg('y',g)
-  if(!whisperMode) speak(g)
-}
+function greet(){ const g=getGreeting(); addMsg('y',g); if(!whisperMode) speak(g) }
 
 // ── HUD ───────────────────────────────────────────────
 async function startHUD(){
@@ -3146,16 +3217,17 @@ function updateGitStatusBar(status) {
 async function gitSave() {
   if (!window.git) { addMsg('s','Git not available.'); return }
   const msg = prompt('Commit message (optional):') || 'Update'
-  addMsg('s', 'Saving to GitHub...')
+  addMsg('s', 'Saving and releasing...')
   try {
-    const result = await git.save(msg)
+    // Save + auto-publish as a new release in one step
+    const result = await git.publish(msg)
     if (result && result.success) {
-      addMsg('s', result.message || 'Saved.')
+      addMsg('y', 'Released ' + (result.tag||'') + (result.releaseUrl ? ' — ' + result.releaseUrl : ''))
     } else {
-      addMsg('s', 'Save failed: ' + (result && result.error || 'unknown'))
+      addMsg('s', 'Failed: ' + ((result && result.error) || 'unknown error'))
     }
   } catch(e) {
-    addMsg('s', 'Save error: ' + e.message)
+    addMsg('s', 'Error: ' + e.message)
   }
   loadGitStatus()
 }
@@ -3530,6 +3602,281 @@ yoda.on('nav', action => {
   else if (action==='git-publish')      gitPublish()
   else if (action==='git-pull')         gitPull()
 })
+
+
+
+// ══ NEW FEATURES v2 ═══════════════════════════════════════════════════════
+
+// 1. Zen browser — opens URLs in Zen (set as default or use exe directly)
+async function openInZen(url) {
+  // Try Zen first, fall back to default browser
+  const zenPaths = [
+    'C:\\Program Files\\Zen Browser\\zen.exe',
+    'C:\\Users\\krist\\AppData\\Local\\Programs\\Zen Browser\\zen.exe',
+    '%LOCALAPPDATA%\\Programs\\Zen Browser\\zen.exe',
+  ]
+  let opened = false
+  for (const p of zenPaths) {
+    try {
+      await yoda.system({action:'run-ps', value:`Start-Process "${p}" "${url}"`})
+      opened = true; break
+    } catch {}
+  }
+  if (!opened) await yoda.system({action:'open-url', value:url})
+}
+
+// 2. Password generator
+function generatePassword(length) {
+  const l = parseInt(length) || 16
+  const chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789!@#$%^&*'
+  let pw = ''
+  for (let i=0; i<l; i++) pw += chars[Math.floor(Math.random()*chars.length)]
+  navigator.clipboard.writeText(pw).catch(()=>{})
+  return pw
+}
+
+// 3. Countdown timer with voice alert
+const _activeTimers = []
+function setTimer(seconds, label) {
+  const id = setTimeout(() => {
+    addMsg('y', (label || 'Timer') + ' done!')
+    if (!whisperMode) speak((label || 'Timer') + ' done!')
+  }, seconds * 1000)
+  _activeTimers.push(id)
+  const mins = Math.floor(seconds/60), secs = seconds%60
+  const desc = mins > 0 ? `${mins} minute${mins>1?'s':''}` : `${secs} second${secs>1?'s':''}`
+  addMsg('s', 'Timer set: ' + desc + (label ? ' — ' + label : '') + '.')
+}
+
+// 4. Stopwatch
+let _swStart = 0, _swRunning = false
+function startStopwatch() {
+  _swStart = Date.now(); _swRunning = true
+  addMsg('s', 'Stopwatch started.')
+}
+function stopStopwatch() {
+  if (!_swRunning) return addMsg('s', 'Stopwatch not running.')
+  const elapsed = ((Date.now() - _swStart)/1000).toFixed(1)
+  _swRunning = false
+  const m = Math.floor(elapsed/60), s = (elapsed%60).toFixed(1)
+  respond(`Stopwatch: ${m>0?m+' minutes ':''} ${s} seconds.`)
+}
+
+// 5. Joke teller (built-in, no API needed)
+const _JOKES = [
+  "Why don't scientists trust atoms? Because they make up everything.",
+  "I told my computer I needed a break. Now it won't stop sending me vacation ads.",
+  "Why do programmers prefer dark mode? Because light attracts bugs.",
+  "How many programmers does it take to change a light bulb? None. That's a hardware problem.",
+  "Why did the JavaScript developer wear glasses? Because he couldn't C#.",
+  "A SQL query walks into a bar, walks up to two tables and asks: can I join you?",
+  "Why did the developer go broke? Because he used up all his cache.",
+  "I would tell you a UDP joke but you might not get it.",
+  "There are 10 types of people: those who understand binary and those who don't.",
+  "Why do Java developers wear glasses? Because they don't C++.",
+]
+let _jokeIdx = 0
+function tellJoke() {
+  const joke = _JOKES[_jokeIdx % _JOKES.length]
+  _jokeIdx++
+  respond(joke)
+}
+
+// 6. Coin flip / dice roll
+function flipCoin() {
+  respond(Math.random() < 0.5 ? 'Heads.' : 'Tails.')
+}
+function rollDice(sides) {
+  const s = parseInt(sides) || 6
+  respond('You rolled a ' + (Math.floor(Math.random()*s)+1) + ' on a ' + s + '-sided die.')
+}
+
+// 7. Random number
+function randomNumber(min, max) {
+  const lo = parseInt(min)||1, hi = parseInt(max)||100
+  respond('Your random number is ' + (Math.floor(Math.random()*(hi-lo+1))+lo) + '.')
+}
+
+// 8. Unit converter
+function convert(value, from, to) {
+  const v = parseFloat(value)
+  if (isNaN(v)) return null
+  const conversions = {
+    'km_miles':   v*0.621371, 'miles_km':     v*1.60934,
+    'kg_lbs':     v*2.20462,  'lbs_kg':       v*0.453592,
+    'c_f':        v*9/5+32,   'f_c':          (v-32)*5/9,
+    'meters_feet':v*3.28084,  'feet_meters':  v*0.3048,
+    'liters_gallons':v*0.264172,'gallons_liters':v*3.78541,
+    'cm_inches':  v*0.393701, 'inches_cm':    v*2.54,
+  }
+  const key = from.toLowerCase()+'_'+to.toLowerCase()
+  const result = conversions[key]
+  if (result === undefined) return null
+  return parseFloat(result.toFixed(4)).toString()
+}
+
+// 9. Motivational quotes
+const _QUOTES = [
+  "The only way to do great work is to love what you do. — Steve Jobs",
+  "Innovation distinguishes between a leader and a follower. — Steve Jobs",
+  "Stay hungry, stay foolish. — Steve Jobs",
+  "The future belongs to those who believe in the beauty of their dreams. — Eleanor Roosevelt",
+  "It does not matter how slowly you go as long as you do not stop. — Confucius",
+  "Success is not final, failure is not fatal. — Winston Churchill",
+  "The best time to plant a tree was 20 years ago. The second best time is now. — Chinese Proverb",
+  "Your time is limited. Don't waste it living someone else's life. — Steve Jobs",
+  "If you can dream it, you can do it. — Walt Disney",
+  "Believe you can and you're halfway there. — Theodore Roosevelt",
+]
+function motivate() {
+  const q = _QUOTES[Math.floor(Math.random()*_QUOTES.length)]
+  respond(q)
+}
+
+// 10. Alarm (specific time)
+function setAlarm(timeStr) {
+  const now = new Date()
+  const [hStr, mStr] = timeStr.replace(/[ap]m/i,'').trim().split(':')
+  let h = parseInt(hStr), m = parseInt(mStr||0)
+  if (/pm/i.test(timeStr) && h < 12) h += 12
+  if (/am/i.test(timeStr) && h === 12) h = 0
+  const alarm = new Date(now)
+  alarm.setHours(h, m, 0, 0)
+  if (alarm <= now) alarm.setDate(alarm.getDate()+1)
+  const diff = alarm - now
+  const label = `${hStr}:${String(m).padStart(2,'0')}${timeStr.match(/[ap]m/i)?.[0]||''}`
+  setTimeout(() => {
+    addMsg('y', 'Alarm! It is ' + label + '.')
+    if (!whisperMode) speak('Alarm. It is ' + label + '.')
+  }, diff)
+  const mins = Math.round(diff/60000)
+  addMsg('s', `Alarm set for ${label} — in ${mins} minute${mins!==1?'s':''}.`)
+}
+
+// 11. Typing test
+const _TYPING_SENTENCES = [
+  'The quick brown fox jumps over the lazy dog.',
+  'Pack my box with five dozen liquor jugs.',
+  'How vexingly quick daft zebras jump.',
+  'The five boxing wizards jump quickly.',
+]
+let _typingTest = null
+function startTypingTest() {
+  const sentence = _TYPING_SENTENCES[Math.floor(Math.random()*_TYPING_SENTENCES.length)]
+  _typingTest = {sentence, start: Date.now()}
+  addMsg('y', 'Type this exactly:')
+  addMsg('s', sentence)
+  speak('Type the sentence shown on screen.')
+}
+function checkTypingTest(typed) {
+  if (!_typingTest) return false
+  const {sentence, start} = _typingTest
+  _typingTest = null
+  const elapsed = ((Date.now()-start)/1000).toFixed(1)
+  const words = sentence.split(' ').length
+  const wpm = Math.round(words / (elapsed/60))
+  const correct = typed.trim() === sentence.trim()
+  respond(`${correct?'Perfect!':'Close.'} ${words} words in ${elapsed}s = ${wpm} WPM.`)
+  return true
+}
+
+// 12. Colour picker helper
+function randomColour() {
+  const h = Math.floor(Math.random()*360)
+  const hex = `hsl(${h},70%,55%)`
+  respond(`Random colour: HSL(${h}, 70%, 55%) — a ${h<30||h>330?'red':h<90?'yellow':h<150?'green':h<210?'cyan':h<270?'blue':'purple'} tone.`)
+}
+
+// ══ END NEW FEATURES v2 ══════════════════════════════════════════════════
+
+// ══ CONFERENCE FEATURES ═══════════════════════════════════════════════
+
+function getTimeOfDay() {
+  const h = new Date().getHours()
+  return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening'
+}
+
+function getGreeting() {
+  const tod = getTimeOfDay()
+  const g = {
+    morning:   ['Good morning. Ready to help.','Morning. What do you need?'],
+    afternoon: ['Good afternoon.','Hello. What can I do for you?'],
+    evening:   ['Good evening. Ready.','Evening. How can I help?']
+  }
+  const list = g[tod]
+  return list[Math.floor(Math.random()*list.length)]
+}
+
+let _focusTimer = null
+function startFocus(minutes) {
+  const m = parseInt(minutes) || 25
+  addMsg('y', 'Focus mode on — ' + m + ' minutes. Go.')
+  if (!whisperMode) speak('Starting ' + m + ' minute focus session.')
+  if (_focusTimer) clearTimeout(_focusTimer)
+  _focusTimer = setTimeout(() => {
+    addMsg('y', 'Focus session done. Great work.')
+    if (!whisperMode) speak('Focus complete. Take a break.')
+    _focusTimer = null
+  }, m * 60000)
+}
+
+function stopFocus() {
+  if (_focusTimer) { clearTimeout(_focusTimer); _focusTimer = null }
+  addMsg('s', 'Focus mode off.')
+}
+
+let _pomodoroCount = 0
+function startPomodoro() {
+  _pomodoroCount++
+  addMsg('y', 'Pomodoro ' + _pomodoroCount + ' — 25 minutes.')
+  if (!whisperMode) speak('Pomodoro started.')
+  setTimeout(() => {
+    addMsg('y', 'Pomodoro done! 5 minute break.')
+    if (!whisperMode) speak('Pomodoro complete. Take a break.')
+  }, 25 * 60000)
+}
+
+function webSearch(query) {
+  if (!query) return
+  yoda.system({action:'open-url', value:'https://www.google.com/search?q='+encodeURIComponent(query)})
+  respond('Searching for ' + query + '.')
+}
+
+async function readClipboard() {
+  try {
+    const txt = await navigator.clipboard.readText()
+    respond(txt ? 'Clipboard: ' + txt.slice(0, 300) : 'Clipboard is empty.')
+  } catch { respond('Cannot read clipboard.') }
+}
+
+async function improveClipboard() {
+  try {
+    const txt = await navigator.clipboard.readText()
+    if (!txt) return respond('Clipboard is empty.')
+    addMsg('s', 'Improving...')
+    await queryAI('Fix grammar and make this more professional. Return ONLY the improved text: ' + txt.slice(0, 500))
+  } catch { respond('Cannot access clipboard.') }
+}
+
+const _APPS = {
+  'zen':'zen',  // Zen browser
+  'zen browser':'zen',
+  notepad:'notepad.exe', calculator:'calc.exe', calc:'calc.exe',
+  paint:'mspaint.exe', explorer:'explorer.exe', files:'explorer.exe',
+  cmd:'cmd.exe', terminal:'wt.exe', settings:'ms-settings:',
+  spotify:'spotify', discord:'discord', chrome:'chrome',
+  firefox:'firefox', edge:'msedge', code:'code', vscode:'code',
+  steam:'steam', vlc:'vlc', word:'winword', excel:'excel',
+}
+
+async function launchApp(name) {
+  const n = name.toLowerCase().trim()
+  const exe = _APPS[n] || Object.entries(_APPS).find(([k])=>k.includes(n)||n.includes(k))?.[1]
+  await yoda.system({action:'open-app', value: exe || name})
+  respond('Opening ' + name + '.')
+}
+
+// ══ END CONFERENCE FEATURES ══════════════════════════════════════════════
 
 // ── START ─────────────────────────────────────────────
 if(document.readyState==='loading')

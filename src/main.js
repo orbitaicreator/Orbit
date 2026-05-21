@@ -90,7 +90,6 @@ let micStarted  = false  // prevent double-start from did-finish-load firing twi
 
 function findPythonScript(name) {
   const candidates = [
-    path.join(__dirname, '..', 'python', name),   // python/ subfolder
     path.join(__dirname, '..', name),
     path.join(process.resourcesPath || '', name),
     path.join(path.dirname(process.execPath), name),
@@ -447,7 +446,24 @@ ipcMain.handle('system', async (_, cmd) => {
       case 'media-play-pause': exec('powershell -WindowStyle Hidden -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]179)"', {windowsHide:true}); return 'Play/Pause.'
       case 'media-next':   exec('powershell -WindowStyle Hidden -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]176)"', {windowsHide:true}); return 'Next.'
       case 'media-prev':   exec('powershell -WindowStyle Hidden -Command "(New-Object -ComObject WScript.Shell).SendKeys([char]177)"', {windowsHide:true}); return 'Previous.'
-      case 'open-url': require('electron').shell.openExternal(cmd.value || 'https://google.com'); return 'Opening.'
+      case 'open-url': {
+        const url = cmd.value || 'https://google.com'
+        const zenPaths = [
+          'C:\\Program Files\\Zen Browser\\zen.exe',
+          process.env.LOCALAPPDATA + '\\Programs\\Zen Browser\\zen.exe',
+          process.env.LOCALAPPDATA + '\\Zen Browser\\zen.exe',
+        ]
+        const fs = require('fs')
+        let opened = false
+        for (const p of zenPaths) {
+          if (fs.existsSync(p)) {
+            require('child_process').exec(`"${p}" "${url}"`)
+            opened = true; break
+          }
+        }
+        if (!opened) require('electron').shell.openExternal(url)
+        return 'Opening.'
+      }
       case 'run-ps':   return await ps(cmd.value || 'echo ok')
       case 'check-internet':
         return await ps('Test-Connection -ComputerName 8.8.8.8 -Count 1 -Quiet')
