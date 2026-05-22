@@ -39,7 +39,17 @@
     "files": [
       "src/**/*",
       "assets/**/*",
-      "package.json"
+      "package.json",
+      "!node_modules/**/*.{map,md,ts,flow,txt}",
+      "!node_modules/**/test/**",
+      "!node_modules/**/tests/**",
+      "!node_modules/**/__tests__/**",
+      "!node_modules/**/docs/**",
+      "!node_modules/**/example/**",
+      "!node_modules/**/examples/**",
+      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
+      "!.editorconfig",
+      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS}"
     ],
     "extraResources": [
       {
@@ -60,7 +70,8 @@
       "owner": "yodaaicreator",
       "repo": "yoda",
       "releaseType": "release"
-    }
+    },
+    "compression": "maximum"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
