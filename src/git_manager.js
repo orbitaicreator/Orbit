@@ -236,7 +236,7 @@ class GitManager {
         tag_name:         tag,
         target_commitish: branch,
         name:             "Yoda " + tag,
-        body:             (process.env.RELEASE_NOTES || ("## Yoda " + tag + "\n\nDownload the installer below.")),
+        body:             "## Yoda " + tag + "\n\nDownload the installer below.",
         draft:            false,
         prerelease:       false
       })

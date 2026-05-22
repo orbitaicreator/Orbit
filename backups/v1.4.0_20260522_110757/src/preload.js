@@ -41,14 +41,6 @@ contextBridge.exposeInMainWorld('git', {
   onUpdateAvailable: cb  => ipcRenderer.on('update-available', (_, data) => cb(data)),
 })
 
-// ── Virtual Mouse bridge ──────────────────────────────
-contextBridge.exposeInMainWorld('vm', {
-  send:    cmd       => ipcRenderer.send('mouse-cmd', cmd),
-  do:      cmd       => ipcRenderer.invoke('mouse-send', cmd),
-  onClick: cb        => ipcRenderer.on('mouse-response', (_, d) => d.action==='click' && cb(d)),
-  onDone:  cb        => ipcRenderer.on('mouse-response', (_, d) => cb(d)),
-})
-
 // ── Updater bridge ────────────────────────────────────
 contextBridge.exposeInMainWorld('updater', {
   onUpdateAvailable:    cb => ipcRenderer.on('update-available',    (_, i) => cb(i)),

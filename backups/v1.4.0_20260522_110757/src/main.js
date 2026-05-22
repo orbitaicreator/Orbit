@@ -129,11 +129,10 @@ function startPythonMic(wakeWord = 'yoda', lang = 'en-US') {
       for (const raw of lines) {
         const msg = raw.trim()
         if (!msg || !win) continue
-        console.log('[Mic stdout]', msg)  // Log all mic output for debugging
         if (msg === 'WAKE')              win.webContents.send('mic-wake')
-        else if (msg === 'READY') {      win.webContents.send('mic-ready'); console.log('[Mic] Ready signal sent to renderer') }
-        else if (msg.startsWith('CMD:')) { win.webContents.send('mic-command', msg.slice(4).trim()); console.log('[Mic] Command sent:', msg.slice(4).trim()) }
-        else if (msg.startsWith('ERROR:')) console.log('[Mic] Error:', msg)
+        else if (msg === 'READY')        win.webContents.send('mic-ready')
+        else if (msg.startsWith('CMD:')) win.webContents.send('mic-command', msg.slice(4).trim())
+        else if (msg.startsWith('ERROR:')) console.log('[Mic]', msg)
       }
     })
 
@@ -277,7 +276,7 @@ function createWindow() {
   win.webContents.on('did-finish-load', () => {
     if (!micStarted) {
       micStarted = true
-      setTimeout(() => startPythonMic('yoda', 'en-US'), 3000)  // Give renderer time to register IPC listeners
+      setTimeout(() => startPythonMic('yoda', 'en-US'), 1500)
       setTimeout(() => startVirtualMouse(), 2000)
     }
     // Git manager
