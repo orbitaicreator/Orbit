@@ -88,11 +88,35 @@ git push origin ":refs/tags/v!NEW_VER!" >nul 2>&1
 git tag -a "v!NEW_VER!" -m "Release v!NEW_VER!"
 git push origin "v!NEW_VER!" >nul 2>&1
 
+
+:: ── Generate AI release notes ──────────────────────────────────────────
+echo  Generating release notes...
+
+:: Get last 10 commits
+for /f "tokens=*" %%c in ('git log -10 --oneline --no-merges 2^>nul') do (
+  set COMMITS=!COMMITS! %%c
+)
+
+:: Write node script to call Claude API
+echo const https=require('https'); > "%TEMP%\yoda_notes.js"
+echo const commits=process.argv[1]||'general updates'; >> "%TEMP%\yoda_notes.js"
+echo const apiKey=process.env.ANTHROPIC_API_KEY||''; >> "%TEMP%\yoda_notes.js"
+echo if(!apiKey){process.stdout.write('General updates and improvements.');process.exit(0)} >> "%TEMP%\yoda_notes.js"
+echo const body=JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:'Write 2-3 bullet points summarizing these git commits as user-friendly release notes. Be brief and focus on what changed for the user. Commits: '+commits}]}); >> "%TEMP%\yoda_notes.js"
+echo const req=https.request({hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey,'Content-Length':Buffer.byteLength(body)}},res=^>{let d='';res.on('data',c=^>d+=c);res.on('end',()=^>{try{const p=JSON.parse(d);process.stdout.write(p.content[0].text||'General updates.')}catch{process.stdout.write('General updates and improvements.')}})}); >> "%TEMP%\yoda_notes.js"
+echo req.on('error',()=^>process.stdout.write('General updates and improvements.')); >> "%TEMP%\yoda_notes.js"
+echo req.write(body);req.end(); >> "%TEMP%\yoda_notes.js"
+
+for /f "tokens=*" %%n in ('node "%TEMP%\yoda_notes.js" "!COMMITS!" 2^>nul') do set RELEASE_NOTES=%%n
+if "!RELEASE_NOTES!"=="" set RELEASE_NOTES=General updates and improvements.
+echo  Notes: !RELEASE_NOTES!
+
 :: Build
 echo  [5/5] Building installer...
 echo  (2-5 minutes)
 echo.
 set GH_TOKEN=!GH_TOKEN!
+set RELEASE_NOTES=!RELEASE_NOTES!
 call npm run dist
 if errorlevel 1 (echo  [ERROR] Build failed & pause & exit /b 1)
 

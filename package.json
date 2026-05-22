@@ -1,6 +1,6 @@
 {
   "name": "yoda",
-  "version": "1.0.24",
+  "version": "1.0.18",
   "description": "Yoda AI Assistant",
   "main": "src/main.js",
   "scripts": {
@@ -58,7 +58,8 @@
     "publish": {
       "provider": "github",
       "owner": "yodaaicreator",
-      "repo": "yoda"
+      "repo": "yoda",
+      "releaseType": "release"
     }
   },
   "dependencies": {
