@@ -83,6 +83,15 @@ if errorlevel 1 (
     pause & exit /b 1
 )
 
+:: Delete any existing draft release on GitHub with same tag
+echo  Cleaning up any draft releases...
+echo const https=require('https'); > "%TEMP%\yoda_del_draft.js"
+echo const tok=process.argv[1]; >> "%TEMP%\yoda_del_draft.js"
+echo function req(m,p,cb){const o={hostname:'api.github.com',path:p,method:m,headers:{'Authorization':'token '+tok,'User-Agent':'Yoda','Content-Type':'application/json'}};const r=https.request(o,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>cb(null,d))});r.on('error',cb);r.end()} >> "%TEMP%\yoda_del_draft.js"
+echo req('GET','/repos/yodaaicreator/yoda/releases',(e,d)=>{try{const rs=JSON.parse(d);const drafts=rs.filter(r=>r.draft||r.tag_name==='v'+process.argv[2]);drafts.forEach(r=>req('DELETE','/repos/yodaaicreator/yoda/releases/'+r.id,()=>{}))}catch{}}) >> "%TEMP%\yoda_del_draft.js"
+node "%TEMP%\yoda_del_draft.js" "!GH_TOKEN!" "!NEW_VER!" >nul 2>&1
+timeout /t 2 /nobreak >nul
+
 :: Tag
 git tag -d "v!NEW_VER!" >nul 2>&1
 git push origin ":refs/tags/v!NEW_VER!" >nul 2>&1

@@ -2005,8 +2005,454 @@ function flashOnWake(){
 
 // == END NEW CODE ==
 
+
+// == MORE FEATURES ==
+
+// 1. Spotify / YouTube quick search
+function playOn(service, query) {
+  var urls = {
+    spotify:  'https://open.spotify.com/search/' + encodeURIComponent(query),
+    youtube:  'https://www.youtube.com/results?search_query=' + encodeURIComponent(query),
+    soundcloud:'https://soundcloud.com/search?q=' + encodeURIComponent(query),
+  }
+  var url = urls[service] || urls.youtube
+  yoda.system({action:'open-url', value:url})
+  respond('Opening ' + service + ' for: ' + query)
+}
+
+// 2. Email composer — opens mailto link
+function composeEmail(to, subject, body) {
+  var mailto = 'mailto:' + (to||'') + '?subject=' + encodeURIComponent(subject||'') + '&body=' + encodeURIComponent(body||'')
+  yoda.system({action:'open-url', value:mailto})
+  respond('Opening email composer.')
+}
+
+// 3. QR code generator — opens online QR tool
+function generateQR(text) {
+  var url = 'https://qr.io/?text=' + encodeURIComponent(text)
+  yoda.system({action:'open-url', value:url})
+  respond('Opening QR code generator for: ' + text)
+}
+
+// 4. Sun rise/set for Horten Norway
+function getSunTimes() {
+  var now = new Date()
+  var month = now.getMonth()
+  // Approximate sunrise/sunset for Horten, Norway (59.4N)
+  var times = [
+    {rise:'09:15', set:'15:45'}, // Jan
+    {rise:'08:10', set:'17:05'}, // Feb
+    {rise:'06:45', set:'18:20'}, // Mar
+    {rise:'06:15', set:'20:35'}, // Apr
+    {rise:'05:05', set:'21:45'}, // May
+    {rise:'04:20', set:'22:30'}, // Jun
+    {rise:'04:45', set:'22:10'}, // Jul
+    {rise:'05:55', set:'20:55'}, // Aug
+    {rise:'07:10', set:'19:20'}, // Sep
+    {rise:'07:25', set:'17:40'}, // Oct
+    {rise:'08:40', set:'15:55'}, // Nov
+    {rise:'09:20', set:'15:20'}, // Dec
+  ]
+  var t = times[month]
+  respond('In Horten today — sunrise: ' + t.rise + ', sunset: ' + t.set + '.')
+}
+
+// 5. IP address lookup
+async function getMyIP() {
+  try {
+    var r = await yoda.system({action:'run-ps', value:'(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content'})
+    respond('Your public IP: ' + (r||'unknown').trim())
+  } catch(e) { respond('Could not get IP address.') }
+}
+
+// 6. Ping a website
+async function pingHost(host) {
+  try {
+    var r = await yoda.system({action:'run-ps', value:'$p=Test-Connection -ComputerName ' + host + ' -Count 1 -ErrorAction SilentlyContinue; if($p){"OK "+[math]::Round($p.ResponseTime)+"ms"}else{"No response"}'})
+    respond('Ping ' + host + ': ' + (r||'failed').trim())
+  } catch(e) { respond('Could not ping ' + host) }
+}
+
+// 7. Restart explorer (fixes frozen taskbar)
+async function restartExplorer() {
+  await yoda.system({action:'run-ps', value:'Stop-Process -Name explorer -Force; Start-Process explorer'}).catch(function(){})
+  respond('Explorer restarted. Taskbar should be back in a moment.')
+}
+
+// 8. Night mode — reduce brightness for evening
+async function nightMode() {
+  await yoda.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,30)'}).catch(function(){})
+  document.body.style.filter = 'brightness(0.8) sepia(0.2)'
+  respond('Night mode on. Screen dimmed.')
+}
+function nightModeOff() {
+  document.body.style.filter = ''
+  respond('Night mode off.')
+}
+
+// 9. Summarise clipboard text
+async function summariseClipboard() {
+  try {
+    var txt = await navigator.clipboard.readText()
+    if (!txt) return respond('Clipboard is empty.')
+    if (txt.length < 100) return respond('Text too short to summarise: ' + txt)
+    addMsg('s', 'Summarising...')
+    await queryAI('Summarise this in 2-3 sentences. Return only the summary: ' + txt.slice(0,1000))
+  } catch(e) { respond('Cannot access clipboard.') }
+}
+
+// 10. Random fact
+var _FACTS = [
+  'Honey never spoils. Archaeologists found 3000-year-old honey in Egyptian tombs.',
+  'A group of flamingos is called a flamboyance.',
+  'Bananas are technically berries, but strawberries are not.',
+  'The shortest war in history lasted 38 minutes — Anglo-Zanzibar War, 1896.',
+  'Cleopatra lived closer in time to the Moon landing than to the building of the Great Pyramid.',
+  'Oxford University is older than the Aztec Empire.',
+  'Norway was the first country to implement a carbon tax, in 1991.',
+  'A day on Venus is longer than a year on Venus.',
+  'The total weight of all ants on Earth equals the weight of all humans.',
+  'Wombat droppings are cube-shaped.',
+  'The human brain generates about 23 watts of electricity when awake.',
+  'Norway has the worlds longest road tunnel at 24.5km — the Laerdal Tunnel.',
+]
+function randomFact() {
+  respond(_FACTS[Math.floor(Math.random()*_FACTS.length)])
+}
+
+// 11. Schedule a message (show at a time)
+function scheduleMessage(message, minutes) {
+  var mins = parseInt(minutes) || 5
+  setTimeout(function() {
+    addMsg('y', 'Scheduled: ' + message)
+    if (!whisperMode) speak(message)
+  }, mins * 60000)
+  respond('Message scheduled in ' + mins + ' minutes.')
+}
+
+// 12. Hotkey help — show keyboard shortcuts
+function showHotkeys() {
+  respond('Keyboard shortcuts: Ctrl+Enter sends message. Ctrl+Plus increases font. Ctrl+Minus decreases font. Escape closes settings. Double-click orb toggles sidebar.')
+}
+
+// 13. Clear chat
+function clearChat() {
+  chatLog.length = 0
+  var c = el('chat')
+  if (c) c.innerHTML = ''
+  try { localStorage.removeItem('yoda_chat_backup') } catch(e) {}
+  addMsg('y', 'Chat cleared.')
+}
+
+// 14. Show all shortcuts in sidebar
+function listShortcuts() {
+  var sb = el('shortcuts-list') || el('sb-shortcuts')
+  if (sb) sb.scrollIntoView({behavior:'smooth'})
+  respond('Scrolling to shortcuts in sidebar.')
+}
+
+// 15. Math: percentage calculator
+function calcPercentage(value, percent) {
+  var v = parseFloat(value), p = parseFloat(percent)
+  if (isNaN(v)||isNaN(p)) return null
+  return parseFloat((v * p / 100).toFixed(2))
+}
+
+// == END MORE FEATURES ==
+
+
+// == PRACTICAL DAILY FEATURES ==
+
+function showTodos() {
+  try {
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
+    if (!todos.length) return respond('No tasks yet. Say "add task buy milk" to add one.')
+    var pending = todos.filter(function(t){return !t.done})
+    var msg = pending.length + ' task' + (pending.length!==1?'s':'') + ' pending'
+    if (pending.length) msg += ': ' + pending.slice(0,5).map(function(t,i){return (i+1)+'. '+t.text}).join('. ')
+    respond(msg)
+  } catch(e) { respond('Could not load tasks.') }
+}
+function addTodo(text) {
+  if (!text) return respond('What task should I add?')
+  try {
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
+    todos.push({text:text,done:false,id:Date.now()})
+    localStorage.setItem('yoda_todos',JSON.stringify(todos))
+    respond('Task added: '+text)
+  } catch(e) { respond('Could not add task.') }
+}
+function completeTodo(query) {
+  try {
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
+    var idx = parseInt(query)-1
+    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('yoda_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
+    var found = todos.find(function(t){return t.text.toLowerCase().includes(query.toLowerCase())})
+    if (found) { found.done=true; localStorage.setItem('yoda_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
+    respond('Task not found.')
+  } catch(e) { respond('Could not update task.') }
+}
+function clearDoneTodos() {
+  try {
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
+    localStorage.setItem('yoda_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
+    respond('Cleared completed tasks.')
+  } catch(e) {}
+}
+
+function convertCurrency(amount, from, to) {
+  var rates = {usd:1,eur:0.92,gbp:0.79,nok:10.8,sek:10.4,dkk:6.88,jpy:149,cad:1.36,aud:1.53,chf:0.88,cny:7.24,inr:83.1,brl:4.97,sgd:1.34,hkd:7.82,nzd:1.63}
+  var f=from.toLowerCase(), t2=to.toLowerCase()
+  if (!rates[f]) return respond('Unknown currency: '+from+'. Try USD EUR GBP NOK SEK JPY etc.')
+  if (!rates[t2]) return respond('Unknown currency: '+to)
+  var result = (parseFloat(amount)/rates[f]*rates[t2]).toFixed(2)
+  respond(amount+' '+from.toUpperCase()+' = '+result+' '+to.toUpperCase())
+}
+
+async function scheduleShutdown(minutes) {
+  var mins = parseInt(minutes)||0
+  await yoda.system({action:'run-ps', value:'shutdown /s /t '+(mins*60)}).catch(function(){})
+  respond(mins>0 ? 'Shutting down in '+mins+' minutes.' : 'Shutting down now.')
+}
+async function cancelShutdown() {
+  await yoda.system({action:'run-ps', value:'shutdown /a'}).catch(function(){})
+  respond('Shutdown cancelled.')
+}
+async function scheduleRestart(minutes) {
+  var mins = parseInt(minutes)||0
+  await yoda.system({action:'run-ps', value:'shutdown /r /t '+(mins*60)}).catch(function(){})
+  respond(mins>0 ? 'Restarting in '+mins+' minutes.' : 'Restarting now.')
+}
+
+function speakTime() {
+  var now=new Date(), h=now.getHours(), m=now.getMinutes()
+  var h12=h%12||12, ampm=h<12?'AM':'PM'
+  var mStr=m===0?"o'clock":m<10?'oh '+m:String(m)
+  respond('It is '+h12+' '+mStr+' '+ampm+'.')
+}
+
+var _expenses = []
+function logExpense(amount, category) {
+  var amt=parseFloat(amount)
+  if (isNaN(amt)) return respond('How much was it?')
+  _expenses.push({amount:amt,category:category||'general',time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})})
+  var total=_expenses.reduce(function(s,e){return s+e.amount},0)
+  respond('Logged '+amt.toFixed(2)+' on '+(category||'general')+'. Total today: '+total.toFixed(2)+'.')
+}
+function showExpenses() {
+  if (!_expenses.length) return respond('No expenses logged. Say "spent 50 on coffee" to start.')
+  var total=_expenses.reduce(function(s,e){return s+e.amount},0)
+  var bd={}; _expenses.forEach(function(e){bd[e.category]=(bd[e.category]||0)+e.amount})
+  respond('Today: '+total.toFixed(2)+' total. '+Object.entries(bd).map(function(kv){return kv[0]+': '+kv[1].toFixed(0)}).join(', '))
+}
+
+async function listOpenWindows() {
+  try {
+    var r = await yoda.system({action:'run-ps', value:'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -First 6 -ExpandProperty MainWindowTitle'})
+    if (!r||!r.trim()) return respond('Could not list windows.')
+    var wins=r.trim().split('\n').filter(function(l){return l.trim()}).slice(0,6)
+    respond('Open: '+wins.join(', '))
+  } catch(e) { respond('Could not list windows.') }
+}
+
+function openTranslate(text, to) {
+  var url='https://translate.google.com/?sl=auto&tl='+(to||'en')+'&text='+encodeURIComponent(text)+'&op=translate'
+  yoda.system({action:'open-url',value:url})
+  respond('Opening Google Translate.')
+}
+
+async function typeText(text) {
+  try {
+    await navigator.clipboard.writeText(text)
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Milliseconds 400; [System.Windows.Forms.SendKeys]::SendWait("^v")'})
+    respond('Typed: '+text.slice(0,40)+(text.length>40?'...':''))
+  } catch(e) { respond('Could not type text.') }
+}
+
+function answerQuiz(ans) {
+  if (!_quizAnswer) return false
+  var correct = ans.trim()===_quizAnswer
+  respond(correct?'Correct! Well done.':'Not quite. The answer is '+_quizAnswer+'.')
+  _quizAnswer=null; return true
+}
+
+// == END PRACTICAL FEATURES ==
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// MULTI-COMMAND CHAIN ENGINE
+// Splits "open youtube, search cats, like the video" into sequential steps
+// ══════════════════════════════════════════════════════════════════════════
+
+var _chainQueue = []
+var _chainRunning = false
+var _lastOpenedSite = ''  // tracks which site was last opened in a chain
+
+// Search URL builders for common sites
+var _SITE_SEARCH = {
+  youtube:    function(q){ return 'https://www.youtube.com/results?search_query='+encodeURIComponent(q) },
+  pinterest:  function(q){ return 'https://www.pinterest.com/search/pins/?q='+encodeURIComponent(q) },
+  google:     function(q){ return 'https://www.google.com/search?q='+encodeURIComponent(q) },
+  amazon:     function(q){ return 'https://www.amazon.com/s?k='+encodeURIComponent(q) },
+  reddit:     function(q){ return 'https://www.reddit.com/search/?q='+encodeURIComponent(q) },
+  twitter:    function(q){ return 'https://twitter.com/search?q='+encodeURIComponent(q) },
+  instagram:  function(q){ return 'https://www.instagram.com/explore/tags/'+encodeURIComponent(q.replace(/ /g,'')) },
+  spotify:    function(q){ return 'https://open.spotify.com/search/'+encodeURIComponent(q) },
+  netflix:    function(q){ return 'https://www.netflix.com/search?q='+encodeURIComponent(q) },
+  twitch:     function(q){ return 'https://www.twitch.tv/search?term='+encodeURIComponent(q) },
+  github:     function(q){ return 'https://github.com/search?q='+encodeURIComponent(q) },
+  ebay:       function(q){ return 'https://www.ebay.com/sch/i.html?_nkw='+encodeURIComponent(q) },
+  walmart:    function(q){ return 'https://www.walmart.com/search?q='+encodeURIComponent(q) },
+  maps:       function(q){ return 'https://www.google.com/maps/search/'+encodeURIComponent(q) },
+  wikipedia:  function(q){ return 'https://en.wikipedia.org/wiki/Special:Search/'+encodeURIComponent(q) },
+  imdb:       function(q){ return 'https://www.imdb.com/find?q='+encodeURIComponent(q) },
+}
+
+// Detect which site a URL/name refers to
+function detectSite(text) {
+  var tl = text.toLowerCase()
+  if (/youtube|yt/i.test(tl))    return 'youtube'
+  if (/pinterest|pintrest/i.test(tl)) return 'pinterest'  // fix common typo
+  if (/amazon/i.test(tl))        return 'amazon'
+  if (/reddit/i.test(tl))        return 'reddit'
+  if (/twitter|x\.com/i.test(tl)) return 'twitter'
+  if (/instagram|insta/i.test(tl)) return 'instagram'
+  if (/spotify/i.test(tl))       return 'spotify'
+  if (/netflix/i.test(tl))       return 'netflix'
+  if (/twitch/i.test(tl))        return 'twitch'
+  if (/github/i.test(tl))        return 'github'
+  if (/ebay/i.test(tl))          return 'ebay'
+  if (/walmart/i.test(tl))       return 'walmart'
+  if (/maps|google maps/i.test(tl)) return 'maps'
+  if (/wikipedia/i.test(tl))     return 'wikipedia'
+  if (/imdb/i.test(tl))          return 'imdb'
+  if (/google/i.test(tl))        return 'google'
+  return null
+}
+
+// Context-aware search — uses last opened site if no site mentioned
+function contextSearch(query) {
+  var site = _lastOpenedSite || 'google'
+  var builder = _SITE_SEARCH[site] || _SITE_SEARCH.google
+  var url = builder(query)
+  yoda.system({action:'open-url', value:url})
+  respond('Searching ' + site + ' for: ' + query)
+}
+
+// Split a sentence into individual commands
+function parseChain(text) {
+  // Split on: comma, "and then", "then", "after that", "also", semicolon
+  var parts = text
+    .split(/,|;|and then|then|after that|also|next/i)
+    .map(function(p){ return p.trim() })
+    .filter(function(p){ return p.length > 1 })
+  return parts
+}
+
+// Run a chain of commands sequentially with a delay between each
+async function runChain(commands) {
+  if (_chainRunning) {
+    addMsg('s', 'Already running a chain. Say "stop chain" to cancel.')
+    return
+  }
+  _chainQueue = commands.slice()
+  _chainRunning = true
+  addMsg('y', 'Running ' + _chainQueue.length + ' commands in sequence.')
+
+  for (var ci = 0; ci < commands.length; ci++) {
+    if (!_chainRunning) break
+    var cmd = commands[ci].trim()
+    if (!cmd) continue
+    addMsg('s', 'Step ' + (ci+1) + '/' + commands.length + ': ' + cmd)
+    await dispatch(cmd)
+    // Wait between steps — enough time for apps/pages to open
+    await new Promise(function(res){ setTimeout(res, 1200) })
+  }
+
+  _chainRunning = false
+  _chainQueue = []
+  if (commands.length > 1) addMsg('y', 'All ' + commands.length + ' commands done.')
+}
+
+function stopChain() {
+  _chainRunning = false
+  _chainQueue = []
+  respond('Chain stopped.')
+}
+
+// Detect if input is a multi-command (has connectors or 2+ commas)
+function isChainCommand(text) {
+  var commas = (text.match(/,/g)||[]).length
+  var hasConnector = /and then|then|after that|also do/i.test(text)
+  return commas >= 1 || hasConnector
+}
+
+// ── Browser automation helpers (uses virtual mouse) ───────────────────────
+
+// Click a button on the active window by searching for it
+async function browserClick(label) {
+  try {
+    // Use PowerShell to find and click UI element
+    var ps = 'Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes; $root=[System.Windows.Automation.AutomationElement]::RootElement; $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,"' + label + '"); $el=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond); if($el){$inv=$el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern);$inv.Invoke();"clicked"}else{"not found"}'
+    var r = await yoda.system({action:'run-ps', value:ps})
+    return r && r.includes('clicked')
+  } catch(e) { return false }
+}
+
+// YouTube specific automation
+async function youtubeAction(action) {
+  var actions = {
+    like:       'like this video',
+    subscribe:  'Subscribe',
+    dislike:    'dislike this video',
+    save:       'Save',
+    share:      'Share',
+  }
+  var selector = actions[action.toLowerCase()]
+  if (!selector) return respond('Unknown YouTube action: ' + action)
+
+  // Use keyboard shortcut where possible
+  var shortcuts = { like:'l', dislike:'d' }
+  if (shortcuts[action.toLowerCase()]) {
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("' + shortcuts[action.toLowerCase()] + '")'})
+    return respond('YouTube: ' + action + '.')
+  }
+
+  // Otherwise use mouse to find button
+  var found = await browserClick(selector)
+  respond(found ? 'YouTube: ' + action + '.' : 'Could not find ' + action + ' button. Make sure YouTube is open.')
+}
+
+// Share via WhatsApp Web
+async function shareToWhatsApp(contact, message) {
+  var msg = message || ''
+  var url = 'https://wa.me/?text=' + encodeURIComponent((contact ? 'For ' + contact + ': ' : '') + msg)
+  await yoda.system({action:'open-url', value:url})
+  respond('Opening WhatsApp to share' + (contact ? ' with ' + contact : '') + '.')
+}
+
+// Copy current URL from browser
+async function copyCurrentURL() {
+  try {
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("^l"); Start-Sleep -Milliseconds 300; [System.Windows.Forms.SendKeys]::SendWait("^c")'})
+    await new Promise(function(res){setTimeout(res, 500)})
+    var url = await navigator.clipboard.readText()
+    return url
+  } catch(e) { return '' }
+}
+
+// ══ END CHAIN ENGINE ══════════════════════════════════════════════════════
+
 async function dispatch(text) {
   _lastCommand = text
+
+  // ── Multi-command chain detection ──────────────────────────────────────
+  if (isChainCommand(text)) {
+    var chainParts = parseChain(text)
+    if (chainParts.length >= 2) {
+      return runChain(chainParts)
+    }
+  }
   let normalized = text.toLowerCase().trim()
 
   // ── Vosk normalization — 100+ corrections ─────────────────────────────
@@ -2687,14 +3133,128 @@ async function dispatch(text) {
   if (/note word count|how many notes/i.test(t))         return noteWordCount()
   if (checkQuickResponse(t)) return
 
+  // More features
+  if (/play .+ on spotify|spotify .+/i.test(t)){
+    var _sq=t.replace(/play|on spotify|spotify/gi,'').trim()
+    return playOn('spotify',_sq)
+  }
+  if (/play .+ on youtube|youtube .+/i.test(t)){
+    var _yq=t.replace(/play|on youtube|youtube/gi,'').trim()
+    return playOn('youtube',_yq)
+  }
+  if (/compose email|new email|write email/i.test(t))    return composeEmail('','','')
+  if (/generate qr|qr code for/i.test(t)){
+    var _qr=t.replace(/generate qr code for|qr code for|generate qr/i,'').trim()
+    return generateQR(_qr||'https://github.com/yodaaicreator/yoda')
+  }
+  if (/sunrise|sunset|sun times/i.test(t))              return getSunTimes()
+  if (/my ip|ip address|public ip/i.test(t))            return getMyIP()
+  if (/ping (.+)/i.test(t)){
+    var _ph=t.match(/ping (.+)/i)
+    return pingHost(_ph[1].trim())
+  }
+  if (/restart explorer|fix taskbar|taskbar frozen/i.test(t)) return restartExplorer()
+  if (/night mode on|enable night mode/i.test(t))       return nightMode()
+  if (/night mode off|disable night mode/i.test(t))     return nightModeOff()
+  if (/summarise clipboard|summarize clipboard|sum up clipboard/i.test(t)) return summariseClipboard()
+  if (/random fact|tell me a fact|fun fact/i.test(t))   return randomFact()
+  if (/schedule .+ in \d/i.test(t)){
+    var _sm=t.match(/schedule (.+) in (\d+)/i)
+    if (_sm) return scheduleMessage(_sm[1].trim(),_sm[2])
+  }
+  if (/keyboard shortcuts|hotkeys|shortcuts help/i.test(t)) return showHotkeys()
+  if (/clear chat|wipe chat|delete chat/i.test(t))      return clearChat()
+  if (/(\d+\.?\d*)\s*percent(age)? of (\d+\.?\d*)/i.test(t)){
+    var _pm=t.match(/(\d+\.?\d*)\s*percent(?:age)? of (\d+\.?\d*)/i)
+    if (_pm){
+      var _pv=calcPercentage(_pm[2],_pm[1])
+      return respond(_pm[1]+'% of '+_pm[2]+' is '+_pv+'.')
+    }
+  }
+
+  // Practical features
+  if (/show tasks|my tasks|task list|show todos/i.test(t)) return showTodos()
+  if (/add task |new task /i.test(t)){var _at=t.replace(/add task|new task/i,'').trim();return addTodo(_at)}
+  if (/done task |complete task |mark done/i.test(t)){var _ct=t.replace(/done task|complete task|mark done/i,'').trim();return completeTodo(_ct)}
+  if (/clear done|remove done tasks/i.test(t)) return clearDoneTodos()
+  if (/(\d+\.?\d*)\s+([a-z]{3})\s+(?:to|in)\s+([a-z]{3})\b/i.test(t)){
+    var _cm=t.match(/(\d+\.?\d*)\s+([a-z]{3})\s+(?:to|in)\s+([a-z]{3})/i)
+    if(_cm) return convertCurrency(_cm[1],_cm[2],_cm[3])
+  }
+  if (/shut down|shutdown|turn off pc/i.test(t)){var _sdm=t.match(/(\d+)\s*min/i);return scheduleShutdown(_sdm?_sdm[1]:0)}
+  if (/cancel shutdown|abort shutdown/i.test(t)) return cancelShutdown()
+  if (/restart pc|reboot|restart computer/i.test(t)){var _rsm=t.match(/(\d+)\s*min/i);return scheduleRestart(_rsm?_rsm[1]:0)}
+  if (/^(what time|time now|tell me the time)[?.]?$/i.test(t)) return speakTime()
+  if (/i spent |spent |i paid |cost me /i.test(t)){var _em=t.match(/(\d+\.?\d*)/),_ec=t.replace(/.*\d+\.?\d*\s*(?:kr|nok)?\s*(?:on)?/i,'').trim();if(_em)return logExpense(_em[1],_ec||'general')}
+  if (/show expenses|my expenses|spending/i.test(t)) return showExpenses()
+  if (/list windows|whats open|what is open/i.test(t)) return listOpenWindows()
+  if (/translate (.+) to (\w+)/i.test(t)){var _tm2=t.match(/translate (.+) to (\w+)/i);var _tl={'norwegian':'no','english':'en','spanish':'es','french':'fr','german':'de','italian':'it','japanese':'ja'};return openTranslate(_tm2[1],_tl[_tm2[2].toLowerCase()]||_tm2[2])}
+  if (/^type /i.test(t)){var _tt=t.replace(/^type\s*/i,'').trim();if(_tt)return typeText(_tt)}
+  if (_quizAnswer&&/^\d+$/.test(t.trim())){if(answerQuiz(t.trim()))return}
+
+  // Context search: "search X on YouTube" / "search X" uses last site
+  if (/search .+ on (\w+)/i.test(text)) {
+    var _son = text.match(/search (.+) on (\w+)/i)
+    if (_son) {
+      var _ssite = detectSite(_son[2])
+      if (_ssite) {
+        _lastOpenedSite = _ssite
+        var _builder = _SITE_SEARCH[_ssite] || _SITE_SEARCH.google
+        yoda.system({action:'open-url', value:_builder(_son[1].trim())})
+        return respond('Searching ' + _son[2] + ' for: ' + _son[1].trim())
+      }
+    }
+  }
+
+    // Chain control
+  if (/stop chain|cancel chain|abort chain/i.test(t)) return stopChain()
+
+  // YouTube actions
+  if (/like (the |this |the video|video)?/i.test(t) && !/i (like|liked)/i.test(t)) return youtubeAction('like')
+  if (/dislike (the |this |the video)?/i.test(t)) return youtubeAction('dislike')
+  if (/subscribe/i.test(t) && !/unsubscribe/i.test(t))                return youtubeAction('subscribe')
+  if (/unsubscribe/i.test(t))                                          return youtubeAction('unsubscribe')
+  if (/share (the |this |the video)?(?:to|on|via)?/i.test(t)) {
+    var _shareTarget = t.replace(/share (the |this |the video)?(?:to|on|via)?/i,'').trim()
+    if (/whatsapp/i.test(_shareTarget)) {
+      var _url = await copyCurrentURL()
+      return shareToWhatsApp('', _url || window.location.href)
+    }
+    return youtubeAction('share')
+  }
+  if (/send (to|video to) (.+) on whatsapp/i.test(t)) {
+    var _wm = t.match(/send (?:to|video to) (.+?) on whatsapp/i)
+    var _url2 = await copyCurrentURL()
+    return shareToWhatsApp(_wm?_wm[1].trim():'', _url2)
+  }
+  if (/send (the video|it|this) to (.+)/i.test(t)) {
+    var _sm = t.match(/send (?:the video|it|this) to (.+)/i)
+    var _url3 = await copyCurrentURL()
+    return shareToWhatsApp(_sm?_sm[1].trim():'', _url3)
+  }
+  if (/copy (the )?(url|link|video link)/i.test(t)) {
+    var _cu = await copyCurrentURL()
+    return respond(_cu ? 'URL copied: ' + _cu.slice(0,60) : 'Could not copy URL.')
+  }
+
   if (/focus mode|start focus/i.test(t)) {
     const _m = text.match(/(\d+)\s*min/i)
     return startFocus(_m ? parseInt(_m[1]) : 25)
   }
   if (/pomodoro/i.test(t))               return startPomodoro()
   if (/stop focus|focus off/i.test(t))   return stopFocus()
-  if (/^search( for)? .+/i.test(text))   return webSearch(text.replace(/^search( for)? /i,'').trim())
-  if (/^(google|find) .+/i.test(text))   return webSearch(text.replace(/^(google|find) /i,'').trim())
+  if (/^search( for)? .+/i.test(text)) {
+    var _sq2 = text.replace(/^search( for)? /i,'').trim()
+    // If query mentions a site, set context and search there
+    var _sqSite = detectSite(_sq2)
+    if (_sqSite) { _lastOpenedSite = _sqSite; _sq2 = _sq2.replace(new RegExp(_sqSite,'i'),'').trim() }
+    return contextSearch(_sq2)
+  }
+  if (/^(google|find|look up) .+/i.test(text)) {
+    var _gq = text.replace(/^(google|find|look up) /i,'').trim()
+    _lastOpenedSite = 'google'
+    return contextSearch(_gq)
+  }
   if (/read clipboard/i.test(t))         return readClipboard()
   if (/improve clipboard/i.test(t))      return improveClipboard()
   if (/^(hi|hello|hey|howdy)[.!]?$/i.test(t)) return respond(getGreeting())
@@ -3049,7 +3609,6 @@ function addMsg(type, text) {
     c.scrollTop = c.scrollHeight
   saveChatLog()
 }
-function clearChat(){const c=el('chat');if(c)c.innerHTML='';addMsg('s','Chat cleared.')}
 function updateHist(){
   const h=el('sb-hist'); if(!h||!histList)return; h.innerHTML=''
   histList.slice(0,6).forEach(t=>{
@@ -3343,15 +3902,6 @@ function loadTodos() {
 }
 function saveTodos() {
   try { localStorage.setItem('yoda_todos', JSON.stringify(todos||[])) } catch{}
-}
-function addTodo() {
-  const inp = el('todo-inp'); if (!inp) return
-  const text = inp.value.trim(); if (!text) return
-  todos.unshift({text, done:false, id:Date.now()})
-  inp.value = ''
-  saveTodos()
-  renderTodos()
-  addMsg('s', 'Task added: '+text)
 }
 function renderTodos() {
   const e = el('sb-todo'); if (!e) return
