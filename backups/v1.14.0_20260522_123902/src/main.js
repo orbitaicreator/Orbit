@@ -450,53 +450,6 @@ ipcMain.handle('git-set-remote', (_,url,tok)=> gitManager ? gitManager.setRemote
 ipcMain.handle('git-update',     ()         => gitManager ? gitManager.update()           : { success:false })
 
 // ── IPC: System commands ──────────────────────────────
-
-// ── AI API handler (bypasses CORS) ──────────────────────────────────────
-ipcMain.handle('ai-chat', async (_, { messages, system }) => {
-  try {
-    const apiKey = await loadApiKey()
-    if (!apiKey) return { error: 'no_key' }
-
-    const https = require('https')
-    const body  = JSON.stringify({
-      model: 'claude-haiku-4-5-20251001',
-      max_tokens: 200,
-      system: system || '',
-      messages: messages || []
-    })
-
-    return new Promise((resolve) => {
-      const req = https.request({
-        hostname: 'api.anthropic.com',
-        path: '/v1/messages',
-        method: 'POST',
-        headers: {
-          'Content-Type':      'application/json',
-          'x-api-key':         apiKey,
-          'anthropic-version': '2023-06-01',
-          'Content-Length':    Buffer.byteLength(body)
-        }
-      }, res => {
-        let data = ''
-        res.on('data', c => data += c)
-        res.on('end', () => {
-          try {
-            const p = JSON.parse(data)
-            if (p.content && p.content[0]) resolve({ text: p.content[0].text })
-            else resolve({ error: p.error?.message || 'no content' })
-          } catch(e) { resolve({ error: e.message }) }
-        })
-      })
-      req.on('error', e => resolve({ error: e.message }))
-      req.setTimeout(10000, () => { req.destroy(); resolve({ error: 'timeout' }) })
-      req.write(body)
-      req.end()
-    })
-  } catch(e) {
-    return { error: e.message }
-  }
-})
-
 ipcMain.handle('system', async (_, cmd) => {
   try {
     switch (cmd.action) {

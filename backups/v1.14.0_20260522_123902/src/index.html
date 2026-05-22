@@ -1127,30 +1127,6 @@ input,select,textarea{font-family:inherit}
     </div>
     <div class="sg">
       
-
-    <div class="sg">
-      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">PERFORMANCE</label>
-      <label class="sl" style="margin-top:8px">Response Mode</label>
-      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-        <button class="sbt" id="perf-bad"    onclick="setPerformance('bad')"    >Bad</button>
-        <button class="sbt" id="perf-good"   onclick="setPerformance('good')"   >Good</button>
-        <button class="sbt" id="perf-better" onclick="setPerformance('better')" >Better</button>
-        <button class="sbt" id="perf-best"   onclick="setPerformance('best')"   >Best</button>
-      </div>
-      <div id="perf-desc" style="margin-top:6px;font-size:11px;color:#5a9a5a">Good — balanced.</div>
-      <label class="sl" style="margin-top:12px">Reply Speed</label>
-      <input type="range" class="sr" id="sperf-speed" min="0" max="300" value="180"
-        oninput="setResponseDelay(this.value)">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:#446644;margin-top:2px">
-        <span>Instant</span><span>Natural</span><span>Slow</span>
-      </div>
-      <label class="sl" style="margin-top:12px">Search Speed</label>
-      <div style="display:flex;gap:6px;margin-top:6px">
-        <button class="sbt" id="search-fast"   onclick="setSearchSpeed('fast')"  >Fast</button>
-        <button class="sbt" id="search-normal" onclick="setSearchSpeed('normal')">Normal</button>
-        <button class="sbt" id="search-slow"   onclick="setSearchSpeed('slow')"  >Slow</button>
-      </div>
-    </div>
     <div style="height:16px"></div>
   </div>
 
@@ -1792,7 +1768,6 @@ function startApp() {
   loadTodos()
   refreshNotesUI()
   setTimeout(greet, 400)
-  setTimeout(loadPerfSettings, 100)
 
   yoda.on('oe-press', () => {
     // FIX: Do not trigger if user is typing in any input/textarea
@@ -2487,67 +2462,68 @@ var _yodaMemory = (function() {
 })()
 
 var _sessionQueries = []
+var _sessionCount = parseInt(localStorage.getItem('yoda_session_count')||'0') + 1
+localStorage.setItem('yoda_session_count', _sessionCount)
 
-// == ADAPTIVE PERSONALITY ==
-var _persona = (function(){try{return JSON.parse(localStorage.getItem('yoda_persona')||'{}')}catch(e){return {}}})()
-_persona.humor=_persona.humor||0; _persona.sarcasm=_persona.sarcasm||0
-_persona.detail=_persona.detail||0; _persona.casual=_persona.casual||0
-_persona.totalMsgs=_persona.totalMsgs||0
-
-var _sessionCount=parseInt(localStorage.getItem('yoda_session_count')||'0')+1
-localStorage.setItem('yoda_session_count',_sessionCount)
-
-function _savePersona(){try{localStorage.setItem('yoda_persona',JSON.stringify(_persona))}catch(e){}}
-function _clamp(v){return Math.max(0,Math.min(100,v))}
-
-function _learnFromQuery(query){
-  var tl=query.toLowerCase()
-  _persona.totalMsgs++
-  if(/joke|funny|humor|lol|haha|roast|laugh/i.test(tl))  _persona.humor=_clamp(_persona.humor+5)
-  if(/sarcasm|sarcastic|savage|roast/i.test(tl))          _persona.sarcasm=_clamp(_persona.sarcasm+5)
-  if(/^(yo|sup|hey|bruh|dude|bro|lol|wtf)/i.test(tl))    _persona.casual=_clamp(_persona.casual+3)
-  if(/explain|tell me more|how does|details/i.test(tl))   _persona.detail=_clamp(_persona.detail+3)
-  if(/^(nice|cool|awesome|great|love it|haha|lol|good one)[.!]?$/i.test(tl)) _persona.humor=_clamp(_persona.humor+2)
-  if(/^(bad|boring|not funny|awful|that sucked)[.!]?$/i.test(tl))            _persona.humor=_clamp(_persona.humor-3)
-  _savePersona()
+// Personality shifts based on usage
+var _personality = {
+  // Unlocked after X sessions
+  casual:    _sessionCount > 3,   // gets more casual
+  sarcastic: _sessionCount > 10,  // slight sarcasm
+  proactive: _sessionCount > 5,   // offers suggestions
+  verbose:   _sessionCount > 20,  // more detailed
 }
 
-function _getPersonalityPrompt(){
-  var p=["You are Yoda, a personal AI desktop assistant built by Kristian from Horten Norway.",
-    "Keep responses SHORT 1 to 3 sentences max unless asked for more.",
-    "No markdown no bullet points no emojis. Plain text only.",
-    "Never say I am just an AI."]
-  if(_persona.humor>60)       p.push("You are very funny and witty. Add humour naturally to most responses.")
-  else if(_persona.humor>30)  p.push("You have a dry wit. Drop jokes occasionally.")
-  else                         p.push("Be direct and professional.")
-  if(_persona.sarcasm>50)     p.push("Be delightfully sarcastic sharp but not mean.")
-  if(_persona.casual>50)      p.push("Be very casual. Short words. Match the users vibe.")
-  else if(_persona.casual<20) p.push("Be clear and professional.")
-  if(_persona.detail>50)      p.push("The user likes detail. Be thorough when warranted.")
-  else                         p.push("Get to the point fast.")
-  if(_sessionCount>20)        p.push("You know this user well. Be personal.")
-  else if(_sessionCount>5)    p.push("You are getting to know this user. Be friendly.")
-  p.push("Time: "+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))
-  return p.join(' ')
+function _learnFromQuery(query) {
+  // Track what topics user asks about
+  _sessionQueries.push(query)
+  var tl = query.toLowerCase()
+  // Category detection
+  var cats = {
+    music:    /spotify|music|song|play|artist/i.test(tl),
+    tech:     /code|program|javascript|python|computer|pc|cpu|gpu/i.test(tl),
+    weather:  /weather|rain|sunny|temperature/i.test(tl),
+    games:    /game|minecraft|fortnite|steam|gaming/i.test(tl),
+    news:     /news|today|latest|current/i.test(tl),
+  }
+  Object.entries(cats).forEach(function(kv) {
+    if (kv[1]) {
+      _yodaMemory[kv[0]] = (_yodaMemory[kv[0]]||0) + 1
+    }
+  })
+  try { localStorage.setItem('yoda_learned', JSON.stringify(_yodaMemory)) } catch(e) {}
 }
 
-function _getPersonalityGreeting(){
-  var h=new Date().getHours(),tod=h<12?'morning':h<17?'afternoon':'evening'
-  if(_sessionCount===1) return 'Good '+tod+'. I am Yoda your personal AI assistant. Say anything to get started.'
-  if(_persona.humor>60) return pick(['Back again. I missed you. Not really but welcome back.','Oh good you are here. My processors were getting bored.','The legend returns. What chaos shall we cause today?','You again. I suppose I can make time.'])
-  if(_persona.sarcasm>50) return pick(['Oh great you are back. Lucky me.','Wow. You showed up. I am shocked.','Another day another set of questions.'])
-  if(_persona.casual>50) return pick(['Hey.','Yo.','Sup.','Back again. What do you need?'])
-  return pick(['Good '+tod+'. Ready when you are.','Back online. What do you need?','Ready. What is on your mind?'])
+function _getPersonalityGreeting() {
+  var h = new Date().getHours()
+  var session = _sessionCount
+  // New user
+  if (session <= 1) {
+    var tod = h<12?'morning':h<17?'afternoon':'evening'
+    return 'Good ' + tod + '. I am Yoda — your personal AI assistant. Type or say a command to get started.'
+  }
+  // Regular user
+  if (session <= 5) {
+    return ['Good to see you again.','Back again. What do you need?','Ready when you are.'][Math.floor(Math.random()*3)]
+  }
+  // Power user
+  if (session > 10) {
+    var top = Object.entries(_yodaMemory).sort(function(a,b){return b[1]-a[1]})[0]
+    if (top) return 'Welcome back. Shall we talk ' + top[0] + ' again?'
+  }
+  return ['Hey.','Back again.','Ready.','What are we doing today?'][Math.floor(Math.random()*4)]
 }
 
-function showPersonality(){
-  respond('Humor: '+_persona.humor+'/100, Sarcasm: '+_persona.sarcasm+'/100, Casual: '+_persona.casual+'/100, Detail: '+_persona.detail+'/100. Session '+_sessionCount+'. The more we talk the more I adapt.')
+// Override greet with learned personality
+function greet() {
+  var g = _getPersonalityGreeting()
+  var c = document.getElementById('chat')
+  if (c) {
+    c.insertAdjacentHTML('beforeend', '<div class="y">' + g + '</div>')
+    c.scrollTop = c.scrollHeight
+  }
+  try { if (!whisperMode) speak(g) } catch(e) {}
 }
-
-
-// == END ADAPTIVE PERSONALITY ==
-
-
 
 // ══ END LEARNING SYSTEM ════════════════════════════════════════════════════
 
@@ -2560,101 +2536,61 @@ var _convHistory = []
 var _aiAvailable = null  // cached check
 
 async function yodaAI(text) {
-  if(_perfMode==='bad') return respond(_yodaSmartFallback(text))
   // Build Yoda's personality prompt
-  var personality = _getPersonalityPrompt()
+  var personality = [
+    "You are Yoda — a sharp, witty AI desktop assistant running on the user's PC.",
+    "You are direct, confident, and have a dry sense of humour.",
+    "Keep responses SHORT — 1-3 sentences max unless asked for detail.",
+    "No markdown, no bullet points, no emojis. Plain conversational text only.",
+    "You were built by Kristian, a developer from Horten, Norway.",
+    "You run entirely locally — no cloud dependency for your core features.",
+    "When you do not know something, be honest but offer to search the web.",
+    "Never say 'I am just an AI'. Just answer like a confident assistant.",
+    "Match the user's tone — casual with casual, serious with serious.",
+    "The user's name may be Kristian. Address them directly when natural.",
+    "Current time: " + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
+    "Session number: " + (_sessionCount||1),
+  ].join(' ')
 
   // Add to conversation history
   _convHistory.push({role:'user', content:text})
   if (_convHistory.length > 20) _convHistory = _convHistory.slice(-20)
 
   try {
-    if (!window.yoda || !yoda.aiChat) throw new Error('no bridge')
+    var resp = await fetch('https://api.anthropic.com/v1/messages', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        model: 'claude-haiku-4-5-20251001',
+        max_tokens: 150,
+        system: personality,
+        messages: _convHistory
+      })
+    })
 
-    var result = await yoda.aiChat({ messages: _convHistory, system: personality })
+    if (!resp.ok) throw new Error('API error ' + resp.status)
 
-    if (result && result.text) {
-      _convHistory.push({role:'assistant', content:result.text})
-      respond(result.text)
-    } else if (result && result.error === 'no_key') {
-      // No API key — use smart fallback with personality
-      _convHistory.push({role:'assistant', content:''})
-      respond(_yodaSmartFallback(text))
-    } else {
-      throw new Error(result && result.error || 'no response')
-    }
+    var data = await resp.json()
+    var reply = data.content && data.content[0] && data.content[0].text
+    if (!reply) throw new Error('No reply')
+
+    // Add to history
+    _convHistory.push({role:'assistant', content:reply})
+
+    respond(reply)
   } catch(e) {
     console.log('[YodaAI] Error:', e.message)
-    respond(_yodaSmartFallback(text))
+    // Personality fallback if API fails
+    var fallback = [
+      "Not sure about that. Want me to search the web? Say 'search for " + text.slice(0,20) + "'.",
+      "That one is outside what I know directly. Try 'search for' followed by your question.",
+      "Good question. I do not have that built in — say 'search for' and I will find it.",
+    ]
+    respond(fallback[Math.floor(Math.random()*fallback.length)])
   }
 }
 
 // ══ END YODA AI ═══════════════════════════════════════════════════════════
-
-
-function _yodaSmartFallback(text) {
-  var tl = text.toLowerCase()
-  // Question words — give a useful response
-  if (/^what is |^what are |^who is |^where is |^when did |^how do |^how does /i.test(text))
-    return "Good question. I do not have that in my built-in knowledge — say 'search for " + text.replace(/^(what is|what are|who is|where is|when did|how do|how does) /i,'').slice(0,25) + "' and I will find it."
-  if (/^(can you|could you|would you|will you)/i.test(text))
-    return "Possibly. Be more specific and I will try."
-  if (/^(why)/i.test(text))
-    return "That is a deep question. Want me to search for an answer?"
-  if (/^(is it|are there|does it|do they)/i.test(text))
-    return "I am not certain. Say 'search for " + text.slice(0,25) + "' and I will check."
-  // Short inputs
-  if (text.length < 10)
-    return pick(["Tell me more.","Go on.","What do you mean?","Elaborate."])
-  return pick([
-    "Not sure about that one. Want me to search the web?",
-    "That is outside what I know directly. Say 'search for' followed by your question.",
-    "Interesting. I do not have a built-in answer — say 'search for' and I will find it.",
-  ])
-}
-
-
-// == PERFORMANCE ==
-var _perfMode='good', _responseDelay=180, _searchDelay=0
-var _PERF_MODES={
-  bad:    {delay:0,   tokens:60,  useAI:false, desc:'Bad — instant, no AI.'},
-  good:   {delay:180, tokens:150, useAI:true,  desc:'Good — balanced.'},
-  better: {delay:100, tokens:250, useAI:true,  desc:'Better — higher quality.'},
-  best:   {delay:50,  tokens:400, useAI:true,  desc:'Best — maximum quality.'},
-}
-function setPerformance(mode){
-  _perfMode=mode; saveSett('perf_mode',mode)
-  var cfg=_PERF_MODES[mode]||_PERF_MODES.good
-  _responseDelay=cfg.delay
-  ;['bad','good','better','best'].forEach(function(m){var b=document.getElementById('perf-'+m);if(b)b.style.background=m===mode?'var(--ac)':''})
-  var d=document.getElementById('perf-desc');if(d)d.textContent=cfg.desc
-  var sl=document.getElementById('sperf-speed');if(sl)sl.value=cfg.delay
-  addMsg('s','Performance: '+mode+'. '+cfg.desc)
-}
-function setResponseDelay(v){_responseDelay=parseInt(v)||0;saveSett('perf_delay',_responseDelay)}
-function setSearchSpeed(speed){
-  _searchDelay=speed==='fast'?0:speed==='normal'?300:800
-  saveSett('search_speed',speed)
-  ;['fast','normal','slow'].forEach(function(s){var b=document.getElementById('search-'+s);if(b)b.style.background=s===speed?'var(--ac)':''})
-}
-function loadPerfSettings(){
-  setPerformance((config&&config.perf_mode)||'good')
-  _responseDelay=(config&&config.perf_delay)||180
-  setSearchSpeed((config&&config.search_speed)||'fast')
-}
-
-// == PERSONALITY DECAY ==
-// Scores drift 2pts toward 50 each session — if you stop liking humor it fades
-function _decayPersonality(){
-  var neutral=50,drift=2
-  ;['humor','sarcasm','casual','detail'].forEach(function(k){
-    if(_persona[k]>neutral) _persona[k]=Math.max(neutral,_persona[k]-drift)
-    else if(_persona[k]<neutral) _persona[k]=Math.min(neutral,_persona[k]+drift)
-  })
-  _savePersona()
-}
-_decayPersonality()
-// == END PERFORMANCE + DECAY ==
 
 async function dispatch(text) {
   _lastCommand = text
@@ -3451,8 +3387,6 @@ async function dispatch(text) {
     return respond(_cu ? 'URL copied: ' + _cu.slice(0,60) : 'Could not copy URL.')
   }
 
-  if (/my personality|personality stats/i.test(t)) return showPersonality()
-
   if (/focus mode|start focus/i.test(t)) {
     const _m = text.match(/(\d+)\s*min/i)
     return startFocus(_m ? parseInt(_m[1]) : 25)
@@ -3625,7 +3559,7 @@ async function queryAI(text) {
   try { showTyping() } catch(e) {}
 
   // Small delay so it feels natural
-  await new Promise(r => setTimeout(r, _responseDelay + Math.random()*100))
+  await new Promise(r => setTimeout(r, 180 + Math.random()*220))
 
   try {
     const t = text.trim()
@@ -3912,7 +3846,6 @@ async function queryAI(text) {
     // ── Learning: remember what was asked and adapt ────────────────────────
     _learnFromQuery(t)
     // ── AI-generated response via Claude API ─────────────────────────────
-    _learnFromQuery(t)
     await yodaAI(t)
 
   } catch(e) {
