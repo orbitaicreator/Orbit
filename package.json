@@ -1,6 +1,6 @@
 {
   "name": "yoda",
-  "version": "1.11.0",
+  "version": "1.12.0",
   "description": "Yoda AI Assistant",
   "main": "src/main.js",
   "scripts": {

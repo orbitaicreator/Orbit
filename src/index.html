@@ -2519,6 +2519,7 @@ async function dispatch(text) {
     normalized = normalized.replace(new RegExp('\\b' + wrong.replace(/[.*+?^${}()|[\]\\]/g,'\\$&') + '\\b', 'gi'), right)
   }
   const t = normalized
+  const tl = t      // alias for convenience
   const tLower = t  // FIX: alias used throughout dispatch
 
   // ── Stop / repeat ──────────────────────────────────
@@ -3089,7 +3090,7 @@ async function dispatch(text) {
 
   // Norwegian native
   var _norskW=['hei','hva','hvor','hvem','apne','lukk','stopp','ta','legg','vis','sok','finn','vaer','klokken']
-  var _isNorsk=_norskW.some(function(w){return tl.split(' ').indexOf(w)>=0})
+  var _isNorsk=_norskW.some(function(w){return t.split(' ').indexOf(w)>=0})
   if (_isNorsk) {
     if (/^(hei|hallo|god morgen|god ettermiddag|god kveld)/i.test(t)) return respond(getNorwegianGreeting())
     if (/klokken|hva er klokken/i.test(t)) return respond('Klokken er '+new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'})+'.')
