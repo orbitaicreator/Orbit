@@ -1635,14 +1635,8 @@ async function boot() {
     const sett = el('sett')
     if (sett) { sett.style.display='none'; sett.classList.remove('open') }
 
-    // API key is optional — brain works without it
+    if (!apiKey) { el('setup').style.display='flex'; return }
     startApp()
-    // Ensure TTS voices load (async in Electron)
-    if (ttsMgr) {
-      ttsMgr._loadVoices()
-      setTimeout(function(){if(ttsMgr)ttsMgr._loadVoices()},800)
-      setTimeout(function(){if(ttsMgr)ttsMgr._loadVoices()},2500)
-    }
   } catch(e) {
     console.error('[Boot]', e)
     el('setup').style.display = 'flex'
@@ -2388,13 +2382,9 @@ function stopChain() {
 
 // Detect if input is a multi-command (has connectors or 2+ commas)
 function isChainCommand(text) {
-  if (/and then|after that|also do/i.test(text)) return true
   var commas = (text.match(/,/g)||[]).length
-  if (commas < 1) return false
-  var actionWords = /(open|launch|start|search|find|play|go to|click|like|subscribe|close|type|set|turn|volume|screenshot|lock|sleep|send|share|copy|paste|mute|unmute|download|create|delete|save|run|stop|pause|resume)/i
-  var parts = text.split(',').map(function(p){return p.trim()})
-  var cmdParts = parts.filter(function(p){return actionWords.test(p)})
-  return cmdParts.length >= 2
+  var hasConnector = /and then|then|after that|also do/i.test(text)
+  return commas >= 1 || hasConnector
 }
 
 // ── Browser automation helpers (uses virtual mouse) ───────────────────────
