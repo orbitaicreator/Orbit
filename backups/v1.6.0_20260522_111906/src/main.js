@@ -91,19 +91,10 @@ let micStarted  = false  // prevent double-start from did-finish-load firing twi
 function findPythonScript(name) {
   const candidates = [
     path.join(__dirname, '..', name),
-    path.join(__dirname, name),
-    path.join(process.cwd(), name),
-    path.join(__dirname, '..', 'Python packages', name),
-    path.join(process.cwd(), 'Python packages', name),
-    'C:/Users/krist/Yoda/Python packages/' + name,
-    'C:/Users/krist/Yoda/' + name,
-    path.join(app.getPath('userData'), name),
     path.join(process.resourcesPath || '', name),
     path.join(path.dirname(process.execPath), name),
   ]
-  const found = candidates.find(p => { try { return fs.existsSync(p) } catch(e) { return false } })
-  console.log('[Script] ' + name + ' -> ' + (found || 'NOT FOUND'))
-  return found || null
+  return candidates.find(p => fs.existsSync(p)) || null
 }
 
 function startPythonMic(wakeWord = 'yoda', lang = 'en-US') {
@@ -183,7 +174,6 @@ function startVirtualMouse() {
     if (tried >= pythons.length) { console.log('[Mouse] No Python found'); return }
     const py = pythons[tried++]
     const proc = cp.spawn(py, [script], { windowsHide: true, shell: true })
-    mouseProcess = proc
 
     proc.on('error', e => { if (e.code === 'ENOENT') tryNext() })
 
