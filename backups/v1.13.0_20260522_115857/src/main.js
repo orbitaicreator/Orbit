@@ -123,10 +123,9 @@ function startPythonMic(wakeWord = 'yoda', lang = 'en-US') {
     if (tried >= pythons.length) { console.log('[Mic] No Python found'); return }
     const py = pythons[tried++]
 
-    // Build full command string so spaces in paths are handled correctly
-    const scriptDir = path.dirname(script)
-    const cmd = py + ' "' + script + '" ' + wakeWord + ' ' + lang + ' "' + scriptDir + '"'
-    const proc = cp.spawn(cmd, [], {
+    // Use shell:true but quote the script path to handle spaces
+    const quotedScript = '"' + script + '"'
+    const proc = cp.spawn(py, [quotedScript, wakeWord, lang, '"'+path.dirname(script)+'"'], {
       windowsHide: true,
       shell: true,
     })
@@ -185,8 +184,8 @@ function startVirtualMouse() {
   function tryNext() {
     if (tried >= pythons.length) { console.log('[Mouse] No Python found'); return }
     const py = pythons[tried++]
-    const mouseCmd = py + ' "' + script + '"'
-    const proc = cp.spawn(mouseCmd, [], { windowsHide: true, shell: true })
+    const quotedMouseScript = '"' + script + '"'
+    const proc = cp.spawn(py + ' ' + quotedMouseScript, [], { windowsHide: true, shell: true })
     mouseProcess = proc
 
     proc.on('error', e => { if (e.code === 'ENOENT') tryNext() })

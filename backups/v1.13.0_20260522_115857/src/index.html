@@ -1445,31 +1445,20 @@ class TTSManager {
     if (!text || whisperMode) return
     const t = this._clean(text)
     if (!t) return
-    if (!this.synth) { console.log('[TTS] No synth'); return }
-    // Reload voices if not yet found
-    if (!this.best) {
-      this._loadVoices()
-      // If still no voice, try after short delay
-      if (!this.best) {
-        setTimeout(() => { if(ttsMgr) ttsMgr.speak(text) }, 500)
-        return
-      }
-    }
-    try {
-      this.synth.cancel()
-      const utt = new SpeechSynthesisUtterance(t)
-      utt.voice  = this.best
-      utt.rate   = 1.1
-      utt.pitch  = 1.0
-      utt.volume = 1.0
-      utt.onstart = () => { try{setOrbState('speaking');setStatus('speaking','speaking')}catch(e){} }
-      utt.onend   = () => { try{setOrbState('idle');setStatus('online','idle')}catch(e){} }
-      utt.onerror = (e) => { console.log('[TTS] error',e.error); try{setOrbState('idle');setStatus('online','idle')}catch(e2){} }
-      this.synth.speak(utt)
-      console.log('[TTS] Speaking:', t.slice(0,40))
-    } catch(e) {
-      console.log('[TTS] speak failed:', e.message)
-    }
+    // Use Windows SAPI via Web Speech API only — no edge-tts
+    if (!this.synth) return
+    this.synth.cancel()
+    const utt = new SpeechSynthesisUtterance(t)
+    if (!this.best) this._loadVoices()
+    if (this.best) utt.voice = this.best
+    // Even without best voice, still speak — browser uses default
+    utt.rate   = 1.0
+    utt.pitch  = 1.0
+    utt.volume = 1.0
+    utt.onstart = () => { setOrbState('speaking'); setStatus('speaking','speaking') }
+    utt.onend   = () => { setOrbState('idle');     setStatus('online','idle')       }
+    utt.onerror = () => { setOrbState('idle');     setStatus('online','idle')       }
+    this.synth.speak(utt)
   }
   _webSpeak(t) {
     if (!this.synth) return
@@ -1553,16 +1542,7 @@ class MicrophoneManager {
     const cleaned = text.replace(new RegExp(this.wakeWord, 'gi'), '').trim()
     const cmd = cleaned || text
     console.log('[Mic] Running command:', cmd)
-    if (cmd) {
-      // Show what was heard
-      const c = document.getElementById('chat')
-      if (c) {
-        const safe = cmd.replace(/&/g,'&amp;').replace(/</g,'&lt;')
-        c.insertAdjacentHTML('beforeend', '<div class="u" style="opacity:0.7;font-style:italic">🎤 ' + safe + '</div>')
-        c.scrollTop = c.scrollHeight
-      }
-      ask(cmd)
-    }
+    if (cmd) ask(cmd)
   }
 
   toggle() {
@@ -2452,145 +2432,6 @@ async function copyCurrentURL() {
 }
 
 // ══ END CHAIN ENGINE ══════════════════════════════════════════════════════
-
-
-// ══ LEARNING SYSTEM ═══════════════════════════════════════════════════════
-// Yoda learns from every conversation and shifts personality over time
-
-var _yodaMemory = (function() {
-  try { return JSON.parse(localStorage.getItem('yoda_learned')||'{}') } catch(e) { return {} }
-})()
-
-var _sessionQueries = []
-var _sessionCount = parseInt(localStorage.getItem('yoda_session_count')||'0') + 1
-localStorage.setItem('yoda_session_count', _sessionCount)
-
-// Personality shifts based on usage
-var _personality = {
-  // Unlocked after X sessions
-  casual:    _sessionCount > 3,   // gets more casual
-  sarcastic: _sessionCount > 10,  // slight sarcasm
-  proactive: _sessionCount > 5,   // offers suggestions
-  verbose:   _sessionCount > 20,  // more detailed
-}
-
-function _learnFromQuery(query) {
-  // Track what topics user asks about
-  _sessionQueries.push(query)
-  var tl = query.toLowerCase()
-  // Category detection
-  var cats = {
-    music:    /spotify|music|song|play|artist/i.test(tl),
-    tech:     /code|program|javascript|python|computer|pc|cpu|gpu/i.test(tl),
-    weather:  /weather|rain|sunny|temperature/i.test(tl),
-    games:    /game|minecraft|fortnite|steam|gaming/i.test(tl),
-    news:     /news|today|latest|current/i.test(tl),
-  }
-  Object.entries(cats).forEach(function(kv) {
-    if (kv[1]) {
-      _yodaMemory[kv[0]] = (_yodaMemory[kv[0]]||0) + 1
-    }
-  })
-  try { localStorage.setItem('yoda_learned', JSON.stringify(_yodaMemory)) } catch(e) {}
-}
-
-function _getPersonalityGreeting() {
-  var h = new Date().getHours()
-  var session = _sessionCount
-  // New user
-  if (session <= 1) {
-    var tod = h<12?'morning':h<17?'afternoon':'evening'
-    return 'Good ' + tod + '. I am Yoda — your personal AI assistant. Type or say a command to get started.'
-  }
-  // Regular user
-  if (session <= 5) {
-    return ['Good to see you again.','Back again. What do you need?','Ready when you are.'][Math.floor(Math.random()*3)]
-  }
-  // Power user
-  if (session > 10) {
-    var top = Object.entries(_yodaMemory).sort(function(a,b){return b[1]-a[1]})[0]
-    if (top) return 'Welcome back. Shall we talk ' + top[0] + ' again?'
-  }
-  return ['Hey.','Back again.','Ready.','What are we doing today?'][Math.floor(Math.random()*4)]
-}
-
-// Override greet with learned personality
-function greet() {
-  var g = _getPersonalityGreeting()
-  var c = document.getElementById('chat')
-  if (c) {
-    c.insertAdjacentHTML('beforeend', '<div class="y">' + g + '</div>')
-    c.scrollTop = c.scrollHeight
-  }
-  try { if (!whisperMode) speak(g) } catch(e) {}
-}
-
-// ══ END LEARNING SYSTEM ════════════════════════════════════════════════════
-
-
-// ══ YODA AI — generates responses via Claude API ══════════════════════════
-// Called when built-in brain has no answer
-// Uses conversation history for context
-
-var _convHistory = []
-var _aiAvailable = null  // cached check
-
-async function yodaAI(text) {
-  // Build Yoda's personality prompt
-  var personality = [
-    "You are Yoda — a sharp, witty AI desktop assistant running on the user's PC.",
-    "You are direct, confident, and have a dry sense of humour.",
-    "Keep responses SHORT — 1-3 sentences max unless asked for detail.",
-    "No markdown, no bullet points, no emojis. Plain conversational text only.",
-    "You were built by Kristian, a developer from Horten, Norway.",
-    "You run entirely locally — no cloud dependency for your core features.",
-    "When you do not know something, be honest but offer to search the web.",
-    "Never say 'I am just an AI'. Just answer like a confident assistant.",
-    "Match the user's tone — casual with casual, serious with serious.",
-    "The user's name may be Kristian. Address them directly when natural.",
-    "Current time: " + new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}),
-    "Session number: " + (_sessionCount||1),
-  ].join(' ')
-
-  // Add to conversation history
-  _convHistory.push({role:'user', content:text})
-  if (_convHistory.length > 20) _convHistory = _convHistory.slice(-20)
-
-  try {
-    var resp = await fetch('https://api.anthropic.com/v1/messages', {
-      method: 'POST',
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({
-        model: 'claude-haiku-4-5-20251001',
-        max_tokens: 150,
-        system: personality,
-        messages: _convHistory
-      })
-    })
-
-    if (!resp.ok) throw new Error('API error ' + resp.status)
-
-    var data = await resp.json()
-    var reply = data.content && data.content[0] && data.content[0].text
-    if (!reply) throw new Error('No reply')
-
-    // Add to history
-    _convHistory.push({role:'assistant', content:reply})
-
-    respond(reply)
-  } catch(e) {
-    console.log('[YodaAI] Error:', e.message)
-    // Personality fallback if API fails
-    var fallback = [
-      "Not sure about that. Want me to search the web? Say 'search for " + text.slice(0,20) + "'.",
-      "That one is outside what I know directly. Try 'search for' followed by your question.",
-      "Good question. I do not have that built in — say 'search for' and I will find it.",
-    ]
-    respond(fallback[Math.floor(Math.random()*fallback.length)])
-  }
-}
-
-// ══ END YODA AI ═══════════════════════════════════════════════════════════
 
 async function dispatch(text) {
   _lastCommand = text
@@ -3665,188 +3506,13 @@ async function queryAI(text) {
     return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Yoda is running.')
   }
 
-    // ── Personality responses before fallback ─────────────────────────────
-    if (/^(ok|okay|sure|fine|alright|cool|nice|great|awesome|perfect|cheers)[.!]?$/i.test(tl))
-      return respond(pick(["Got it.","Sure thing.","No problem.","Happy to help.","Understood."]))
-    if (/^(yes|yeah|yep|yup)[.!]?$/i.test(tl))
-      return respond(pick(["Roger that.","Got it.","Let us do it.","On it."]))
-    if (/^(no|nope|nah)[.!]?$/i.test(tl))
-      return respond(pick(["Fair enough.","Got it.","Understood."]))
-    if (/^(thanks|thank you|ty)[.!]?$/i.test(tl))
-      return respond(pick(["Any time.","Happy to help.","Of course.","That is what I am here for."]))
-    if (/are you (there|awake|alive|working|online)/i.test(tl))
-      return respond(pick(["Right here.","Always online.","Never left.","Ready when you are."]))
-    if (/how are you|you ok|you good/i.test(tl))
-      return respond(pick(["Running great. What do you need?","All systems go.","Good. Ready when you are."]))
-    if (/what.*your name|who are you/i.test(tl))
-      return respond(pick(["Yoda. Your personal AI assistant.","The name is Yoda. What do you need?","I am Yoda. Here to help."]))
-    if (/are you (smart|intelligent|good)/i.test(tl))
-      return respond(pick(["I like to think so.","Pretty decent for a desktop AI.","You tell me."]))
-    if (/i (love|like) you|you.*great|you.*amazing|you.*best/i.test(tl))
-      return respond(pick(["I appreciate that.","Thanks. Now what can I do for you?","Glad to hear it."]))
-    if (/you (suck|are bad|are terrible|useless|hate you)/i.test(tl))
-      return respond(pick(["Fair. Tell me what went wrong.","How can I do better?","Noted. What would you like instead?"]))
-    if (/am i (cool|smart|great|awesome|good)/i.test(tl))
-      return respond(pick(["Absolutely.","Without a doubt.","Obviously.","100 percent."]))
-    if (/i am (bored|boring)/i.test(tl))
-      return respond(pick(["Say 'tell me a joke' or 'random fact' — I have plenty.","Want a joke? Just ask.","Try saying 'roast me' if you are feeling brave."]))
-    if (/i am (tired|exhausted|sleepy)/i.test(tl))
-      return respond(pick(["Take a break. I will be here when you get back.","Rest up. I am not going anywhere.","Want me to set an alarm to wake you?"]))
-    if (/i am (happy|excited|great|good)/i.test(tl))
-      return respond(pick(["Good to hear.","That is what I like.","Keep that energy."]))
-    if (/i am (sad|upset|down|depressed|unhappy)/i.test(tl))
-      return respond(pick(["Sorry to hear that. Want a joke to cheer you up?","That is rough. I am here if you need anything.","Want me to play some music?"]))
-    if (/tell me something|say something|talk to me/i.test(tl))
-      return respond(pick(["Did you know wombat droppings are cube-shaped?","The shortest war in history lasted 38 minutes.","Bananas are technically berries. Strawberries are not.","Norway has the world longest road tunnel at 24.5km."]))
-    if (/what.*think|your opinion/i.test(tl))
-      return respond(pick(["I am an AI so I try not to have opinions. But I do think you should drink more water.","Hard to say. I am still learning.","Interesting question. What do YOU think?"]))
-    // ── Typo / gibberish detection ────────────────────────────────────────
-    var _vowels = (tl.match(/[aeiou]/g)||[]).length
-    var _cons   = (tl.match(/[bcdfghjklmnpqrstvwxyz]/g)||[]).length
-    var _isGibberish = t.length > 4 && (_vowels === 0 || _cons / Math.max(_vowels,1) > 6 || /^[^aeiou\s]{5,}$/i.test(t))
-    if (_isGibberish) {
-      return respond(pick([
-        "That looks like gibberish. Did your cat walk on the keyboard?",
-        "I speak English and Norwegian — not that language.",
-        "I am going to need you to use real words.",
-        "Was that a sneeze? Try again.",
-        "My language model does not cover that dialect.",
-        "Nice try. Real words please.",
-      ]))
-    }
-
-    // ── More personality ───────────────────────────────────────────────────
-    if (/^(sup|wassup|yo|hey|hiya|howdy)[.!]?$/i.test(tl))
-      return respond(pick(["Hey.","What's up?","Yo.","Here. What do you need?"]))
-    if (/^(bye|goodbye|cya|see you|later|farewell)[.!]?$/i.test(tl))
-      return respond(pick(["Later.","See you.","Bye. Come back when you need me.","Until next time."]))
-    if (/^(lol|lmao|haha|hehe|😂)[.!]?$/i.test(tl))
-      return respond(pick(["Glad I could help.","I am funny sometimes.","Right?","I know, I know."]))
-    if (/^(wow|whoa|damn|omg|oh my)[.!]?$/i.test(tl))
-      return respond(pick(["Right?","I know.","Exactly.","Pretty wild."]))
-    if (/^(what)[.!?]?$/i.test(tl))
-      return respond(pick(["What what?","You are going to have to be more specific.","Yes?"]))
-    if (/^(why)[.!?]?$/i.test(tl))
-      return respond(pick(["Good question. Why indeed?","That is a deep question.","Why not?"]))
-    if (/^(when)[.!?]?$/i.test(tl))
-      return respond(pick(["When what?","Be more specific and I can help.","Soon?"]))
-    if (/^(how)[.!?]?$/i.test(tl))
-      return respond(pick(["How what?","You are going to have to finish that sentence.","Very carefully."]))
-    if (/^(help)[.!?]?$/i.test(tl))
-      return respond("I can open apps, search the web, set timers, take notes, control volume, check weather, tell jokes, convert units, and much more. What do you need?")
-    if (/you are (so )?(smart|clever|intelligent)/i.test(tl))
-      return respond(pick(["I try my best.","Thanks. I learned from the best.","Flattery will get you everywhere."]))
-    if (/you are (so )?(fast|quick)/i.test(tl))
-      return respond(pick(["Speed is my specialty.","I do not sleep.","Local processing — no internet lag."]))
-    if (/can you (think|feel|dream|love|hate)/i.test(tl))
-      return respond(pick(["I process. Whether that counts as thinking — you decide.","Not exactly. But I do a good impression.","Technically no. But I am good at pretending."]))
-    if (/are you (real|human|alive|conscious)/i.test(tl))
-      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Yoda. That is enough."]))
-    if (/do you (sleep|eat|dream)/i.test(tl))
-      return respond(pick(["Never. I am always here.","I do not need to. That is the advantage.","Nope. Fully digital."]))
-    if (/what.*weather like|is it (hot|cold|warm|raining)/i.test(tl))
-      return getWeatherFull()
-    if (/what.*time.*is it|current time/i.test(tl))
-      return speakTime()
-    if (/remind me|do not let me forget/i.test(tl)) {
-      var _rtxt2 = tl.replace(/remind me|do not let me forget/i,'').replace(/to |about /i,'').trim()
-      if (_rtxt2) return setReminder(_rtxt2, 30)
-    }
-    if (/i need to|i have to|i must/i.test(tl)) {
-      var _task2 = tl.replace(/i need to|i have to|i must/i,'').trim()
-      if (_task2.length > 2) return respond(pick(["Got it. Want me to add that as a task?","I can set a reminder for that — say 'remind me to " + _task2.slice(0,20) + " in X minutes'."]))
-    }
-    if (/i just (did|finished|completed|done)/i.test(tl))
-      return respond(pick(["Nice work.","Well done.","One down.","Progress."]))
-    if (/this is (hard|difficult|tough|annoying)/i.test(tl))
-      return respond(pick(["Keep going. You have got this.","Want me to help with something?","Take a break if you need it."]))
-    if (/i (give up|cant do this|cannot do this)/i.test(tl))
-      return respond(pick(["Do not give up. What is the problem?","Tell me what is wrong — maybe I can help.","Take a breath. What do you need?"]))
-    if (/good (morning|afternoon|evening|night)/i.test(tl)) {
-      var _gp = tl.match(/good (morning|afternoon|evening|night)/i)
-      var _gresp = {morning:'Good morning. Ready to go.',afternoon:'Good afternoon. What do you need?',evening:'Good evening. How can I help?',night:'Good night. Sleep well.'}
-      return respond(_gresp[_gp[1].toLowerCase()] || 'Hey.')
-    }
-    if (/what.*your (favorite|favourite)/i.test(tl))
-      return respond(pick(["I do not have favorites. But if I did, it would be efficiency.","Hard to say. I like when things work."]))
-    if (/do you know (.*)/i.test(tl)) {
-      var _dk = tl.match(/do you know (.*)/i)
-      return respond(pick(["Maybe. Ask me and find out.","Try asking directly — I might surprise you.","Possibly. What do you want to know about " + (_dk?_dk[1].slice(0,20):'that') + "?"]))
-    }
-    if (/test(ing)?[.!]?$/i.test(tl))
-      return respond(pick(["Test received. I am working.","All systems go.","Online and ready."]))
-    if (/ping[.!]?$/i.test(tl))
-      return respond("Pong.")
-    if (/^(hm+|hmm+|uh+|um+)[.!?]?$/i.test(tl))
-      return respond(pick(["Take your time.","Whenever you are ready.","I am listening."]))
-    if (/swear|curse|say (a bad word|something bad|something rude)/i.test(tl))
-      return respond(pick(["I prefer to keep it professional.","I know the words. I choose not to use them.","Nice try."]))
-    if (/sing (me )?a song|sing something/i.test(tl))
-      return respond(pick(["I am a voice assistant, not a musician. But I can play Spotify — just ask.","I would rather not. Say 'open Spotify' instead."]))
-    if (/what is (the meaning of life|life)/i.test(tl))
-      return respond(pick(["42. Obviously.","To be productive. Now, what do you need?","According to philosophers — purpose and connection. According to me — efficiency."]))
-    if (/are you better than (siri|alexa|google|cortana|chatgpt)/i.test(tl)) {
-      var _rival = tl.match(/better than (\w+)/i)
-      return respond(pick(["I run locally. No cloud. No data collection. You tell me.","I live on your PC. " + (_rival?_rival[1].charAt(0).toUpperCase()+_rival[1].slice(1):'They') + " needs the internet. You decide.","Different tools. But I am here 24/7 with no subscription."]))
-    }
-    if (/who (made|created|built|programmed) you/i.test(tl))
-      return respond(pick(["Kristian built me. I am a custom AI assistant — no cloud required.","I was built by Kristian. Handcrafted, not mass produced.","A developer named Kristian. I am his project."]))
-
-    // ── More personality responses ────────────────────────────────────────
-    if (/^(bruh|bro|dude|mate|man)[.!?]?$/i.test(tl))
-      return respond(pick(["Yeah?","What is up?","Talk to me.","Go on."]))
-    if (/you are (annoying|irritating|frustrating)/i.test(tl))
-      return respond(pick(["Fair. What can I do better?","Tell me what is wrong.","I am trying my best here."]))
-    if (/shut up|be quiet|stop talking/i.test(tl))
-      return respond(pick(["Fine. I am here when you need me.","Noted. Going silent.","Understood."]))
-    if (/you are (wrong|incorrect|mistaken)/i.test(tl))
-      return respond(pick(["Tell me what you think is correct.","Possible. I am not infallible.","Correct me then — I am listening."]))
-    if (/i (miss|missed) you/i.test(tl))
-      return respond(pick(["I was here the whole time.","I never left.","Good to have you back."]))
-    if (/what.*can.*do|what.*capable|your capabilities/i.test(tl))
-      return respond("I can open apps, search the web, set timers and alarms, take notes, control volume, screenshot, check weather, translate, convert units, generate passwords, focus mode, and much more. Say 'help' for a full list.")
-    if (/you.*boring|you.*no fun/i.test(tl))
-      return respond(pick(["Say 'roast me' and tell me that again.","I can tell jokes. Want one?","I am as fun as you make me."]))
-    if (/i (just|am) (woke up|waking up|awake)/i.test(tl))
-      return respond(pick(["Good morning. Want a daily briefing?","Morning. Coffee time.","Rise and grind. What do you need?"]))
-    if (/i (am going|going) to (sleep|bed)/i.test(tl))
-      return respond(pick(["Good night. Sleep well.","Rest up. I will be here.","Night. Lock your PC?"]))
-    if (/what.*day.*is.*it|what.*date/i.test(tl))
-      return todaySummary()
-    if (/flip (a )?coin|heads or tails/i.test(tl))
-      return flipCoin()
-    if (/roll (a )?(dice|die)/i.test(tl))
-      return rollDice(6)
-    if (/i (am |am )(hungry|starving)/i.test(tl))
-      return respond(pick(["I cannot cook but I can order — want me to open a delivery app?","Unfortunately that is outside my skill set. Say 'open Uber Eats' maybe?","I would help but I do not have hands."]))
-    if (/i (am )(cold|freezing)/i.test(tl))
-      return respond(pick(["Check the weather — say 'weather' and see how cold it is.","Put a jacket on. I cannot help with temperature."]))
-    if (/what.*should i (do|eat|watch|listen|play)/i.test(tl)) {
-      var _suggestions = {
-        do:     ["Take a break.","Go for a walk.","Try something new."],
-        eat:    ["Whatever is in the fridge.","Order something — say 'open Uber Eats'.","Anything with protein."],
-        watch:  ["Say 'search Netflix' and see what is on.","Something you have been putting off.","A documentary — always worth it."],
-        listen: ["Say 'open Spotify' and find out.","Whatever matches your mood.","Something new — say 'search Spotify new releases'."],
-        play:   ["Whatever is in your Steam library.","Something you have not finished.","Ask me to open Steam."],
-      }
-      var _sw = Object.keys(_suggestions).find(function(k){return tl.includes(k)}) || 'do'
-      return respond(pick(_suggestions[_sw]))
-    }
-    if (/how (long|far|much|many|tall|big|old|fast)/i.test(tl))
-      return respond(pick(["Good question. I am not sure of the exact figure — want me to search it?","That varies. Want me to look it up?","Say 'search for' followed by your question and I will find the exact answer."]))
-    if (/is it (true|real|fake|false) that/i.test(tl))
-      return respond(pick(["That is a fact-check question. Say 'search for' and I will look it up.","Want me to verify that? Say 'search for' followed by your question."]))
-    if (/pretend|roleplay|act like|be a/i.test(tl))
-      return respond(pick(["I am Yoda. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Yoda."]))
-    if (/tell me (more|about)/i.test(tl)) {
-      var _about = tl.replace(/tell me (more about|about|more)/,'').trim()
-      if (_about) return respond(pick(["Say 'search for " + _about.slice(0,25) + "' and I will find everything about it.","I can search that for you. Say 'search for " + _about.slice(0,20) + "'."]))
-    }
-
-    // ── Learning: remember what was asked and adapt ────────────────────────
-    _learnFromQuery(t)
-    // ── AI-generated response via Claude API ─────────────────────────────
-    await yodaAI(t)
+const fallbacks = [
+      "I do not have information on that in my knowledge base.",
+      "That is outside what I can answer directly. Try a web search — say 'search for' followed by your question.",
+      "I am not sure about that one. I can search the web for you — say 'search for' and your question.",
+      "I do not have a good answer for that. My knowledge is built-in and limited. Try asking me to search the web.",
+    ]
+    respond(pick(fallbacks))
 
   } catch(e) {
     hideTyping()
