@@ -1524,24 +1524,26 @@ class MicrophoneManager {
   }
 
   _onWake() {
-    console.log('[Mic] Wake detected — listening for command')
-    try { setOrbState('listening') } catch(e) {}
-    try { setStatus('listening...', 'listening') } catch(e) {}
-    const bm = document.getElementById('btn-mic')
+    // FIX: Python mic handles wake+command as separate messages
+    // Just show listening state — do NOT start another recognition session
+    // _onCommand will fire when Python sends the CMD: line
+    setOrbState('listening')
+    setStatus('listening...', 'listening')
+    const bm = el('btn-mic')
     if (bm) bm.classList.add('on')
-    try { updateMicStatus('active') } catch(e) {}
-    try { yoda.show() } catch(e) {}
-    try { showInp() } catch(e) {}
-    try { if (ttsMgr) ttsMgr.speak('Yeah?') } catch(e) {}
+    updateMicStatus('active')
+    try { yoda.show() } catch {}
+    showInp()
+    // Brief audio feedback — keep it short so mic can hear command
+    if (ttsMgr) ttsMgr.speak('Yeah?')
   }
 
   _onCommand(text) {
-    console.log('[Mic] Command received:', text)
-    try { const bm = document.getElementById('btn-mic'); if (bm) bm.classList.remove('on') } catch(e) {}
-    try { setOrbState('thinking'); setStatus('thinking...', 'thinking') } catch(e) {}
+    const bm = el('btn-mic'); if (bm) bm.classList.remove('on')
+    setOrbState('thinking'); setStatus('thinking...', 'thinking')
+    // Strip wake word if vosk included it in the command
     const cleaned = text.replace(new RegExp(this.wakeWord, 'gi'), '').trim()
     const cmd = cleaned || text
-    console.log('[Mic] Running command:', cmd)
     if (cmd) ask(cmd)
   }
 
@@ -3264,16 +3266,14 @@ async function dispatch(text) {
 const YODA_FACTS = {
   // Identity
   identity: [
-    "I am Yoda — your personal AI assistant. Fast, independent, and always here.",
-    "Yoda at your service. I live on your computer and I do not need the internet to think.",
-    "The name is Yoda. I am your desktop assistant — built to get things done.",
-    "I am Yoda. Think of me as your digital co-pilot. What do you need?",
+    "I am Yoda, your personal desktop assistant. I run entirely on your computer.",
+    "My name is Yoda. I am a desktop AI assistant built to help you with tasks, information, and automation.",
+    "I am Yoda — an independent AI assistant. I do not rely on any external AI service.",
   ],
   // Capabilities
   capabilities: [
-    "I can open apps, search the web, control your PC, set timers, take notes, check weather, tell jokes, convert units, generate passwords, and much more. Just ask.",
-    "I can control your volume, take screenshots, lock your PC, open websites, play music, set alarms, translate phrases, and hold a conversation. What do you need?",
-    "My skills include system control, web search, timers, notes, weather, calculations, unit conversion, focus mode, and more. Say 'help' for the full list.",
+    "I can open apps, control your PC, check the weather, set timers, take notes, manage your to-do list, search the web, control volume, take screenshots, and answer questions.",
+    "I can help with system control, apps, reminders, notes, web searches, calculations, and general knowledge.",
   ],
   // Creator
   creator: [
