@@ -1349,11 +1349,6 @@ function initOrb() {
     sp:.0015+Math.random()*.0035,
   }))
   let frame=0, state='idle', paused=false
-  // Expose state setter globally so setOrbState() works
-  window._setOrb = (s) => { state = s }
-  window._orbPause = false
-  // Pause when window hidden
-  document.addEventListener('visibilitychange', () => { paused = document.hidden })
   const pal={
     idle:     ['#00ff41','#00cc33','#005518'],
     thinking: ['#00ff41','#39ff14','#00dd33'],
@@ -1372,44 +1367,14 @@ function initOrb() {
   function draw(){
     if(paused){requestAnimationFrame(draw);return}
     ctx.clearRect(0,0,800,800); frame++
-    const p = pal[state] || pal.idle
-
-    // Each state has distinct speed and pulse behaviour
-    const spinSpeed = state==='thinking'  ? 0.014  // fast spin
-                    : state==='speaking'  ? 0.010  // medium spin
-                    : state==='listening' ? 0.008  // slow pulse
-                    : 0.004                         // idle crawl
-
-    const pulseSpeed = state==='thinking'  ? 0.18   // rapid pulse
-                     : state==='speaking'  ? 0.13   // speech rhythm
-                     : state==='listening' ? 0.06   // gentle
-                     : 0.025                        // slow idle
-
-    const pulseDepth = state==='thinking'  ? 0.22   // big oscillation
-                     : state==='speaking'  ? 0.18
-                     : state==='listening' ? 0.10
-                     : 0.08
-
-    const pls = Math.sin(frame * pulseSpeed) * pulseDepth + (1 - pulseDepth*0.5)
-    const ry  = frame * spinSpeed
-
-    // Glow intensity
-    const glowAlpha = state==='thinking'  ? 0.28
-                    : state==='speaking'  ? 0.22
-                    : state==='listening' ? 0.18
-                    : 0.14
-    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,300)
-    g.addColorStop(0,   `rgba(0,255,65,${glowAlpha})`)
-    g.addColorStop(0.4, `rgba(0,255,65,${glowAlpha*0.4})`)
-    g.addColorStop(1,   'rgba(0,255,65,0)')
-    ctx.fillStyle = g
-    ctx.beginPath(); ctx.arc(cx,cy,300,0,Math.PI*2); ctx.fill()
-
+    const p=pal[state]||pal.idle
+    const pls=Math.sin(frame*(state==='speaking'?.13:state==='thinking'?.07:.025))*.12+.88
+    const ry=frame*.004
+    drawGlow(p[0])
     ctx.globalAlpha=1; ctx.fillStyle=p[0]
     ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill()
-
     for(let i=0;i<N;i++){
-      const d=dots[i], t=d.theta+frame*d.sp*(state==='thinking'?2.5:state==='speaking'?1.8:1)
+      const d=dots[i], t=d.theta+frame*d.sp
       const x0=Math.sin(d.phi)*Math.cos(t), y0=Math.sin(d.phi)*Math.sin(t), z0=Math.cos(d.phi)
       const x1=x0*Math.cos(ry)+z0*Math.sin(ry), z1=-x0*Math.sin(ry)+z0*Math.cos(ry)
       const sc=(z1+1.6)/2.6*pls
@@ -2653,52 +2618,7 @@ async function queryAI(text) {
     }
 
     // 7. Default — honest fallback
-    
-  // ── Task requests — give helpful response and guidance ────────────────
-  if (/create.*file|make.*file|write.*file|save.*file/i.test(tl)) {
-    const fname = text.match(/(?:called|named|file)\s+["']?([\w\-.]+\.\w+)["']?/i)
-    if (fname) {
-      return respond('I cannot create files directly, but say "take a note" to save text, or I can open Notepad for you. Want me to open Notepad?')
-    }
-    return respond('I can open Notepad or save notes for you. What would you like to write?')
-  }
-
-  if (/list.*features|what can you do|show.*features|all.*features|your features/i.test(tl)) {
-    return respond('I can: control volume, take screenshots, lock and sleep the PC, open apps and websites, set timers and alarms, take notes, manage your to-do list, check weather, tell jokes, flip coins, roll dice, convert units, generate passwords, focus mode and pomodoro, web search, read and improve clipboard text, play media, and answer questions. Say "help" for the full list.')
-  }
-
-  if (/help|what.*commands|list.*commands/i.test(tl)) {
-    return respond('Voice commands: volume up/down, screenshot, lock, sleep, open [app], open [website], timer for [N] minutes, alarm at [time], take a note, add todo, weather, focus mode, pomodoro, search for [query], joke, flip coin, roll dice, convert [N] km to miles, generate password, motivate me, what time, what date.')
-  }
-
-  if (/write.*email|compose.*email|send.*email/i.test(tl)) {
-    const to = text.match(/to\s+(\w+)/i)
-    return respond('Opening your email client.' + (to ? ' Composing to ' + to[1] + '.' : ''))
-  }
-
-  if (/translate\s+(.+)\s+to\s+(\w+)/i.test(tl)) {
-    const m = tl.match(/translate\s+(.+)\s+to\s+(\w+)/i)
-    return respond('I do not have a live translator built in. Try saying "open translate.google.com" and I will open it for you.')
-  }
-
-  if (/define\s+|what.*mean\s+|meaning.*of/i.test(tl)) {
-    const word = text.match(/(?:define|meaning of|what.*mean)\s+(\w+)/i)
-    if (word) return respond('Opening the definition of ' + word[1] + '.')
-  }
-
-  if (/play\s+(.+)\s+on\s+spotify|play\s+(.+)/i.test(tl)) {
-    const song = text.match(/play\s+(.+?)(?:\s+on\s+spotify)?$/i)
-    if (song) {
-      yoda.system({action:'open-url', value:'https://open.spotify.com/search/' + encodeURIComponent(song[1])})
-      return respond('Opening Spotify search for ' + song[1] + '.')
-    }
-  }
-
-  if (/remind me|set.*reminder/i.test(tl)) {
-    return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Yoda is running.')
-  }
-
-const fallbacks = [
+    const fallbacks = [
       "I do not have information on that in my knowledge base.",
       "That is outside what I can answer directly. Try a web search — say 'search for' followed by your question.",
       "I am not sure about that one. I can search the web for you — say 'search for' and your question.",

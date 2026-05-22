@@ -4,11 +4,11 @@ setlocal enabledelayedexpansion
 :: Always run from Yoda root regardless of where you double-click from
 cd /d "C:\Users\krist\Yoda"
 
-title Yoda Release
+title Yoda Update
 
 echo.
 echo  ====================================
-echo    Yoda Setup + Release
+echo    Yoda Update + Release
 echo  ====================================
 echo.
 
