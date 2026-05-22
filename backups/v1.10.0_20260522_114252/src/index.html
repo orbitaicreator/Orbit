@@ -1803,19 +1803,11 @@ function send() {
   ask(t)
 }
 function ask(text) {
-  if (!text || !text.trim()) return
-  text = text.trim()
-  console.log('[ask]', text.slice(0,60))
-  try { if (chatLog.length === 0) saveConvToHistory(text) } catch(e) {}
-  // Add user message directly to DOM — no caching
-  var c = document.getElementById('chat')
-  if (c) {
-    var safe = text.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    c.insertAdjacentHTML('beforeend', '<div class="u">' + safe + '</div>')
-    c.scrollTop = c.scrollHeight
-  }
-  chatLog.push({type:'u', text:text, ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})})
-  dispatch(text)
+  if(!text) return
+  console.log('[ask]',text.slice(0,50))
+  // Save to conversation history on first message
+  if (chatLog.length === 0) saveConvToHistory(text)
+  addMsg('u',text); dispatch(text)
 }
 
 
@@ -3531,11 +3523,14 @@ function pick(arr) {
 
 function respond(text) {
   busy = false
-  try { setStatus('online','idle') } catch(e) {}
+  setStatus('online','idle')
   try { hideTyping() } catch(e) {}
-  if (!text || !text.trim()) return
-  // Strip markdown
-  var clean = String(text)
+  if (!text) return
+  console.log('[respond] called with:', text?.slice(0,50))
+  busy = false
+  const clean = text
+    .replace(/[\u{1F000}-\u{1FFFF}]/gu,'')
+    .replace(/[\u{2600}-\u{27BF}]/gu,'')
     .replace(/```[\s\S]*?```/g,'')
     .replace(/`[^`]+`/g,'')
     .replace(/\*\*([^*]+)\*\*/g,'$1')
@@ -3545,20 +3540,21 @@ function respond(text) {
     .replace(/https?:\/\/\S+/g,'')
     .replace(/\s+/g,' ')
     .trim()
-  if (!clean) return
-  lastResponse = clean
-  // Add to DOM directly
-  var c = document.getElementById('chat')
-  if (c) {
-    var safe = clean.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
-    c.insertAdjacentHTML('beforeend', '<div class="y">' + safe + '</div>')
-    c.scrollTop = c.scrollHeight
+  addMsg('y', clean)
+  lastResponse = clean  // save for "repeat that"
+  // Whisper mode — no speech, text only
+  if (!whisperMode) speak(clean)
+  setStatus('online','idle')
+  busy = false
+  // Start follow-up window — extends in convMode
+  if (micMgr && micMgr.running) {
+    if (convMode) {
+      followCount = 30  // longer window in conv mode
+      startFollowUp()
+    } else {
+      startFollowUp()
+    }
   }
-  chatLog.push({type:'y', text:clean, ts:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})})
-  try { if (!whisperMode) speak(clean) } catch(e) {}
-  try {
-    if (micMgr && micMgr.running) startFollowUp()
-  } catch(e) {}
 }
 
 
@@ -3590,14 +3586,16 @@ function wipeMemory(){
 // ── CHAT ──────────────────────────────────────────────
 function addMsg(type, text) {
   if (!text) return
-  var ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-  chatLog.push({type:type, text:text, ts:ts})
+  const ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  chatLog.push({type, text, ts})
   if (chatLog.length > 200) chatLog.shift()
-  var c = document.getElementById('chat')
-  if (!c) return
-  var safe = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  // Always get fresh reference to chat element
+  const c = document.getElementById('chat')
+  if (!c) { console.warn('[addMsg] #chat not found in DOM'); return }
+  const safe = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   c.insertAdjacentHTML('beforeend', '<div class="' + type + '">' + safe + '</div>')
-  if (c.scrollHeight - c.scrollTop - c.clientHeight < 200) c.scrollTop = c.scrollHeight
+  if (c.scrollHeight - c.scrollTop - c.clientHeight < 200)
+    c.scrollTop = c.scrollHeight
   try { saveChatLog() } catch(e) {}
 }
 function updateHist(){
