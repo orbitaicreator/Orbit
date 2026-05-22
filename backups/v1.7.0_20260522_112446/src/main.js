@@ -125,7 +125,7 @@ function startPythonMic(wakeWord = 'yoda', lang = 'en-US') {
 
     const proc = cp.spawn(py, [script, wakeWord, lang, path.dirname(script)], {
       windowsHide: true,
-      shell: false,
+      shell: true,
     })
 
     proc.on('error', e => {
@@ -182,7 +182,7 @@ function startVirtualMouse() {
   function tryNext() {
     if (tried >= pythons.length) { console.log('[Mouse] No Python found'); return }
     const py = pythons[tried++]
-    const proc = cp.spawn(py, [script], { windowsHide: true, shell: false })
+    const proc = cp.spawn(py, [script], { windowsHide: true, shell: true })
     mouseProcess = proc
 
     proc.on('error', e => { if (e.code === 'ENOENT') tryNext() })

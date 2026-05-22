@@ -1972,15 +1972,16 @@ setInterval(function(){
 
 // QOL 7: Show typing indicator when thinking
 function showTyping(){
-  try {
-    var c=el('chat'); if(!c) return
-    if(!document.getElementById('yoda-typing'))
-      c.insertAdjacentHTML('beforeend','<div id="yoda-typing" class="s" style="opacity:.5">Thinking...</div>')
+  var c=el('chat'); if(!c) return
+  var existing=document.getElementById('yoda-typing')
+  if(!existing){
+    c.insertAdjacentHTML('beforeend','<div id="yoda-typing" class="s" style="opacity:.5">Thinking...</div>')
     c.scrollTop=c.scrollHeight
-  } catch(e) {}
+  }
 }
 function hideTyping(){
-  try { var t=document.getElementById('yoda-typing'); if(t) t.remove() } catch(e) {}
+  var t=document.getElementById('yoda-typing')
+  if(t) t.remove()
 }
 
 // QOL 8: Word count for notes
@@ -3409,11 +3410,10 @@ const YODA_CHAT = [
 
 // ── Main brain function ────────────────────────────────────────────────
 async function queryAI(text) {
-  // Always reset busy first, then set it
-  busy = false
+  // Safety: reset stuck busy flag
   busy = true
   setStatus('thinking...','thinking')
-  try { showTyping() } catch(e) {}
+  showTyping()
 
   // Small delay so it feels natural
   await new Promise(r => setTimeout(r, 180 + Math.random()*220))
@@ -3547,10 +3547,7 @@ function pick(arr) {
 
 
 function respond(text) {
-  busy = false
-  setStatus('online','idle')
-  try { hideTyping() } catch(e) {}
-  if (!text) return
+  if (!text) { busy = false; setStatus('online','idle'); return }
   console.log('[respond] called with:', text?.slice(0,50))
   busy = false
   const clean = text
