@@ -983,6 +983,14 @@ input,select,textarea{font-family:inherit}
           <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#5aaa5a"></span></div>
         </div>
 
+        <!-- GitHub -->
+        <div class="sb-group-label">GitHub</div>
+        <div id="git-status-bar" class="sb-list">
+          <button class="sb-feat-btn" onclick="gitSave()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="6" y1="1" x2="6" y2="9"/><polyline points="3,6.5 6,9.5 9,6.5"/><line x1="1" y1="11" x2="11" y2="11"/></svg>Save<span id="git-changes-badge" style="margin-left:auto;font-size:10px;color:#446644"></span></button>
+          <button class="sb-feat-btn" onclick="gitPublish()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="6" y1="11" x2="6" y2="2"/><polyline points="3,5 6,2 9,5"/></svg>Publish release</button>
+          <button class="sb-feat-btn" onclick="gitPull()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="1,5 3,3 5,5"/><path d="M3 3a5 5 0 1 1 0 4"/></svg>Pull</button>
+        </div>
+
         <!-- Shortcuts -->
         <div class="sb-group-label">Shortcuts</div>
         <div id="sb-sc" class="sb-list"></div>
@@ -1318,13 +1326,12 @@ function newConversation() {
 
 // ── DOM helper — defined first ────────────────────────
 const _els = {}
-function clearElCache(id) { if(id) delete _els[id]; else _els={} }
 const el = id => {
-  // Always re-look if not cached — never cache null
   if (!_els[id]) {
     const found = document.getElementById(id)
     if (found) _els[id] = found
-    else return found  // return null but don't cache it
+    // Don't cache null — element may not exist yet
+    return found
   }
   return _els[id]
 }
@@ -3607,14 +3614,13 @@ function addMsg(type, text) {
   const ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
   chatLog.push({type, text, ts})
   if (chatLog.length > 200) chatLog.shift()
-  // Always get fresh reference to chat element
-  const c = document.getElementById('chat')
-  if (!c) { console.warn('[addMsg] #chat not found in DOM'); return }
+  const c = el('chat')
+  if (!c) return
   const safe = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   c.insertAdjacentHTML('beforeend', '<div class="' + type + '">' + safe + '</div>')
-  if (c.scrollHeight - c.scrollTop - c.clientHeight < 200)
+  if (c.scrollHeight - c.scrollTop - c.clientHeight < 120)
     c.scrollTop = c.scrollHeight
-  try { saveChatLog() } catch(e) {}
+  saveChatLog()
 }
 function updateHist(){
   const h=el('sb-hist'); if(!h||!histList)return; h.innerHTML=''
