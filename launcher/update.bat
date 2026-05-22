@@ -118,6 +118,8 @@ echo  (2-5 minutes)
 echo.
 set GH_TOKEN=!GH_TOKEN!
 set RELEASE_NOTES=!RELEASE_NOTES!
+set ELECTRON_BUILDER_CACHE=C:\Users\krist\AppData\Local\electron-builder\Cache
+set ELECTRON_CACHE=C:\Users\krist\AppData\Local\electron\Cache
 call npm run dist
 if errorlevel 1 (echo  [ERROR] Build failed & pause & exit /b 1)
 
