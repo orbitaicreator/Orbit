@@ -1353,7 +1353,6 @@ function initOrb() {
   window._setOrb = (s) => { state = s }
   window._orbPause = false
   // Pause when window hidden
-  document.addEventListener('visibilitychange', () => { paused = document.hidden })
   const pal={
     idle:     ['#00ff41','#00cc33','#005518'],
     thinking: ['#00ff41','#39ff14','#00dd33'],
@@ -1535,7 +1534,7 @@ class MicrophoneManager {
       updateMicStatus('active')
     })
 
-    this._removeWake = yoda.on('mic-wake', () => {
+    this._removeWake = yoda.on('mic-wake', () => { flashOnWake();
       if (self.manualMode) return
       self._onWake()
     })
@@ -1830,7 +1829,184 @@ function ask(text) {
   addMsg('u',text); dispatch(text)
 }
 
+
+// == NORWEGIAN GREETING ==
+function getNorwegianGreeting() {
+  var h = new Date().getHours()
+  var g = h<12 ? ['God morgen! Klar til hjelpe.','Hei! Hva trenger du?']
+        : h<17 ? ['God ettermiddag!','Hei! Hva kan jeg gjore?']
+        :        ['God kveld!','Hei! Kan jeg hjelpe?']
+  return g[Math.floor(Math.random()*g.length)]
+}
+
+// == 10 NEW FEATURES ==
+function setReminder(text, minutes) {
+  var mins = parseInt(minutes)||30
+  setTimeout(function(){
+    addMsg('y','Reminder: '+text)
+    if(!whisperMode) speak('Reminder: '+text)
+  }, mins*60000)
+  respond('Reminder set: "'+text+'" in '+mins+' minute'+(mins!==1?'s':'')+'.')
+}
+
+function calculate(expr) {
+  try {
+    var clean = expr.replace(/[^0-9+\-*/.() ]/g,'').trim()
+    if (!clean) return respond('What would you like me to calculate?')
+    var result = Function('"use strict";return ('+clean+')')()
+    if (!isFinite(result)) return respond('That has no finite answer.')
+    respond(expr+' = '+parseFloat(result.toFixed(8)))
+  } catch(e) { respond('Could not calculate that.') }
+}
+
+async function showDesktop() {
+  await yoda.system({action:'run-ps', value:'(New-Object -ComObject Shell.Application).MinimizeAll()'}).catch(function(){})
+  respond('Showing desktop.')
+}
+
+async function emptyRecycleBin() {
+  await yoda.system({action:'run-ps', value:'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'}).catch(function(){})
+  respond('Recycle bin emptied.')
+}
+
+async function checkDiskSpace() {
+  try {
+    var r = await yoda.system({action:'run-ps', value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free of "+[math]::Round(($d.Used+$d.Free)/1GB,1).ToString()+"GB"'})
+    respond('Disk C: '+(r||'unknown')+'.')
+  } catch(e){ respond('Could not check disk space.') }
+}
+
+async function toggleWifi(on) {
+  var cmd = on ? 'Enable-NetAdapter -Name Wi-Fi -Confirm:$false' : 'Disable-NetAdapter -Name Wi-Fi -Confirm:$false'
+  await yoda.system({action:'run-ps', value:cmd}).catch(function(){})
+  respond('Wi-Fi '+(on?'on.':'off.'))
+}
+
+function repeatLast() {
+  if (!lastResponse) return respond('Nothing to repeat.')
+  speak(lastResponse)
+  addMsg('s','Repeating...')
+}
+
+function copyLastResponse() {
+  if (!lastResponse) return respond('Nothing to copy.')
+  navigator.clipboard.writeText(lastResponse).then(function(){
+    addMsg('s','Copied to clipboard.')
+  }).catch(function(){ respond('Could not copy.') })
+}
+
+function adjustFontSize(delta) {
+  var chat = el('chat')
+  if (!chat) return
+  var cur = parseInt(window.getComputedStyle(chat).fontSize)||14
+  var next = Math.max(10,Math.min(22,cur+delta))
+  chat.style.fontSize = next+'px'
+  respond('Font size: '+next+'px.')
+}
+
+function showVersion() {
+  respond('Yoda — AI desktop assistant by Kristian. Running on Electron + Node.js.')
+}
+
+// == 10 QOL FEATURES ==
+// QOL 1: busy watchdog
+setInterval(function(){
+  if (busy){
+    if (!window._busyAt) window._busyAt=Date.now()
+    if (Date.now()-window._busyAt > 15000){
+      busy=false; window._busyAt=null; setStatus('online','idle')
+    }
+  } else { window._busyAt=null }
+}, 2000)
+
+// QOL 2: double-click orb = toggle sidebar
+function setupOrbDblClick(){
+  var orb=el('orb'); if(!orb) return
+  orb.addEventListener('dblclick',function(){
+    var sb=el('sidebar')
+    if(sb) sb.style.display = (sb.style.display==='none'?'':'none')
+  })
+}
+
+// QOL 3: Enter to send
+function setupInputShortcuts(){
+  var inp=el('inp-txt'); if(!inp) return
+  inp.addEventListener('keydown',function(e){
+    if(e.key==='Enter'&&!e.shiftKey){
+      e.preventDefault()
+      var txt=inp.value.trim()
+      if(txt){inp.value='';ask(txt)}
+    }
+  })
+}
+
+// QOL 4: emoji/short response shortcuts
+var _EMOJI_MAP = {
+  'thanks':'You are welcome.','thank you':'Happy to help!',
+  'great':'Glad I could help!','awesome':'Thanks!',
+  'cool':'Glad you like it.','nice':'Appreciated!',
+  'perfect':'Great!','ok':'Got it.','okay':'Got it.'
+}
+function checkQuickResponse(text) {
+  var r = _EMOJI_MAP[text.toLowerCase().trim()]
+  if (r){ respond(r); return true }
+  return false
+}
+
+// QOL 5: font increase/decrease keyboard shortcut
+document.addEventListener('keydown',function(e){
+  if(e.ctrlKey && e.key==='+') adjustFontSize(1)
+  if(e.ctrlKey && e.key==='-') adjustFontSize(-1)
+})
+
+// QOL 6: Auto-save chat to localStorage every 30s
+setInterval(function(){
+  try{localStorage.setItem('yoda_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
+}, 30000)
+
+// QOL 7: Show typing indicator when thinking
+function showTyping(){
+  var c=el('chat'); if(!c) return
+  var existing=document.getElementById('yoda-typing')
+  if(!existing){
+    c.insertAdjacentHTML('beforeend','<div id="yoda-typing" class="s" style="opacity:.5">Thinking...</div>')
+    c.scrollTop=c.scrollHeight
+  }
+}
+function hideTyping(){
+  var t=document.getElementById('yoda-typing')
+  if(t) t.remove()
+}
+
+// QOL 8: Word count for notes
+function noteWordCount(){
+  try{
+    var notes=JSON.parse(localStorage.getItem('yoda_notes')||'[]')
+    var total=notes.reduce(function(acc,n){return acc+(n.text||n).split(' ').length},0)
+    respond('You have '+notes.length+' note'+(notes.length!==1?'s':'')+' with '+total+' words total.')
+  }catch(e){respond('Could not count notes.')}
+}
+
+// QOL 9: Remember last command for redo
+var _lastCommand = ''
+function redoLastCommand(){
+  if(!_lastCommand) return respond('No previous command.')
+  ask(_lastCommand)
+}
+
+// QOL 10: Haptic-style visual flash on wake
+function flashOnWake(){
+  var orb=el('orb-wrap')||el('orb')
+  if(!orb) return
+  orb.style.transition='filter .15s'
+  orb.style.filter='brightness(3)'
+  setTimeout(function(){orb.style.filter=''},300)
+}
+
+// == END NEW CODE ==
+
 async function dispatch(text) {
+  _lastCommand = text
   let normalized = text.toLowerCase().trim()
 
   // ── Vosk normalization — 100+ corrections ─────────────────────────────
@@ -1870,7 +2046,18 @@ async function dispatch(text) {
     'remember this':'remember that','dont forget':'remember that',
     'make a note':'remember that','clear memory':'forget everything',
     'what do you know':'what do you remember','what do you recall':'what do you remember',
-    // Norwegian
+    // Norwegian — full command set
+    'hei':'hello','god morgen':'good morning','god ettermiddag':'good afternoon',
+    'god kveld':'good evening','ha det':'goodbye','takk':'thanks',
+    'ja':'yes','nei':'no','apne':'open','lukk':'close','stopp':'stop',
+    'ta et skjermbilde':'take a screenshot','skjermbilde':'screenshot',
+    'las pc':'lock the pc','skru opp':'volume up','skru ned':'volume down',
+    'demp':'mute','hva er klokken':'what time is it','klokken':'what time is it',
+    'hvilken dato':'what is the date','hva er vaeret':'weather','vaer':'weather',
+    'ta et notat':'take a note','legg til oppgave':'add todo',
+    'sok etter':'search for','fokusmode':'focus mode','start fokus':'focus mode',
+    'vits':'tell me a joke','motiver meg':'motivate me',
+    'apne innstillinger':'open settings','avslutt yoda':'quit yoda',
     'apne':'open','lukk':'close','stopp':'stop','hei':'hello',
     // Numbers
     'won':'one','fore':'four','ate':'eight',
@@ -2434,6 +2621,72 @@ async function dispatch(text) {
   }
 
   // ── focus mode etc ──────────────────────────────────────────────────
+  if (/session time|how long.*open|screen time/i.test(t)) return respond('Yoda open for ' + getSessionTime() + '.')
+  if (/list.*notes|show.*notes|my notes/i.test(t))        return listNotes()
+  if (/clear.*notes|delete.*notes/i.test(t))              return clearNotes()
+  if (/battery|how.*charged/i.test(t))                    return getBatteryStatus()
+  if (/fullscreen|full screen/i.test(t))                  return toggleFullscreen()
+  if (/clipboard.*history|recent.*clipboard/i.test(t))    return showClipHistory()
+  if (/news|daily brief/i.test(t))                        return newsBriefing()
+
+  if (/word of the day|daily word/i.test(t))                return wordOfDay()
+  if (/compliment|say something nice|cheer me up/i.test(t)) return compliment()
+  if (/roast me/i.test(t))                                  return roast()
+  if (/breathing|box breath|lets breathe/i.test(t))         return breathingExercise()
+  if (/stop breath/i.test(t))                               return breathingExercise()
+  if (/math quiz|quiz me/i.test(t))                         return mathQuiz()
+  if (/todays summary|what is today/i.test(t))              return todaySummary()
+  if (/i feel |log mood/i.test(t)) {
+    var _md = text.replace(/i feel|log mood/i,'').trim()
+    if (_md) return logMood(_md)
+  }
+  if (/show moods|my moods/i.test(t))                       return showMoods()
+  if (/countdown to/i.test(t))                              return countdownTo(text.replace(/countdown to/i,'').trim())
+  if (/how do you say .+ in /i.test(t)) {
+    var _tp = t.replace(/how do you say /,'').split(' in ')
+    if (_tp.length>=2) return translatePhrase(_tp[0].trim(),_tp[1].trim())
+  }
+  if (/white noise|focus sound|play noise/i.test(t))        return playFocusSound()
+  if (/stop sound|stop noise/i.test(t))                     return stopFocusSound()
+
+  // Norwegian native
+  var _norskW=['hei','hva','hvor','hvem','apne','lukk','stopp','ta','legg','vis','sok','finn','vaer','klokken']
+  var _isNorsk=_norskW.some(function(w){return tl.split(' ').indexOf(w)>=0})
+  if (_isNorsk) {
+    if (/^(hei|hallo|god morgen|god ettermiddag|god kveld)/i.test(t)) return respond(getNorwegianGreeting())
+    if (/klokken|hva er klokken/i.test(t)) return respond('Klokken er '+new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'})+'.')
+    if (/hvilken dato|hva er datoen/i.test(t)) return respond('I dag er det '+new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'.')
+    if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await yoda.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
+    if (/hjelp|hva kan du/i.test(t)) return respond('Jeg kan ta skjermbilder, stille inn timer, ta notater, soke, apne apper, sjekke vaer og mye mer!')
+    if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('yoda_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('yoda_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
+    if (/sok etter|finn /i.test(t)){var _nq=t.replace(/sok etter|finn /i,'').trim();if(_nq){webSearch(_nq);return}}
+    if (/vits|fortell en vits/i.test(t)) return tellJoke()
+    if (/motiver meg/i.test(t)) return motivate()
+  }
+
+  // New features
+  if (/remind me|set a reminder/i.test(t)){
+    var _rm=t.match(/(\d+)\s*min/),_rtxt=t.replace(/remind me.*in \d+ min.*|set a reminder/i,'').trim()
+    return setReminder(_rtxt||'something',_rm?_rm[1]:30)
+  }
+  if (/^(calculate|what is \d|compute) /i.test(t)){
+    var _ce=t.replace(/^(calculate|what is|compute)/i,'').trim()
+    if(/[0-9]/.test(_ce)) return calculate(_ce)
+  }
+  if (/show desktop|minimise all|minimize all/i.test(t)) return showDesktop()
+  if (/empty recycle|clear recycle bin/i.test(t))        return emptyRecycleBin()
+  if (/disk space|how much space|free space/i.test(t))   return checkDiskSpace()
+  if (/wifi on|turn on wifi|enable wifi/i.test(t))       return toggleWifi(true)
+  if (/wifi off|turn off wifi|disable wifi/i.test(t))    return toggleWifi(false)
+  if (/repeat that|say that again/i.test(t))             return repeatLast()
+  if (/copy (that|last|response)/i.test(t))              return copyLastResponse()
+  if (/font bigger|font larger|increase font/i.test(t))  return adjustFontSize(2)
+  if (/font smaller|decrease font/i.test(t))             return adjustFontSize(-2)
+  if (/version|about yoda/i.test(t))                     return showVersion()
+  if (/redo|do that again/i.test(t))                     return redoLastCommand()
+  if (/note word count|how many notes/i.test(t))         return noteWordCount()
+  if (checkQuickResponse(t)) return
+
   if (/focus mode|start focus/i.test(t)) {
     const _m = text.match(/(\d+)\s*min/i)
     return startFocus(_m ? parseInt(_m[1]) : 25)
@@ -2590,6 +2843,7 @@ async function queryAI(text) {
   // Safety: reset stuck busy flag
   busy = true
   setStatus('thinking...','thinking')
+  showTyping()
 
   // Small delay so it feels natural
   await new Promise(r => setTimeout(r, 180 + Math.random()*220))
@@ -2707,9 +2961,11 @@ const fallbacks = [
     respond(pick(fallbacks))
 
   } catch(e) {
+    hideTyping()
     console.error('[Brain] Error:', e)
     respond('Something went wrong. Please try again.')
   } finally {
+    hideTyping()
     busy = false
     setStatus('online','idle')
   }
@@ -2780,28 +3036,18 @@ function wipeMemory(){
 }
 
 // ── CHAT ──────────────────────────────────────────────
-function addMsg(type,text) {
-  const chat=el('chat'); if(!chat)return
-  const wrapper=document.createElement('div')
-  wrapper.style.cssText='position:relative'
-  const d=document.createElement('div'); d.className=type
-  const ts=new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-  d.textContent=text
-  d.title=ts  // timestamp on hover
-  // Copy button — appears on hover
-  const copyBtn=document.createElement('button')
-  copyBtn.textContent='copy'
-  copyBtn.style.cssText='display:none;position:absolute;right:0;top:0;background:var(--btn);'+
-    'border:none;color:var(--dim);font-size:7px;cursor:pointer;padding:1px 5px;'+
-    'border-radius:2px;font-family:Consolas,monospace'
-  copyBtn.onclick=()=>{ navigator.clipboard.writeText(text); copyBtn.textContent='copied!'; setTimeout(()=>{copyBtn.textContent='copy'},1200) }
-  wrapper.onmouseenter=()=>copyBtn.style.display='block'
-  wrapper.onmouseleave=()=>{ copyBtn.style.display='none'; copyBtn.textContent='copy' }
-  wrapper.appendChild(d); wrapper.appendChild(copyBtn)
-  chat.appendChild(wrapper); chat.scrollTop=chat.scrollHeight
-  chatLog.push({type,text,ts})
-  if(chatLog.length>200)chatLog.shift()
-  if(type==='u'){histList.unshift(text);if(histList.length>8)histList.pop();updateHist()}
+function addMsg(type, text) {
+  if (!text) return
+  const ts = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  chatLog.push({type, text, ts})
+  if (chatLog.length > 200) chatLog.shift()
+  const c = el('chat')
+  if (!c) return
+  const safe = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
+  c.insertAdjacentHTML('beforeend', '<div class="' + type + '">' + safe + '</div>')
+  if (c.scrollHeight - c.scrollTop - c.clientHeight < 120)
+    c.scrollTop = c.scrollHeight
+  saveChatLog()
 }
 function clearChat(){const c=el('chat');if(c)c.innerHTML='';addMsg('s','Chat cleared.')}
 function updateHist(){
@@ -3395,10 +3641,6 @@ function newChat() {
   addMsg('s', 'New conversation started.')
 }
 
-function toggleProfileMenu(e) {
-  e.stopPropagation()
-  profileMenuOpen ? closeDropdown() : openDropdown()
-}
 function openDropdown() {
   const d = el('profile-dropdown'); if(!d) return
   profileMenuOpen = true; d.style.display = 'block'
@@ -3460,7 +3702,6 @@ function renderConvHistory() {
 }
 
 // Alias — both names work
-function renderConversations() { renderConvHistory() }
 
 function convMenu(e, id) {
   e.stopPropagation()
@@ -3867,7 +4108,183 @@ function randomColour() {
   respond(`Random colour: HSL(${h}, 70%, 55%) — a ${h<30||h>330?'red':h<90?'yellow':h<150?'green':h<210?'cyan':h<270?'blue':'purple'} tone.`)
 }
 
+
+function newsBriefing() {
+  const tod = getTimeOfDay()
+  const t = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  const d = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'})
+  respond('Good ' + tod + '. It is ' + t + ' on ' + d + '. Have a productive day.')
+}
+
+
+// ── Session time ─────────────────────────────────────────────────────────
+const _sessionStart = Date.now()
+function getSessionTime() {
+  const ms = Date.now() - _sessionStart
+  const h = Math.floor(ms/3600000), m = Math.floor((ms%3600000)/60000)
+  return h > 0 ? h + 'h ' + m + 'm' : m + ' minute' + (m!==1?'s':'')
+}
+
+// ── Battery status ────────────────────────────────────────────────────────
+async function getBatteryStatus() {
+  try {
+    const b = await navigator.getBattery()
+    const pct = Math.round(b.level*100)
+    respond('Battery: ' + pct + '% — ' + (b.charging ? 'charging.' : 'on battery.'))
+  } catch { respond('Battery info not available.') }
+}
+
+// ── Notes list ────────────────────────────────────────────────────────────
+function listNotes() {
+  try {
+    const notes = JSON.parse(localStorage.getItem('yoda_notes')||'[]')
+    if (!notes.length) return respond('No notes saved yet.')
+    respond('Your notes: ' + notes.slice(-5).map((n,i)=>(i+1)+'. '+(n.text||n)).join('. '))
+  } catch { respond('Could not load notes.') }
+}
+function clearNotes() {
+  localStorage.removeItem('yoda_notes')
+  respond('All notes cleared.')
+}
+
+// ── Fullscreen ────────────────────────────────────────────────────────────
+function toggleFullscreen() {
+  if (!document.fullscreenElement) {
+    document.documentElement.requestFullscreen().catch(()=>{})
+    respond('Fullscreen on.')
+  } else {
+    document.exitFullscreen().catch(()=>{})
+    respond('Fullscreen off.')
+  }
+}
+
+// ── Clipboard history ─────────────────────────────────────────────────────
+const _clipHistory = []
+function showClipHistory() {
+  if (!_clipHistory.length) return respond('No clipboard history yet.')
+  respond('Recent clipboard: ' + _clipHistory.slice(-3).map((t,i)=>(i+1)+'. '+t.slice(0,60)).join(' | '))
+}
+
+
 // ══ END NEW FEATURES v2 ══════════════════════════════════════════════════
+
+
+// == NEW FEATURES v3 ==
+
+function wordOfDay() {
+  var words = [
+    {w:'Serendipity', d:'Finding something good without looking for it.'},
+    {w:'Ephemeral', d:'Lasting for a very short time.'},
+    {w:'Resilience', d:'The ability to recover quickly from difficulties.'},
+    {w:'Pragmatic', d:'Dealing with things sensibly and realistically.'},
+    {w:'Tenacious', d:'Holding firmly to a purpose; persistent.'},
+    {w:'Concise', d:'Giving much information clearly in few words.'},
+  ]
+  var w = words[new Date().getDate() % words.length]
+  respond(w.w + ' — ' + w.d)
+}
+
+function compliment() {
+  var list = ['You are doing great. Keep it up.','You have excellent taste in AI assistants.',
+    'That was a smart question.','You are clearly very intelligent.']
+  respond(list[Math.floor(Math.random()*list.length)])
+}
+
+function roast() {
+  var list = ['Your code has more bugs than a rainforest.',
+    'I have seen better logic in a coin flip.',
+    'You type so slowly your autocomplete fell asleep.']
+  respond(list[Math.floor(Math.random()*list.length)])
+}
+
+var _breathTimer = null
+function breathingExercise() {
+  if (_breathTimer) { clearInterval(_breathTimer); _breathTimer = null; return respond('Breathing stopped.') }
+  var steps = ['Breathe in... 1, 2, 3, 4','Hold... 1, 2, 3, 4','Breathe out... 1, 2, 3, 4, 5, 6']
+  var bi = 0
+  addMsg('y','Box breathing. Say "stop breathing" to end.')
+  speak(steps[0])
+  _breathTimer = setInterval(function(){
+    bi = (bi+1)%steps.length; speak(steps[bi]); addMsg('s',steps[bi])
+  }, 5000)
+}
+
+var _quizAnswer = null
+function mathQuiz() {
+  var qs = [{q:'15 times 7?',a:'105'},{q:'144 divided by 12?',a:'12'},
+    {q:'Square root of 81?',a:'9'},{q:'25 percent of 200?',a:'50'}]
+  var pick = qs[Math.floor(Math.random()*qs.length)]
+  _quizAnswer = pick.a; addMsg('y',pick.q); speak(pick.q)
+}
+
+function todaySummary() {
+  var now = new Date()
+  var day = now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+  var time = now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  var h = now.getHours()
+  var part = h<12?'morning':h<17?'afternoon':'evening'
+  respond('Today is '+day+'. The time is '+time+'. Good '+part+'.')
+}
+
+var _moods = []
+function logMood(mood) {
+  var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  _moods.push({mood:mood,time:time})
+  respond('Mood logged: '+mood+'. Total today: '+_moods.length+'.')
+}
+function showMoods() {
+  if (!_moods.length) return respond('No moods logged. Say "I feel happy" to log one.')
+  respond('Your moods: '+_moods.map(function(m){return m.time+' '+m.mood}).join(', '))
+}
+
+function countdownTo(dateStr) {
+  var target = new Date(dateStr)
+  if (isNaN(target.getTime())) return respond('Try: "countdown to 25 December 2026".')
+  var diff = target - Date.now()
+  if (diff < 0) return respond('That date has already passed.')
+  var days = Math.floor(diff/86400000)
+  var hours = Math.floor((diff%86400000)/3600000)
+  respond(days+' days and '+hours+' hours to go.')
+}
+
+function translatePhrase(word, lang) {
+  var phrases = {
+    spanish:  {hello:'Hola',thanks:'Gracias',yes:'Si',no:'No',goodbye:'Adios',please:'Por favor'},
+    french:   {hello:'Bonjour',thanks:'Merci',yes:'Oui',no:'Non',goodbye:'Au revoir',please:'Sil vous plait'},
+    german:   {hello:'Hallo',thanks:'Danke',yes:'Ja',no:'Nein',goodbye:'Auf Wiedersehen',please:'Bitte'},
+    norwegian:{hello:'Hei',thanks:'Takk',yes:'Ja',no:'Nei',goodbye:'Ha det',please:'Vennligst'},
+    italian:  {hello:'Ciao',thanks:'Grazie',yes:'Si',no:'No',goodbye:'Arrivederci',please:'Per favore'},
+  }
+  var l = lang.toLowerCase(), w = word.toLowerCase()
+  var dict = phrases[l]
+  if (!dict) return respond('I know Spanish, French, German, Norwegian, and Italian.')
+  var result = dict[w]
+  if (!result) return respond('I know: '+Object.keys(dict).join(', ')+'.')
+  respond(word+' in '+lang+' is: '+result)
+}
+
+function playFocusSound() {
+  try {
+    var actx = new (window.AudioContext||window.webkitAudioContext)()
+    var buf = actx.createBuffer(1,actx.sampleRate*2,actx.sampleRate)
+    var data = buf.getChannelData(0)
+    for (var i=0;i<data.length;i++) data[i]=Math.random()*2-1
+    var src = actx.createBufferSource(), gain = actx.createGain()
+    gain.gain.value = 0.05
+    src.buffer=buf; src.loop=true
+    src.connect(gain); gain.connect(actx.destination); src.start()
+    window._focusSound = {src:src,ctx:actx}
+    addMsg('y','White noise on. Say "stop sound" to turn off.')
+  } catch(e) { respond('Could not play sound.') }
+}
+function stopFocusSound() {
+  if (window._focusSound) {
+    try{window._focusSound.src.stop();window._focusSound.ctx.close()}catch(e){}
+    window._focusSound=null; respond('Sound off.')
+  } else { respond('No sound playing.') }
+}
+
+// == END NEW FEATURES v3 ==
 
 // ══ CONFERENCE FEATURES ═══════════════════════════════════════════════
 
@@ -4155,17 +4572,6 @@ const YodaCursor = (() => {
 
 // Hook into setOrbState to drive the cursor
 const _origSetOrbState = setOrbState
-function setOrbState(s) {
-  _origSetOrbState(s)
-  try { if (window.vm) vm_send('STATE ' + s) } catch {}
-  if (!YodaCursor) return
-  switch(s) {
-    case 'thinking':  YodaCursor.thinking();  break
-    case 'speaking':  YodaCursor.speaking();  break
-    case 'listening': YodaCursor.listening(); break
-    case 'idle':      YodaCursor.idle();      break
-  }
-}
 
 // Init cursor after DOM ready
 document.addEventListener('DOMContentLoaded', () => {

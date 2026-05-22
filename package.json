@@ -1,6 +1,6 @@
 {
   "name": "yoda",
-  "version": "1.2.0",
+  "version": "1.1.0",
   "description": "Yoda AI Assistant",
   "main": "src/main.js",
   "scripts": {
@@ -32,7 +32,8 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Yoda"
+      "shortcutName": "Yoda",
+      "runAfterFinish": false
     },
     "files": [
       "src/**/*",
@@ -67,7 +68,9 @@
       "repo": "yoda",
       "releaseType": "release"
     },
-    "compression": "maximum"
+    "compression": "maximum",
+    "afterAllArtifactBuild": null,
+    "afterPack": null
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
