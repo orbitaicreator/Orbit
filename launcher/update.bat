@@ -53,11 +53,12 @@ echo  OK
 :: Bump version
 echo  [4/5] Releasing...
 
-:: Write a small helper script to bump version
+:: Bump MINOR version: 1.0.0 → 1.1.0 → 1.2.0 ... 1.10.0 → 1.11.0
 echo const fs=require('fs'); > "%TEMP%\yoda_bump.js"
 echo const p=JSON.parse(fs.readFileSync('C:\\Users\\krist\\Yoda\\package.json','utf8')); >> "%TEMP%\yoda_bump.js"
 echo const a=p.version.split('.'); >> "%TEMP%\yoda_bump.js"
-echo a[2]=String(parseInt(a[2])+1); >> "%TEMP%\yoda_bump.js"
+echo a[1]=String(parseInt(a[1])+1); >> "%TEMP%\yoda_bump.js"
+echo a[2]='0'; >> "%TEMP%\yoda_bump.js"
 echo p.version=a.join('.'); >> "%TEMP%\yoda_bump.js"
 echo fs.writeFileSync('C:\\Users\\krist\\Yoda\\package.json',JSON.stringify(p,null,2)); >> "%TEMP%\yoda_bump.js"
 echo process.stdout.write(p.version); >> "%TEMP%\yoda_bump.js"

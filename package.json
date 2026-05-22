@@ -1,6 +1,6 @@
 {
   "name": "yoda",
-  "version": "1.0.18",
+  "version": "1.1.0",
   "description": "Yoda AI Assistant",
   "main": "src/main.js",
   "scripts": {
@@ -30,26 +30,22 @@
     "nsis": {
       "oneClick": false,
       "allowToChangeInstallationDirectory": true,
-      "shortcutName": "Yoda",
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "deleteAppDataOnUninstall": false,
-      "include": "installer.nsh"
+      "shortcutName": "Yoda"
     },
     "files": [
       "src/**/*",
       "assets/**/*",
       "package.json",
-      "!node_modules/**/*.{map,md,ts,flow,txt}",
-      "!node_modules/**/test/**",
-      "!node_modules/**/tests/**",
-      "!node_modules/**/__tests__/**",
+      "!node_modules/**/*.{map,md,ts,flow,txt,log}",
+      "!node_modules/**/test{,s}/**",
+      "!node_modules/**/__test{,s}__/**",
       "!node_modules/**/docs/**",
-      "!node_modules/**/example/**",
-      "!node_modules/**/examples/**",
-      "!**/*.{iml,o,hprof,orig,pyc,pyo,rbc,swp,csproj,sln,xproj}",
-      "!.editorconfig",
-      "!**/{.DS_Store,.git,.hg,.svn,CVS,RCS,SCCS}"
+      "!node_modules/**/example{,s}/**",
+      "!node_modules/**/{README,CHANGELOG,CONTRIBUTING,AUTHORS,HISTORY}*",
+      "!node_modules/.bin/**",
+      "!**/{.DS_Store,.git,.hg,.svn}"
     ],
     "extraResources": [
       {
