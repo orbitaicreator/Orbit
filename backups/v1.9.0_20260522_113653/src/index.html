@@ -1126,7 +1126,25 @@ input,select,textarea{font-family:inherit}
         oninput="document.body.style.opacity=this.value/100;saveSett('opacity',parseInt(this.value))">
     </div>
     <div class="sg">
-      
+      <div class="sh" style="padding:0 0 8px;font-size:11px;letter-spacing:1px;color:#888;border:none;background:none;position:static">GITHUB</div>
+      <label class="sl">Repository URL</label>
+      <input class="si2" id="setting-git-url" placeholder="https://github.com/user/repo.git"
+        >
+      <label class="sl" style="margin-top:6px">Access Token</label>
+      <input class="si2" id="setting-git-token" type="password" placeholder="ghp_..."
+        >
+      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+        <button class="sbt" onclick="setupGitFromSettings()">Connect</button>
+        <button class="sbt" onclick="gitSave()">Save</button>
+        <button class="sbt" onclick="gitPublish()">Push</button>
+        <button class="sbt" onclick="gitPull()">Pull</button>
+        <button class="sbt" onclick="loadGitHistory()">History</button>
+      </div>
+      <div id="git-history" style="display:none;margin-top:8px;font-size:11px;color:#666"></div>
+    </div>
+    <div class="sg">
+      <button class="sbt" onclick="if(window.updater)window.updater.checkForUpdates()">Check for updates</button>
+    </div>
     <div style="height:16px"></div>
   </div>
 
