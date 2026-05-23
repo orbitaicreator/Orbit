@@ -18,6 +18,7 @@ contextBridge.exposeInMainWorld('yoda', {
   quit:       ()       => ipcRenderer.invoke('quit'),
   system:     cmd      => ipcRenderer.invoke('system', cmd),
   aiChat:     data     => ipcRenderer.invoke('ai-chat', data),
+  openClaw:   req      => ipcRenderer.invoke('openclaw-request', req),
   speak:      (t,v)    => ipcRenderer.invoke('speak', t, v),
   startMic:   (w,l)    => ipcRenderer.invoke('start-mic', w, l),
   stopMic:    ()       => ipcRenderer.invoke('stop-mic'),

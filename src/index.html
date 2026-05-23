@@ -1151,6 +1151,63 @@ input,select,textarea{font-family:inherit}
         <button class="sbt" id="search-slow"   onclick="setSearchSpeed('slow')"  >Slow</button>
       </div>
     </div>
+    <div class="sg">
+      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">OPENCLAW</label>
+      <label class="sl" style="margin-top:8px">OpenClaw URL</label>
+      <input class="si2" id="openclaw-url" placeholder="http://localhost:3141"
+        onchange="setOpenClawURL(this.value)">
+      <div style="display:flex;gap:6px;margin-top:6px">
+        <button class="sbt" onclick="checkOpenClawStatus()">Check Status</button>
+      </div>
+      <div id="openclaw-status" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
+    </div>
+    <div class="sg">
+      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">JUMPSCARE</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
+        <button class="sbt" id="js-enable-toggle" onclick="setJumpscareEnabled(!_jumpscareEnabled)">Enabled</button>
+        <button class="sbt" id="js-flash-toggle" onclick="setJumpscareFlash(!_jumpscareFlash)">Flash: ON</button>
+      </div>
+      <label class="sl" style="margin-top:10px">Scare Photo</label>
+      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
+        <img id="jumpscare-photo-preview" style="width:48px;height:48px;object-fit:cover;border:1px solid #2a4a2a;display:none;border-radius:4px">
+        <div style="display:flex;flex-direction:column;gap:4px">
+          <input type="file" id="jumpscare-photo-input" accept="image/*" style="display:none" onchange="loadJumpscarePhoto(this)">
+          <button class="sbt" onclick="document.getElementById('jumpscare-photo-input').click()">Choose Photo</button>
+          <button class="sbt" onclick="clearJumpscarePhoto()">Clear</button>
+        </div>
+      </div>
+      <label class="sl" style="margin-top:10px">Scare Sound</label>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <button class="sbt" id="js-sound-scream" onclick="setJumpscareSound('scream')">Scream</button>
+        <button class="sbt" id="js-sound-horror" onclick="setJumpscareSound('horror')">Horror</button>
+        <button class="sbt" id="js-sound-beep"   onclick="setJumpscareSound('beep')"  >Beep</button>
+        <button class="sbt" id="js-sound-custom" onclick="document.getElementById('js-sound-input').click()">Custom</button>
+        <input type="file" id="js-sound-input" accept="audio/*" style="display:none" onchange="loadJumpscareSound(this)">
+      </div>
+      <div style="display:flex;gap:6px;margin-top:8px">
+        <button class="sbt" onclick="testJumpscare()">TEST</button>
+      </div>
+      <div id="jumpscare-status" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
+    </div>
+    <div class="sg">
+      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">THEME</label>
+      <label class="sl" style="margin-top:8px">Color Scheme</label>
+      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
+        <button class="sbt" id="theme-default" onclick="applyTheme('default')" style="background:var(--ac)">Green</button>
+        <button class="sbt" id="theme-blue"    onclick="applyTheme('blue')"   >Blue</button>
+        <button class="sbt" id="theme-red"     onclick="applyTheme('red')"    >Red</button>
+        <button class="sbt" id="theme-purple"  onclick="applyTheme('purple')" >Purple</button>
+        <button class="sbt" id="theme-amber"   onclick="applyTheme('amber')"  >Amber</button>
+        <button class="sbt" id="theme-white"   onclick="applyTheme('white')"  >White</button>
+      </div>
+      <label class="sl" style="margin-top:10px">Custom Accent Color</label>
+      <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
+        <input type="color" id="custom-color-picker" value="#00ff41"
+          oninput="setCustomColor(this.value)"
+          style="width:40px;height:28px;border:none;background:none;cursor:pointer;padding:0">
+        <button class="sbt" id="theme-custom" onclick="setCustomColor(document.getElementById('custom-color-picker').value)">Apply Custom</button>
+      </div>
+    </div>
     <div style="height:16px"></div>
   </div>
 
@@ -1791,8 +1848,11 @@ function startApp() {
   if (config.git_url) { const gu=el('setting-git-url'); if(gu) { gu.value=config.git_url } }  // no onchange
   loadTodos()
   refreshNotesUI()
-  setTimeout(greet, 400)
+  _initJumpstart()
+  setTimeout(greet, 600)
   setTimeout(loadPerfSettings, 100)
+  setTimeout(loadThemeSettings, 150)
+  setTimeout(function(){ _checkOpenClaw().then(function(ok){ var s=document.getElementById('openclaw-status'); if(s)s.textContent=ok?'Connected':'Not running'; }) }, 2000)
 
   yoda.on('oe-press', () => {
     // FIX: Do not trigger if user is typing in any input/textarea
@@ -2656,6 +2716,530 @@ function _decayPersonality(){
 _decayPersonality()
 // == END PERFORMANCE + DECAY ==
 
+
+// ══ OPENCLAW INTEGRATION ══════════════════════════════════════════════════
+// OpenClaw runs locally on port 3141 (default)
+// Yoda uses it as AI brain + task automation engine
+
+var _openclaw = {
+  url:       'http://localhost:3141',
+  available: null,  // null = unknown, true/false = checked
+  model:     'default',
+}
+
+// Check if OpenClaw is running
+async function _checkOpenClaw() {
+  try {
+    var r = await fetch(_openclaw.url + '/health', {
+      method: 'GET',
+      signal: AbortSignal.timeout(2000)
+    })
+    _openclaw.available = r.ok
+    return r.ok
+  } catch(e) {
+    _openclaw.available = false
+    return false
+  }
+}
+
+// Send a message to OpenClaw and get a response
+async function _queryOpenClaw(text, context) {
+  try {
+    var body = {
+      message: text,
+      context: context || '',
+      system: _getPersonalityPrompt(),
+      history: _convHistory.slice(-10),
+    }
+    var r = await fetch(_openclaw.url + '/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000)
+    })
+    if (!r.ok) throw new Error('OpenClaw HTTP ' + r.status)
+    var data = await r.json()
+    return data.response || data.message || data.text || null
+  } catch(e) {
+    console.log('[OpenClaw] chat error:', e.message)
+    return null
+  }
+}
+
+// Run an autonomous task via OpenClaw
+async function _openClawTask(task) {
+  try {
+    addMsg('s', 'OpenClaw: running task...')
+    var r = await fetch(_openclaw.url + '/task', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        task: task,
+        tools: ['shell', 'files', 'browser', 'code'],
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(30000)
+    })
+    if (!r.ok) throw new Error('Task HTTP ' + r.status)
+    var data = await r.json()
+    return data.result || data.output || data.response || 'Task complete.'
+  } catch(e) {
+    console.log('[OpenClaw] task error:', e.message)
+    return null
+  }
+}
+
+// Main OpenClaw handler — called from dispatch for complex requests
+async function openClawDo(request) {
+  // Check if running
+  if (_openclaw.available === null) await _checkOpenClaw()
+  if (!_openclaw.available) {
+    return respond('OpenClaw is not running. Start it first — say "how to start OpenClaw" for instructions.')
+  }
+
+  // Detect if this is a task (do something) or a question (answer something)
+  var isTask = /create|write|open|find|search|run|execute|download|install|move|delete|copy|send|browse|check|scan|read the file|list files/i.test(request)
+
+  if (isTask) {
+    var result = await _openClawTask(request)
+    if (result) respond(result)
+    else respond('OpenClaw could not complete that task.')
+  } else {
+    var reply = await _queryOpenClaw(request)
+    if (reply) {
+      _convHistory.push({role:'assistant', content:reply})
+      respond(reply)
+    } else {
+      // Fall back to Claude
+      await yodaAI(request)
+    }
+  }
+}
+
+// Settings for OpenClaw
+function setOpenClawURL(url) {
+  _openclaw.url = url.trim().replace(/\/$/, '')
+  _openclaw.available = null  // reset check
+  saveSett('openclaw_url', _openclaw.url)
+  _checkOpenClaw().then(function(ok) {
+    respond(ok ? 'OpenClaw connected at ' + _openclaw.url : 'Cannot reach OpenClaw at ' + _openclaw.url + '. Is it running?')
+  })
+}
+
+async function checkOpenClawStatus() {
+  var ok = await _checkOpenClaw()
+  respond(ok
+    ? 'OpenClaw is running at ' + _openclaw.url + '. Ready for tasks.'
+    : 'OpenClaw is not running. Install from github.com/openclaw/openclaw and start it.')
+}
+
+// ══ END OPENCLAW ══════════════════════════════════════════════════════════
+
+
+// == REMOTE CONTROL VIA OPENCLAW ==
+var _remoteEnabled = false
+var _remoteChannel = 'whatsapp'
+
+async function startRemoteControl(channel) {
+  if (_openclaw.available === null) await _checkOpenClaw()
+  if (!_openclaw.available) return respond('OpenClaw is not running. Remote control requires OpenClaw.')
+  _remoteChannel = channel || 'whatsapp'
+  _remoteEnabled = true
+  saveSett('remote_channel', _remoteChannel)
+  var r = await yoda.openClaw({
+    endpoint: _openclaw.url + '/skills/register',
+    body: {name:'yoda', description:'Control Yoda desktop assistant', channel:_remoteChannel,
+      commands:[{trigger:'screenshot'},{trigger:'volume'},{trigger:'lock'},{trigger:'open'},{trigger:'search'},{trigger:'say'},{trigger:'status'}]}
+  }).catch(function(){return null})
+  var ch = _remoteChannel.charAt(0).toUpperCase()+_remoteChannel.slice(1)
+  addMsg('y', 'Remote ON via '+ch+'. Message the OpenClaw bot on '+ch+' to control your PC.')
+  addMsg('s', 'Commands: screenshot, volume up/down, lock, sleep, open [app], search [query], say [text], status, weather, time.')
+  if (!whisperMode) speak('Remote control active via '+ch+'.')
+}
+
+function stopRemoteControl() {
+  _remoteEnabled = false
+  respond('Remote control off.')
+}
+
+function remoteStatus() {
+  if (!_remoteEnabled) return respond('Remote control is off. Say "start remote control" to enable.')
+  respond('Remote active on '+_remoteChannel+'. Send commands from your phone: screenshot, volume up/down, lock, sleep, open [app], search [query], say [text], status.')
+}
+
+async function _pollRemoteCommands() {
+  if (!_remoteEnabled || !_openclaw.available) return
+  try {
+    var r = await yoda.openClaw({endpoint: _openclaw.url+'/skills/yoda/pending'})
+    if (!r || !r.ok || !r.data) return
+    var cmds = Array.isArray(r.data) ? r.data : []
+    for (var ci=0; ci<cmds.length; ci++) {
+      if (cmds[ci] && cmds[ci].text) {
+        addMsg('s', 'Phone: '+cmds[ci].text)
+        await dispatch(cmds[ci].text)
+        await yoda.openClaw({endpoint:_openclaw.url+'/skills/yoda/ack',body:{id:cmds[ci].id}}).catch(function(){})
+      }
+    }
+  } catch(e) {}
+}
+setInterval(function(){ if(_remoteEnabled) _pollRemoteCommands() }, 3000)
+
+async function getPCStatus() {
+  var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
+  var date = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})
+  var status = 'Yoda online. '+time+' '+date+'.'
+  try {
+    var disk = await yoda.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
+    if (disk) status += ' Disk: '+disk.trim()+'.'
+  } catch(e) {}
+  respond(status)
+}
+
+async function sendToPhone(message, channel) {
+  if (_openclaw.available === null) await _checkOpenClaw()
+  if (!_openclaw.available) return respond('OpenClaw not running.')
+  var ch = channel || _remoteChannel || 'whatsapp'
+  var r = await yoda.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Yoda] '+message}}).catch(function(){return null})
+  respond(r && r.ok ? 'Sent to your '+ch+'.' : 'Could not send.')
+}
+// == END REMOTE CONTROL ==
+
+
+// == JUMPSTART ==
+var _jumpstartPhoto = localStorage.getItem('jumpstart_photo') || null
+var _startupSound   = localStorage.getItem('startup_sound')   || 'chime'
+var _customSoundUrl = localStorage.getItem('custom_sound_url')|| null
+
+function loadJumpstartPhoto(input) {
+  var file = input.files[0]; if(!file) return
+  var reader = new FileReader()
+  reader.onload = function(e) {
+    _jumpstartPhoto = e.target.result
+    localStorage.setItem('jumpstart_photo', _jumpstartPhoto)
+    var img=document.getElementById('jumpstart-photo-img')
+    if(img){img.src=_jumpstartPhoto;img.style.display='block'}
+    var s=document.getElementById('jumpstart-status'); if(s) s.textContent='Photo saved.'
+  }
+  reader.readAsDataURL(file)
+}
+
+function clearJumpstartPhoto() {
+  _jumpstartPhoto = null
+  localStorage.removeItem('jumpstart_photo')
+  var img=document.getElementById('jumpstart-photo-img')
+  if(img){img.src='';img.style.display='none'}
+  var s=document.getElementById('jumpstart-status'); if(s) s.textContent='Photo cleared.'
+}
+
+function setStartupSound(name) {
+  _startupSound = name
+  localStorage.setItem('startup_sound', name)
+  ;['none','chime','beep','whoosh','custom'].forEach(function(s){
+    var b=document.getElementById('sound-'+s); if(b) b.style.background=s===name?'var(--ac)':''
+  })
+}
+
+function loadCustomSound(input) {
+  var file=input.files[0]; if(!file) return
+  var reader=new FileReader()
+  reader.onload=function(e){ _customSoundUrl=e.target.result; localStorage.setItem('custom_sound_url',_customSoundUrl); setStartupSound('custom') }
+  reader.readAsDataURL(file)
+}
+
+function _playStartupSound() {
+  if(_startupSound==='none') return
+  try {
+    if(_startupSound==='custom' && _customSoundUrl){ new Audio(_customSoundUrl).play().catch(function(){}); return }
+    var actx=new (window.AudioContext||window.webkitAudioContext)()
+    if(_startupSound==='chime') {
+      [523,659,784].forEach(function(freq,i){
+        var o=actx.createOscillator(),g=actx.createGain()
+        o.connect(g);g.connect(actx.destination);o.type='sine';o.frequency.value=freq
+        var t=actx.currentTime+i*0.15
+        g.gain.setValueAtTime(0,t);g.gain.linearRampToValueAtTime(0.3,t+0.05);g.gain.exponentialRampToValueAtTime(0.001,t+0.5)
+        o.start(t);o.stop(t+0.5)
+      })
+    } else if(_startupSound==='beep') {
+      var o=actx.createOscillator(),g=actx.createGain()
+      o.connect(g);g.connect(actx.destination);o.type='square';o.frequency.value=880
+      g.gain.setValueAtTime(0.2,actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.15)
+      o.start();o.stop(actx.currentTime+0.15)
+    } else if(_startupSound==='whoosh') {
+      var buf=actx.createBuffer(1,actx.sampleRate*0.4,actx.sampleRate)
+      var data=buf.getChannelData(0)
+      for(var i=0;i<data.length;i++) data[i]=(Math.random()*2-1)*(1-i/data.length)
+      var src2=actx.createBufferSource(),g=actx.createGain()
+      src2.buffer=buf;src2.connect(g);g.connect(actx.destination)
+      g.gain.setValueAtTime(0.3,actx.currentTime);g.gain.exponentialRampToValueAtTime(0.001,actx.currentTime+0.4)
+      src2.start();src2.stop(actx.currentTime+0.4)
+    }
+  } catch(e) {}
+}
+
+function testStartupSound() { _playStartupSound() }
+
+function _showJumpstartOverlay() {
+  var ol=document.getElementById('jumpstart-overlay')
+  if(!ol){ ol=document.createElement('div'); ol.id='jumpstart-overlay'; ol.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,10,0,0.97);transition:opacity .5s'; document.body.appendChild(ol) }
+  ol.innerHTML=''
+  if(_jumpstartPhoto){ var img=document.createElement('img'); img.src=_jumpstartPhoto; img.style.cssText='width:110px;height:110px;border-radius:50%;object-fit:cover;border:2px solid #00ff41;margin-bottom:18px;box-shadow:0 0 30px #00ff4150'; ol.appendChild(img) }
+  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='YODA'; ol.appendChild(nm)
+  var sb=document.createElement('div'); sb.style.cssText='color:#336633;font-size:11px;letter-spacing:2px'; sb.textContent='AI ASSISTANT'; ol.appendChild(sb)
+  ol.style.opacity='1'
+  _playStartupSound()
+}
+
+function _hideJumpstartOverlay() {
+  var ol=document.getElementById('jumpstart-overlay'); if(!ol) return
+  ol.style.opacity='0'
+  setTimeout(function(){ if(ol.parentNode) ol.parentNode.removeChild(ol) },500)
+}
+
+function testJumpstart() { _showJumpstartOverlay(); setTimeout(_hideJumpstartOverlay,2500) }
+
+function _initJumpstart() {
+  if(_jumpstartPhoto){ var img=document.getElementById('jumpstart-photo-img'); if(img){img.src=_jumpstartPhoto;img.style.display='block'} }
+  setStartupSound(_startupSound)
+  _showJumpstartOverlay()
+  setTimeout(_hideJumpstartOverlay, 2500)
+}
+// == END JUMPSTART ==
+
+
+// == JUMPSCARE ==
+var _jumpscarePhoto  = localStorage.getItem('jumpscare_photo') || null
+var _jumpscareSound  = localStorage.getItem('jumpscare_sound') || 'scream'
+var _jumpscareFlash  = localStorage.getItem('jumpscare_flash') !== 'false'
+var _jumpscareCustomSound = localStorage.getItem('jumpscare_custom_sound') || null
+var _jumpscareEnabled = localStorage.getItem('jumpscare_enabled') !== 'false'
+
+function loadJumpscarePhoto(input) {
+  var file = input.files[0]; if (!file) return
+  var reader = new FileReader()
+  reader.onload = function(e) {
+    _jumpscarePhoto = e.target.result
+    localStorage.setItem('jumpscare_photo', _jumpscarePhoto)
+    var img = document.getElementById('jumpscare-photo-preview')
+    if (img) { img.src = _jumpscarePhoto; img.style.display = 'block' }
+    var s = document.getElementById('jumpscare-status'); if (s) s.textContent = 'Photo saved!'
+  }
+  reader.readAsDataURL(file)
+}
+
+function clearJumpscarePhoto() {
+  _jumpscarePhoto = null
+  localStorage.removeItem('jumpscare_photo')
+  var img = document.getElementById('jumpscare-photo-preview')
+  if (img) { img.src = ''; img.style.display = 'none' }
+}
+
+function loadJumpscareSound(input) {
+  var file = input.files[0]; if (!file) return
+  var reader = new FileReader()
+  reader.onload = function(e) {
+    _jumpscareCustomSound = e.target.result
+    localStorage.setItem('jumpscare_custom_sound', _jumpscareCustomSound)
+    setJumpscareSound('custom')
+  }
+  reader.readAsDataURL(file)
+}
+
+function setJumpscareSound(name) {
+  _jumpscareSound = name
+  localStorage.setItem('jumpscare_sound', name)
+  ;['scream','horror','beep','custom'].forEach(function(s) {
+    var b = document.getElementById('js-sound-' + s); if (b) b.style.background = s===name?'var(--ac)':''
+  })
+}
+
+function setJumpscareFlash(on) {
+  _jumpscareFlash = on
+  localStorage.setItem('jumpscare_flash', on)
+  var btn = document.getElementById('js-flash-toggle')
+  if (btn) btn.textContent = on ? 'Flash: ON' : 'Flash: OFF'
+  if (btn) btn.style.background = on ? 'var(--ac)' : ''
+}
+
+function setJumpscareEnabled(on) {
+  _jumpscareEnabled = on
+  localStorage.setItem('jumpscare_enabled', on)
+  var btn = document.getElementById('js-enable-toggle')
+  if (btn) { btn.textContent = on ? 'Enabled' : 'Disabled'; btn.style.background = on?'var(--ac)':'' }
+}
+
+function _playJumpscareSound() {
+  try {
+    if (_jumpscareSound === 'custom' && _jumpscareCustomSound) {
+      var a = new Audio(_jumpscareCustomSound); a.volume = 1.0; a.play().catch(function(){})
+      return
+    }
+    var actx = new (window.AudioContext || window.webkitAudioContext)()
+    if (_jumpscareSound === 'scream') {
+      // Harsh scream sound — rising noise burst
+      var buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate)
+      var data = buf.getChannelData(0)
+      for (var i = 0; i < data.length; i++) {
+        var env = i < actx.sampleRate * 0.1 ? i / (actx.sampleRate * 0.1) : 1
+        data[i] = (Math.random() * 2 - 1) * env
+      }
+      var src2 = actx.createBufferSource()
+      var dist = actx.createWaveShaper()
+      var curve = new Float32Array(256)
+      for (var j = 0; j < 256; j++) { var x = j * 2 / 256 - 1; curve[j] = (Math.PI + 400) * x / (Math.PI + 400 * Math.abs(x)) }
+      dist.curve = curve
+      var gain = actx.createGain(); gain.gain.value = 1.5
+      src2.buffer = buf; src2.connect(dist); dist.connect(gain); gain.connect(actx.destination)
+      src2.start(); src2.stop(actx.currentTime + 2)
+    } else if (_jumpscareSound === 'horror') {
+      // Low horror sting
+      var osc = actx.createOscillator()
+      var gain2 = actx.createGain()
+      osc.connect(gain2); gain2.connect(actx.destination)
+      osc.type = 'sawtooth'
+      osc.frequency.setValueAtTime(80, actx.currentTime)
+      osc.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 1.5)
+      gain2.gain.setValueAtTime(1, actx.currentTime)
+      gain2.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.5)
+      osc.start(); osc.stop(actx.currentTime + 1.5)
+    } else if (_jumpscareSound === 'beep') {
+      var osc2 = actx.createOscillator(), g2 = actx.createGain()
+      osc2.connect(g2); g2.connect(actx.destination)
+      osc2.frequency.value = 1200; g2.gain.value = 1
+      osc2.start(); osc2.stop(actx.currentTime + 0.5)
+    }
+  } catch(e) {}
+}
+
+function triggerJumpscare() {
+  if (!_jumpscareEnabled) return respond('Jumpscare is disabled. Enable it in Settings.')
+  if (!_jumpscarePhoto) return respond('No jumpscare photo set. Go to Settings to upload one.')
+
+  // Create fullscreen overlay
+  var ol = document.createElement('div')
+  ol.id = 'jumpscare-overlay'
+  ol.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer'
+  ol.onclick = function() { dismissJumpscare() }
+
+  var img = document.createElement('img')
+  img.src = _jumpscarePhoto
+  img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;animation:js-shake .1s infinite'
+  ol.appendChild(img)
+
+  // Add shake + flash CSS
+  if (!document.getElementById('js-style')) {
+    var style = document.createElement('style')
+    style.id = 'js-style'
+    style.textContent = '@keyframes js-shake{0%{transform:translate(-5px,-5px) scale(1.02)}25%{transform:translate(5px,-5px) scale(1.05)}50%{transform:translate(-5px,5px) scale(1.02)}75%{transform:translate(5px,5px) scale(1.05)}100%{transform:translate(-5px,-5px) scale(1.02)}}@keyframes js-flash{0%,100%{opacity:1}50%{opacity:0}}'
+    document.head.appendChild(style)
+  }
+
+  document.body.appendChild(ol)
+
+  // Flash effect
+  if (_jumpscareFlash) {
+    ol.style.animation = 'js-flash 0.1s infinite'
+    var flashInterval = setInterval(function() {
+      ol.style.background = ol.style.background === '#fff' ? '#000' : '#fff'
+    }, 80)
+    setTimeout(function() { clearInterval(flashInterval); ol.style.background = '#000' }, 3000)
+  }
+
+  // Play sound
+  _playJumpscareSound()
+
+  // Auto-dismiss after 4 seconds
+  setTimeout(function() { dismissJumpscare() }, 4000)
+
+  addMsg('y', 'BOO!')
+}
+
+function dismissJumpscare() {
+  var ol = document.getElementById('jumpscare-overlay')
+  if (ol && ol.parentNode) ol.parentNode.removeChild(ol)
+}
+
+function testJumpscare() { triggerJumpscare() }
+// == END JUMPSCARE ==
+
+
+// == THEMES ==
+var _themes = {
+  default: {bg:'#010d01', ac:'#00ff41', sb:'#090e09', dim:'#336633', text:'#ccffcc'},
+  blue:    {bg:'#01050d', ac:'#00aaff', sb:'#050810', dim:'#334466', text:'#ccddff'},
+  red:     {bg:'#0d0101', ac:'#ff3333', sb:'#0e0909', dim:'#663333', text:'#ffcccc'},
+  purple:  {bg:'#06010d', ac:'#cc44ff', sb:'#0a0510', dim:'#553366', text:'#ddccff'},
+  amber:   {bg:'#0d0800', ac:'#ffaa00', sb:'#100a00', dim:'#664400', text:'#ffeebb'},
+  white:   {bg:'#0a0a0a', ac:'#ffffff', sb:'#111111', dim:'#666666', text:'#ffffff'},
+  custom:  null
+}
+var _currentTheme = localStorage.getItem('yoda_theme') || 'default'
+var _customColor  = localStorage.getItem('yoda_custom_color') || '#00ff41'
+
+function applyTheme(name) {
+  var theme = _themes[name]
+  if (!theme) return
+  _currentTheme = name
+  localStorage.setItem('yoda_theme', name)
+  var root = document.documentElement
+  root.style.setProperty('--bg',   theme.bg)
+  root.style.setProperty('--ac',   theme.ac)
+  root.style.setProperty('--sb-bg',theme.sb)
+  root.style.setProperty('--dim',  theme.dim)
+  root.style.setProperty('--tc',   theme.text)
+  document.body.style.background = theme.bg
+  ;['default','blue','red','purple','amber','white','custom'].forEach(function(t) {
+    var b = document.getElementById('theme-' + t); if (b) b.style.background = t===name?theme.ac:''
+  })
+}
+
+function setCustomColor(hex) {
+  _customColor = hex
+  localStorage.setItem('yoda_custom_color', hex)
+  _themes.custom = {bg:'#010501', ac:hex, sb:'#050905', dim:'#224422', text:'#ccffcc'}
+  applyTheme('custom')
+}
+
+function loadThemeSettings() {
+  if (_currentTheme && _currentTheme !== 'default') {
+    if (_currentTheme === 'custom') {
+      setCustomColor(_customColor)
+    } else {
+      applyTheme(_currentTheme)
+    }
+  }
+}
+// == END THEMES ==
+
+
+// == OPENCLAW FULL INTEGRATION ==
+async function oc(task, showProgress) {
+  if (_openclaw.available === null) await _checkOpenClaw()
+  if (!_openclaw.available) return respond('OpenClaw not running. Install from github.com/openclaw/openclaw')
+  if (showProgress !== false) addMsg('s', 'Working on it...')
+  var r = await yoda.openClaw({endpoint:_openclaw.url+'/task',body:{task:task,tools:['shell','files','browser','code','spotify','gmail','github','hue','slack','discord']}})
+  if (r && r.ok && r.data) {
+    var result = r.data.result || r.data.output || r.data.response || r.data.text
+    if (result) { respond(String(result).slice(0,500)); return result }
+  }
+  respond('OpenClaw could not complete that.')
+  return null
+}
+async function ocBrowse(url) { return oc('Go to '+url+' and tell me what you see') }
+async function ocReadFile(p) { return oc('Read the file at '+p+' and show contents') }
+async function ocFindFiles(q) { return oc('Find all files matching: '+q) }
+async function ocRunScript(s) { return oc('Run this shell command: '+s) }
+async function ocSpotify(action, q) { return oc(q ? action+' "'+q+'" on Spotify' : action+' on Spotify') }
+async function ocGmail(action, params) {
+  if (action==='read') return oc('Check my latest Gmail and summarise them')
+  if (action==='send') return oc('Send email to '+params.to+' subject "'+params.subject+'" body: '+params.body)
+  return oc('Gmail: '+action+(params?' - '+params:''))
+}
+async function ocGitHub(q) { return oc('GitHub: '+q) }
+async function ocHue(q) { return oc('Philips Hue lights: '+q) }
+async function ocSlack(q) { return oc('Slack: '+q) }
+async function ocAnswer(q) { return oc('Answer this using web search if needed: '+q) }
+// == END OPENCLAW FULL ==
+
 async function dispatch(text) {
   _lastCommand = text
 
@@ -3453,6 +4037,60 @@ async function dispatch(text) {
 
   if (/my personality|personality stats/i.test(t)) return showPersonality()
 
+  if (/start remote control via (whatsapp|telegram|discord)/i.test(t)){var _rcm=t.match(/(whatsapp|telegram|discord)/i);return startRemoteControl(_rcm?_rcm[1]:"whatsapp")}
+  if (/start remote( control)?/i.test(t)) return startRemoteControl("whatsapp")
+  if (/stop remote( control)?/i.test(t))  return stopRemoteControl()
+  if (/remote status/i.test(t))            return remoteStatus()
+  if (/pc status|computer status/i.test(t)) return getPCStatus()
+  if (/send to (my )?(phone|whatsapp|telegram)/i.test(t)){var _stpm=t.replace(/send to (my )?(phone|whatsapp|telegram)/i,"").trim();if(_stpm)return sendToPhone(_stpm)}
+
+  // ── OpenClaw routing ────────────────────────────────────────────────────
+  if (_openclaw.available) {
+    // Browser
+    if (/browse to |navigate to |go to website /i.test(t)) return ocBrowse(t.replace(/browse to|navigate to|go to website/i,'').trim())
+    if (/scrape |extract from |get data from /i.test(t)) return oc(text)
+    // Files
+    if (/read (the )?file |open (the )?file /i.test(t)) return ocReadFile(t.replace(/read (the )?file|open (the )?file/i,'').trim())
+    if (/find (all )?files|list (all )?files/i.test(t)) return ocFindFiles(t.replace(/find (all )?files|list (all )?files/i,'').trim())
+    if (/run script|run command|execute command/i.test(t)) return ocRunScript(t.replace(/run script|run command|execute command/i,'').trim())
+    // Spotify
+    if (/pause spotify|skip song|next song|previous song/i.test(t)) return ocSpotify(text)
+    // Gmail
+    if (/check (my )?email|read (my )?email|any new email/i.test(t)) return ocGmail('read')
+    if (/send (an? )?email to /i.test(t)) {
+      var _em3=t.match(/send (?:an? )?email to ([^,]+?)(?:,| about| with subject| saying) ?(.+)?/i)
+      if (_em3) return ocGmail('send',{to:_em3[1].trim(),subject:'From Yoda',body:_em3[2]||''})
+    }
+    // GitHub
+    if (/github|pull request|open issue|my repos/i.test(t)) return ocGitHub(text)
+    // Hue
+    if (/hue|smart lights|turn (the )?lights/i.test(t)) return ocHue(text)
+    // Slack
+    if (/send (to )?slack|slack message/i.test(t)) return ocSlack(text)
+    // General complex question routing
+    if (/^(what is|who is|when did|where is|how do|why does|how much|how many|tell me about) /i.test(text)) return ocAnswer(text)
+  }
+
+  // OpenClaw commands
+  if (/openclaw status|is openclaw running/i.test(t)) return checkOpenClawStatus()
+  if (/connect openclaw|set openclaw/i.test(t)) {
+    var _ocurl = t.replace(/connect openclaw|set openclaw/i,'').trim()
+    if (_ocurl) return setOpenClawURL(_ocurl)
+    return respond('Tell me the URL — e.g. "connect openclaw http://localhost:3141"')
+  }
+  if (/how to (start|install|setup) openclaw/i.test(t))
+    return respond('Install OpenClaw: go to github.com/openclaw/openclaw and follow the README. Then start it and say "openclaw status" to connect.')
+  // Route complex tasks to OpenClaw
+  if (/^(create|write a|find all|scan|execute|run the|list all files|read the file|browse to)/i.test(text) && _openclaw.available) {
+    return openClawDo(text)
+  }
+
+  if (/jumpscare|scare me|trigger jumpscare|boo/i.test(t)) return triggerJumpscare()
+  if (/dismiss jumpscare|stop jumpscare/i.test(t)) return dismissJumpscare()
+  if (/theme (blue|red|purple|amber|white|default|green)/i.test(t)){
+    var _thm=t.match(/theme (\w+)/i); if(_thm) applyTheme(_thm[1]); return respond('Theme: '+(_thm?_thm[1]:'default')+'.')
+  }
+
   if (/focus mode|start focus/i.test(t)) {
     const _m = text.match(/(\d+)\s*min/i)
     return startFocus(_m ? parseInt(_m[1]) : 25)
@@ -3913,7 +4551,11 @@ async function queryAI(text) {
     _learnFromQuery(t)
     // ── AI-generated response via Claude API ─────────────────────────────
     _learnFromQuery(t)
-    await yodaAI(t)
+    // Use OpenClaw if available (better for complex tasks)
+    if (_openclaw.available === true) {
+      return ocAnswer(text)
+    }
+    await yodaAI(text)
 
   } catch(e) {
     hideTyping()
@@ -5520,7 +6162,6 @@ const _origSetOrbState = setOrbState
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => YodaCursor.init(), 500)
 })
-
 </script>
 </body>
 </html>

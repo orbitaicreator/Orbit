@@ -497,6 +497,54 @@ ipcMain.handle('ai-chat', async (_, { messages, system }) => {
   }
 })
 
+
+// ── OpenClaw IPC ─────────────────────────────────────────────────────────
+ipcMain.handle('openclaw-request', async (_, { endpoint, body }) => {
+  try {
+    const http  = require('http')
+    const https = require('https')
+    const url   = new URL(endpoint)
+    const isHttps = url.protocol === 'https:'
+    const lib   = isHttps ? https : http
+
+    const data = body ? JSON.stringify(body) : null
+
+    return new Promise((resolve) => {
+      const opts = {
+        hostname: url.hostname,
+        port:     url.port || (isHttps ? 443 : 80),
+        path:     url.pathname + url.search,
+        method:   body ? 'POST' : 'GET',
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept':       'application/json',
+          ...(data ? {'Content-Length': Buffer.byteLength(data)} : {})
+        }
+      }
+
+      const req = lib.request(opts, res => {
+        let raw = ''
+        res.on('data', c => raw += c)
+        res.on('end', () => {
+          try {
+            resolve({ ok: res.statusCode < 400, status: res.statusCode, data: JSON.parse(raw) })
+          } catch(e) {
+            resolve({ ok: res.statusCode < 400, status: res.statusCode, data: raw })
+          }
+        })
+      })
+
+      req.on('error', e => resolve({ ok: false, error: e.message }))
+      req.setTimeout(15000, () => { req.destroy(); resolve({ ok: false, error: 'timeout' }) })
+
+      if (data) req.write(data)
+      req.end()
+    })
+  } catch(e) {
+    return { ok: false, error: e.message }
+  }
+})
+
 ipcMain.handle('system', async (_, cmd) => {
   try {
     switch (cmd.action) {
