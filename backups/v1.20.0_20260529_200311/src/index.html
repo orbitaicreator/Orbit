@@ -6,6 +6,14 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
+  /* JARVIS HUD colors */
+  --j-cyan:      #00f0ff;
+  --j-cyan-dim:  rgba(0,240,255,0.15);
+  --j-cyan-glow: rgba(0,240,255,0.6);
+  --j-blue:      #0077ff;
+  --j-amber:     #ff3d00;
+  --j-white:     #f0f4f8;
+  --j-bg:        rgba(13,17,23,0.92);
 
   --bg:#010d01;--bg2:#0a110a;--bg3:#0d160d;
   --ac:#cc785c;--ac2:#b5623e;
@@ -48,7 +56,7 @@ input,select,textarea{font-family:inherit}
 #app{display:none;width:100%;height:100%}
 
 /* ORB */
-#orb-wrap{position:absolute;left:50%;top:42%;transform:translate(-50%,-50%);width:680px;height:680px;pointer-events:none}
+#orb-wrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
 
 /* STATUS */
 #tb-status{position:absolute;left:50%;bottom:calc(68px + 20px);
@@ -109,6 +117,14 @@ input,select,textarea{font-family:inherit}
 
 /* SIDEBAR — Exact Claude replica, Yoda green */
 :root{
+  /* JARVIS HUD colors */
+  --j-cyan:      #00f0ff;
+  --j-cyan-dim:  rgba(0,240,255,0.15);
+  --j-cyan-glow: rgba(0,240,255,0.6);
+  --j-blue:      #0077ff;
+  --j-amber:     #ff3d00;
+  --j-white:     #f0f4f8;
+  --j-bg:        rgba(13,17,23,0.92);
 
   --sb-w:260px;
   --sb-col:52px;
@@ -823,303 +839,190 @@ input,select,textarea{font-family:inherit}
   to   { transform: rotate(360deg); }
 }
 
-
-
-
-
-
-
-/* ═══════════════════════════════════════════════════════════════════════
-   AETHER HUD SYSTEM — Dual-Mode Cyberpunk Desktop Interface
-   ═══════════════════════════════════════════════════════════════════════ */
-
-/* ── Design Tokens ──────────────────────────────────────────────────── */
-:root {
-  --ae-canvas:    #010206;
-  --ae-aqua:      #00E5FF;
-  --ae-aqua-glo:  rgba(0,229,255,0.55);
-  --ae-aqua-dim:  rgba(0,229,255,0.10);
-  --ae-slate:     #CBD5E1;
-  --ae-border:    #1E293B;
-  --ae-blue:      #0066FF;
-  --ae-green:     #39FF14;
-  --ae-amber:     #FF6B00;
-  --ae-font:      'Fira Code','JetBrains Mono','Courier New',monospace;
-}
-
-/* ── Force background ───────────────────────────────────────────────── */
-body, html, #app, #main { background: var(--ae-canvas) !important; }
-
-/* ── Orb-wrap: full viewport overlay ───────────────────────────────── */
-#orb-wrap {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 1;
-  font-family: var(--ae-font);
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   A. ACTIVE HUD MODE — Four telemetry corner grids
-   ══════════════════════════════════════════════════════════════════════ */
-
-.ae-grid {
-  position: absolute;
-  padding: 8px 11px 12px;
-  border: 1px solid var(--ae-border);
-  background: rgba(1,2,6,0.88);
-  min-width: 158px;
-  pointer-events: all;
-
-  /* Hidden by default — slide from corner */
-  opacity: 0;
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-
-/* Slide-in offsets per corner */
-.ae-tl { top: 14px;       left: 14px;   transform: translate(-10px, -10px); }
-.ae-tr { top: 14px;       right: 14px;  transform: translate( 10px, -10px); text-align: right; }
-.ae-bl { bottom: 78px;    left: 14px;   transform: translate(-10px,  10px); }
-.ae-br { bottom: 78px;    right: 14px;  transform: translate( 10px,  10px); text-align: right; }
-
-/* Revealed state — slide to rest position */
-.ae-grid.ae-show {
-  opacity: 1;
-  transform: translate(0, 0);
-}
-
-/* Header row */
-.ae-hdr {
-  font-size: 8px;
-  letter-spacing: 0.32em;
-  color: var(--ae-aqua);
-  text-transform: uppercase;
-  text-shadow: 0 0 10px var(--ae-aqua);
-  padding-bottom: 5px;
-  margin-bottom: 7px;
-  border-bottom: 1px solid var(--ae-border);
-}
-
-/* Data row */
-.ae-row {
-  font-size: 9px;
-  letter-spacing: 0.2em;
-  color: var(--ae-slate);
-  line-height: 2.1;
-  white-space: nowrap;
-  text-transform: uppercase;
-}
-.ae-row .ae-val {
-  color: var(--ae-aqua);
-  letter-spacing: 0.15em;
-}
-
-/* ── Transcript breakout — streams rightward from COGNITIVE_NET ─────── */
-#ae-transcript {
-  position: absolute;
-  bottom: 78px;
-  left: 186px;                    /* just outside the COGNITIVE_NET box */
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: var(--ae-aqua);
-  text-shadow: 0 0 12px var(--ae-aqua);
-  max-width: 340px;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
-#ae-transcript.ae-show { opacity: 1; }
-
-/* ── User input breakout — overlaps left border of AUDIO_IO ─────────── */
-#ae-userinput {
-  position: absolute;
-  bottom: 78px;
-  right: 172px;                   /* bleeds into AUDIO_IO left border */
-  font-size: 11px;
-  letter-spacing: 0.12em;
-  color: #FFFFFF;
-  opacity: 0.65;
-  pointer-events: none;
-  white-space: nowrap;
-  font-family: var(--ae-font);
-  text-transform: uppercase;
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   B. AMBIENT STANDBY MODE — Centred geometric rings + master chrono
-   ══════════════════════════════════════════════════════════════════════ */
-
-#ae-standby {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity 300ms ease;
-}
-#ae-standby.ae-show { opacity: 1; }
-
-/* ── Dual-ring geometric orbit ──────────────────────────────────────── */
-#ae-rings {
+/* ═══ JARVIS HUD ═══════════════════════════════════════════════════════ */
+#jarvis-hud {
   position: relative;
-  width: 200px;
-  height: 200px;
-  animation: ae-breath 4s ease-in-out infinite;
-}
-@keyframes ae-breath {
-  0%, 100% { transform: scale(0.98); opacity: 0.85; }
-  50%       { transform: scale(1.02); opacity: 1;    }
+  width: 100%;
+  height: 100%;
+  font-family: 'JetBrains Mono','Space Mono','Courier New',monospace;
 }
 
-.ae-ring-svg {
+/* Telemetry boxes */
+.j-telemetry {
+  position: absolute;
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--j-cyan);
+  text-transform: uppercase;
+  line-height: 1.8;
+  padding: 6px 10px;
+  border: 1px solid var(--j-cyan-dim);
+  background: rgba(0,240,255,0.03);
+  min-width: 130px;
+}
+.j-telemetry .j-label {
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--j-cyan-glow);
+  border-bottom: 1px solid var(--j-cyan-dim);
+  margin-bottom: 4px;
+  padding-bottom: 2px;
+  text-shadow: 0 0 8px var(--j-cyan);
+}
+.j-telemetry .j-val {
+  color: var(--j-white);
+  font-size: 9px;
+  opacity: 0.8;
+}
+.j-tl { top: 12px; left: 12px; }
+.j-tr { top: 12px; right: 12px; text-align: right; }
+.j-bl { bottom: 80px; left: 12px; }
+.j-br { bottom: 80px; right: 12px; text-align: right; }
+
+/* Core widget */
+#jarvis-core {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -52%);
+  width: 300px;
+  height: 300px;
+}
+
+/* SVG rings */
+.j-ring {
   position: absolute;
   top: 0; left: 0;
   width: 100%;
   height: 100%;
-  overflow: visible;
 }
 
-/* SVG elements */
-.ae-outer-circle {
+.j-arc-base {
   fill: none;
-  stroke: var(--ae-aqua);
-  stroke-width: 1.8;
-  filter: drop-shadow(0 0 6px var(--ae-aqua));
+  stroke: var(--j-cyan-dim);
+  stroke-width: 0.5;
 }
-.ae-inner-circle {
+.j-arc-seg {
   fill: none;
-  stroke: rgba(0,229,255,0.28);
-  stroke-width: 1;
+  stroke: var(--j-cyan);
+  stroke-width: 1.5;
+  filter: drop-shadow(0 0 4px var(--j-cyan));
 }
-.ae-axis-line {
-  stroke: rgba(0,229,255,0.32);
-  stroke-width: 0.75;
-  stroke-dasharray: 3 4;
+.j-arc-mid {
+  fill: none;
+  stroke: var(--j-cyan-dim);
+  stroke-width: 0.5;
 }
-.ae-core-dot {
-  fill: var(--ae-aqua);
-  filter: drop-shadow(0 0 5px var(--ae-aqua)) drop-shadow(0 0 14px var(--ae-aqua-glo));
+.j-arc-mid-seg {
+  fill: none;
+  stroke: var(--j-cyan);
+  stroke-width: 1.2;
+  filter: drop-shadow(0 0 3px var(--j-cyan));
 }
-.ae-node-dot {
-  fill: var(--ae-aqua);
-  filter: drop-shadow(0 0 4px var(--ae-aqua));
-}
-
-/* Outer ring rotates CW, inner CCW */
-.ae-g-outer { animation: ae-cw  22s linear infinite; transform-origin: 100px 100px; }
-.ae-g-inner { animation: ae-ccw 13s linear infinite; transform-origin: 100px 100px; }
-@keyframes ae-cw  { to { transform: rotate(360deg);  } }
-@keyframes ae-ccw { to { transform: rotate(-360deg); } }
-
-/* State overrides */
-#ae-rings[data-st="listening"] .ae-outer-circle {
-  stroke: var(--ae-green);
-  filter: drop-shadow(0 0 8px var(--ae-green));
-}
-#ae-rings[data-st="listening"] .ae-node-dot { fill: var(--ae-green); }
-#ae-rings[data-st="listening"] .ae-g-outer { animation: ae-cw 7s linear infinite; }
-#ae-rings[data-st="listening"] .ae-g-inner { animation: ae-ccw 3.5s linear infinite; }
-
-#ae-rings[data-st="thinking"] .ae-outer-circle {
-  stroke: var(--ae-blue);
-  filter: drop-shadow(0 0 8px var(--ae-blue));
-}
-#ae-rings[data-st="thinking"] .ae-node-dot { fill: var(--ae-blue); }
-#ae-rings[data-st="thinking"] .ae-g-outer { animation: ae-step-cw 1.6s steps(12,end) infinite; }
-#ae-rings[data-st="thinking"] .ae-g-inner { animation: ae-step-ccw 0.9s steps(8,end)  infinite; }
-#ae-rings[data-st="thinking"] .ae-core-dot { fill: var(--ae-blue); filter: drop-shadow(0 0 8px var(--ae-blue)); }
-@keyframes ae-step-cw  { to { transform: rotate(360deg);  } }
-@keyframes ae-step-ccw { to { transform: rotate(-360deg); } }
-
-#ae-rings[data-st="speaking"] .ae-outer-circle {
-  stroke: #44FF88;
-  filter: drop-shadow(0 0 10px #44FF88);
-}
-#ae-rings[data-st="speaking"] .ae-g-outer { animation: ae-cw 5s linear infinite; }
-#ae-rings[data-st="speaking"] .ae-g-inner { animation: ae-ccw 2.5s linear infinite; }
-
-/* ── State label ────────────────────────────────────────────────────── */
-#ae-state-lbl {
-  margin-top: 14px;
-  font-size: 9px;
-  letter-spacing: 0.42em;
-  color: var(--ae-aqua);
-  text-shadow: 0 0 12px var(--ae-aqua);
-  text-align: center;
-  font-family: var(--ae-font);
-  text-transform: uppercase;
+.j-tick {
+  fill: var(--j-cyan);
+  filter: drop-shadow(0 0 3px var(--j-cyan));
 }
 
-/* ── Master Chrono Array ────────────────────────────────────────────── */
-#ae-chrono {
-  margin-top: 100px;
-  text-align: center;
-  font-family: var(--ae-font);
-  transition: transform 300ms ease, opacity 300ms ease;
-}
-#ae-chrono.ae-hide { transform: translateY(30px); opacity: 0; pointer-events: none; }
+/* Animations */
+.j-ring-outer { animation: j-rotate-cw 12s linear infinite; }
+.j-ring-mid   { animation: j-rotate-ccw 6s linear infinite; }
 
-#ae-hhmm {
-  font-size: 56px;
-  font-weight: 300;
-  letter-spacing: 0.1em;
-  color: var(--ae-aqua);
-  text-shadow: 0 0 24px var(--ae-aqua), 0 0 50px var(--ae-aqua-glo);
-  line-height: 1;
+@keyframes j-rotate-cw  { from{transform:rotate(0deg)}  to{transform:rotate(360deg)} }
+@keyframes j-rotate-ccw { from{transform:rotate(360deg)} to{transform:rotate(0deg)} }
+@keyframes j-breath { 0%,100%{transform:translate(-50%,-52%) scale(0.97);opacity:0.5} 50%{transform:translate(-50%,-52%) scale(1.03);opacity:0.9} }
+@keyframes j-pulse-collapse { 0%{transform:translate(-50%,-52%) scale(1);opacity:1} 100%{transform:translate(-50%,-52%) scale(1.4);opacity:0} }
+@keyframes j-step-rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
+
+/* State: idle */
+[data-state="idle"] #jarvis-core {
+  animation: j-breath 4s ease-in-out infinite;
 }
-#ae-date-row {
-  margin-top: 10px;
-  font-size: 10px;
-  letter-spacing: 0.38em;
-  color: var(--ae-slate);
-  text-transform: uppercase;
+[data-state="idle"] .j-ring-outer {
+  animation: j-rotate-cw 16s linear infinite;
+}
+[data-state="idle"] .j-ring-mid {
+  animation: j-rotate-ccw 12s linear infinite;
 }
 
-/* ── Sphere canvas ──────────────────────────────────────────────────── */
-#orb-wrap #orb {
+/* State: listening */
+[data-state="listening"] .j-ring-outer { animation: j-rotate-cw 8s linear infinite; }
+[data-state="listening"] .j-ring-mid   { animation: j-rotate-ccw 4s linear infinite; }
+[data-state="listening"] .j-arc-seg    { stroke: #39ff14; filter: drop-shadow(0 0 6px #39ff14); }
+
+/* State: thinking */
+[data-state="thinking"] .j-ring-outer {
+  animation: j-step-rotate 2s steps(12,end) infinite;
+}
+[data-state="thinking"] .j-ring-mid {
+  animation: j-step-rotate 1s steps(8,end) infinite reverse;
+}
+[data-state="thinking"] .j-arc-seg {
+  stroke: var(--j-blue);
+  filter: drop-shadow(0 0 6px var(--j-blue));
+}
+[data-state="thinking"] .j-arc-mid-seg { stroke: var(--j-blue); }
+
+/* State: speaking */
+[data-state="speaking"] .j-ring-outer { animation: j-rotate-cw 6s linear infinite; }
+[data-state="speaking"] .j-ring-mid   { animation: j-rotate-ccw 3s linear infinite; }
+[data-state="speaking"] .j-arc-seg    { stroke: #44ff77; filter: drop-shadow(0 0 8px #44ff77); }
+
+/* State: interrupt */
+[data-state="interrupt"] .j-ring-outer,
+[data-state="interrupt"] .j-ring-mid {
+  animation: j-pulse-collapse 0.2s ease-out forwards;
+}
+[data-state="interrupt"] .j-arc-seg     { stroke: var(--j-amber); filter: drop-shadow(0 0 8px var(--j-amber)); }
+[data-state="interrupt"] .j-arc-mid-seg { stroke: var(--j-amber); }
+
+/* Center dot */
+#j-center-dot {
   position: absolute;
-  left: 50%;
-  top: 42%;
-  transform: translate(-50%, -50%);
-  width: 680px;
-  height: 680px;
-  transition: opacity 300ms ease;
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  background: var(--j-cyan);
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  box-shadow: 0 0 12px var(--j-cyan), 0 0 24px var(--j-cyan-glow);
+}
+[data-state="thinking"] #j-center-dot { background: var(--j-blue); box-shadow: 0 0 12px var(--j-blue); }
+[data-state="interrupt"] #j-center-dot { background: var(--j-amber); box-shadow: 0 0 12px var(--j-amber); }
+
+/* State label */
+#j-state-label {
+  position: absolute;
+  bottom: -24px;
+  left: 50%; transform: translateX(-50%);
+  font-size: 9px;
+  letter-spacing: 0.3em;
+  color: var(--j-cyan);
+  text-shadow: 0 0 8px var(--j-cyan);
+  font-family: 'JetBrains Mono','Courier New',monospace;
+  white-space: nowrap;
+}
+
+/* Waveform canvas */
+#j-wave {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   pointer-events: none;
 }
-#orb-wrap.ae-hud #orb  { opacity: 1;   }
-#orb-wrap.ae-sby #orb  { opacity: 0.1; }
 
-/* ── Chat overrides ─────────────────────────────────────────────────── */
+/* Override chat area for JARVIS look */
 #chat .y {
-  color: var(--ae-aqua) !important;
-  font-family: var(--ae-font) !important;
-  font-size: 11.5px !important;
-  letter-spacing: 0.06em;
-  text-shadow: 0 0 7px rgba(0,229,255,0.3);
+  color: var(--j-cyan) !important;
+  font-family: 'JetBrains Mono','Courier New',monospace;
+  font-size: 12px;
+  letter-spacing: 0.05em;
+  text-shadow: 0 0 6px var(--j-cyan-dim);
 }
 #chat .u {
-  color: var(--ae-slate) !important;
-  font-family: var(--ae-font) !important;
-  font-size: 11.5px !important;
-  letter-spacing: 0.06em;
+  color: var(--j-white) !important;
+  letter-spacing: 0.05em;
 }
-#chat .s {
-  color: rgba(0,229,255,0.4) !important;
-  font-size: 9.5px !important;
-  letter-spacing: 0.18em;
-}
-
-/* ═══════════════════════════════════════════════════════════════════════
-   END AETHER HUD SYSTEM
-   ═══════════════════════════════════════════════════════════════════════ */
+/* ═══ END JARVIS HUD ══════════════════════════════════════════════════ */
 
 </style>
 </head>
@@ -1170,97 +1073,76 @@ body, html, #app, #main { background: var(--ae-canvas) !important; }
     </div>
   </div>
   <div id="main">
-    <div id="orb-wrap" class="ae-sby" data-ae="idle">
+    <div id="orb-wrap">
+  <!-- JARVIS HUD -->
+  <div id="jarvis-hud">
+    <!-- Telemetry corners -->
+    <div class="j-telemetry j-tl" id="j-sys">
+      <div class="j-label">SYS</div>
+      <div class="j-val" id="j-cpu">CPU: ---%</div>
+      <div class="j-val" id="j-ram">RAM: ---%</div>
+      <div class="j-val" id="j-time">--:--:--</div>
+    </div>
+    <div class="j-telemetry j-tr" id="j-media">
+      <div class="j-label">STATUS</div>
+      <div class="j-val" id="j-status-text">SYSTEM READY</div>
+      <div class="j-val" id="j-weather-hud">--- °C</div>
+      <div class="j-val" id="j-session">SESSION: 0:00</div>
+    </div>
+    <div class="j-telemetry j-bl" id="j-net">
+      <div class="j-label">NETWORK</div>
+      <div class="j-val" id="j-openclaw-hud">OPENCLAW: ---</div>
+      <div class="j-val" id="j-model">MODEL: HAIKU</div>
+    </div>
+    <div class="j-telemetry j-br" id="j-input">
+      <div class="j-label">INPUT</div>
+      <div class="j-val" id="j-mic-hud">MIC: STANDBY</div>
+      <div class="j-val" id="j-perf-hud">MODE: GOOD</div>
+    </div>
 
-  <!-- ══════════════════════════════════════════════════════════════════
-       A. ACTIVE HUD MODE — four telemetry corner grids
-       ══════════════════════════════════════════════════════════════════ -->
-
-  <!-- TOP-LEFT · ENVIRONMENT -->
-  <div class="ae-grid ae-tl" id="ae-env">
-    <div class="ae-hdr">ENVIRONMENT</div>
-    <div class="ae-row">CORE_LOAD<span class="ae-val" id="ae-cpu">&nbsp;&nbsp;&nbsp;---%</span></div>
-    <div class="ae-row">MEMORY<span class="ae-val" id="ae-ram">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---%</span></div>
-    <div class="ae-row ae-val" id="ae-clock">00:00:00.000</div>
-  </div>
-
-  <!-- TOP-RIGHT · DIAGNOSTICS -->
-  <div class="ae-grid ae-tr" id="ae-diag">
-    <div class="ae-hdr">DIAGNOSTICS</div>
-    <div class="ae-row">NODE_STATUS&nbsp;<span class="ae-val" id="ae-nstat">ACTIVE</span></div>
-    <div class="ae-row ae-val" id="ae-wx">--- °C ---</div>
-    <div class="ae-row">UPTIME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-up">0:00</span></div>
-  </div>
-
-  <!-- BOTTOM-LEFT · COGNITIVE_NET -->
-  <div class="ae-grid ae-bl" id="ae-cog">
-    <div class="ae-hdr">COGNITIVE_NET</div>
-    <div class="ae-row">ENGINE&nbsp;&nbsp;<span class="ae-val">LOCAL_LLM</span></div>
-    <div class="ae-row">BRIDGE&nbsp;&nbsp;<span class="ae-val" id="ae-bridge">ONLINE</span></div>
-  </div>
-
-  <!-- BOTTOM-RIGHT · AUDIO_IO -->
-  <div class="ae-grid ae-br" id="ae-audio">
-    <div class="ae-hdr">AUDIO_IO</div>
-    <div class="ae-row">INPUT_STREAM&nbsp;<span class="ae-val" id="ae-istream">IDLE</span></div>
-    <div class="ae-row">MODE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-pmode">BALANCED</span></div>
-  </div>
-
-  <!-- AI transcript: streams right out of COGNITIVE_NET -->
-  <div id="ae-transcript"></div>
-  <!-- User input: overlaps left edge of AUDIO_IO -->
-  <div id="ae-userinput"></div>
-
-  <!-- ══════════════════════════════════════════════════════════════════
-       B. AMBIENT STANDBY MODE — centred geometric rings + master chrono
-       ══════════════════════════════════════════════════════════════════ -->
-  <div id="ae-standby">
-
-    <!-- Dual-ring geometric orbit -->
-    <div id="ae-rings" data-st="idle">
-      <svg class="ae-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-
-        <!-- Outer ring + 8 orbital nodes (rotate CW together) -->
-        <g class="ae-g-outer">
-          <circle cx="100" cy="100" r="92" class="ae-outer-circle"/>
-          <circle cx="100" cy="8"   r="4"   class="ae-node-dot"/>
-          <circle cx="165" cy="35"  r="2.8" class="ae-node-dot" opacity="0.75"/>
-          <circle cx="192" cy="100" r="4"   class="ae-node-dot"/>
-          <circle cx="165" cy="165" r="2.8" class="ae-node-dot" opacity="0.75"/>
-          <circle cx="100" cy="192" r="4"   class="ae-node-dot"/>
-          <circle cx="35"  cy="165" r="2.8" class="ae-node-dot" opacity="0.75"/>
-          <circle cx="8"   cy="100" r="4"   class="ae-node-dot"/>
-          <circle cx="35"  cy="35"  r="2.8" class="ae-node-dot" opacity="0.75"/>
-        </g>
-
-        <!-- Inner ring (rotates CCW) -->
-        <g class="ae-g-inner">
-          <circle cx="100" cy="100" r="62" class="ae-inner-circle"/>
-        </g>
-
-        <!-- Static: axis line + core dot (never rotate) -->
-        <line x1="38" y1="100" x2="162" y2="100" class="ae-axis-line"/>
-        <circle cx="100" cy="100" r="4" class="ae-core-dot"/>
-
+    <!-- Core widget -->
+    <div id="jarvis-core" data-state="idle">
+      <!-- Outer slow clockwise ring -->
+      <svg class="j-ring j-ring-outer" viewBox="0 0 300 300">
+        <circle cx="150" cy="150" r="140" class="j-arc-base"/>
+        <!-- Quadrant arcs broken into 4 segments -->
+        <path d="M 150 10 A 140 140 0 0 1 290 150" class="j-arc-seg"/>
+        <path d="M 290 150 A 140 140 0 0 1 150 290" class="j-arc-seg"/>
+        <path d="M 150 290 A 140 140 0 0 1 10 150" class="j-arc-seg"/>
+        <path d="M 10 150 A 140 140 0 0 1 150 10" class="j-arc-seg"/>
+        <!-- Tick marks -->
+        <circle cx="150" cy="12" r="3" class="j-tick"/>
+        <circle cx="288" cy="150" r="3" class="j-tick"/>
+        <circle cx="150" cy="288" r="3" class="j-tick"/>
+        <circle cx="12" cy="150" r="3" class="j-tick"/>
+        <circle cx="256" cy="56" r="2" class="j-tick"/>
+        <circle cx="256" cy="244" r="2" class="j-tick"/>
+        <circle cx="44" cy="244" r="2" class="j-tick"/>
+        <circle cx="44" cy="56" r="2" class="j-tick"/>
       </svg>
+
+      <!-- Middle counter-rotating ring -->
+      <svg class="j-ring j-ring-mid" viewBox="0 0 300 300">
+        <circle cx="150" cy="150" r="110" class="j-arc-mid"/>
+        <path d="M 150 40 A 110 110 0 0 1 260 150" class="j-arc-mid-seg"/>
+        <path d="M 260 150 A 110 110 0 0 1 150 260" class="j-arc-mid-seg" style="opacity:0.5"/>
+        <path d="M 150 260 A 110 110 0 0 1 40 150" class="j-arc-mid-seg"/>
+        <path d="M 40 150 A 110 110 0 0 1 150 40" class="j-arc-mid-seg" style="opacity:0.5"/>
+      </svg>
+
+      <!-- Inner waveform canvas -->
+      <canvas id="orb" width="800" height="800" style="display:none"></canvas>
+      <canvas id="j-wave" width="300" height="300"></canvas>
+
+      <!-- Center dot -->
+      <div id="j-center-dot"></div>
+
+      <!-- State label -->
+      <div id="j-state-label">IDLE</div>
     </div>
-
-    <!-- Dynamic state label -->
-    <div id="ae-state-lbl">AMBIENT_WAIT</div>
-
-    <!-- Master Chrono Array — large HH:MM + calendar row -->
-    <div id="ae-chrono">
-      <div id="ae-hhmm">00:00</div>
-      <div id="ae-date-row">LOADING...</div>
-    </div>
-
   </div>
-
-  <!-- Original particle sphere (shown in HUD mode) -->
-  <canvas id="orb" width="800" height="800"></canvas>
-
 </div>
-<div id="chat"></div>
+    <div id="chat"></div>
     <!-- Small 8px hitbox strip at bottom — triggers input bar on hover -->
     <div id="inp-trigger" onmouseenter="showInp()"></div>
     <div id="inp-bar" onmouseenter="showInp()" onmouseleave="hideInpDelay()">
@@ -1799,241 +1681,126 @@ const el = id => {
 // ORB — original simple version, 180 dots
 // ═══════════════════════════════════════════════════════
 function initOrb() {
-  const cv=el('orb'), ctx=cv.getContext('2d')
-  const cx=400, cy=400, R=340, N=300
-  const dots=Array.from({length:N},(_,i)=>({
-    phi:Math.acos(1-2*(i+.5)/N),
-    theta:Math.PI*(1+Math.sqrt(5))*i,
-    r:2+Math.random()*3.5,
-    sp:.0015+Math.random()*.0035,
-  }))
-  let frame=0, state='idle', paused=false
-  // Expose state setter globally so setOrbState() works
-  window._setOrb = (s) => { state = s }
-  window._orbPause = false
-  // Pause when window hidden
-  const pal={
-    idle:     ['#00ff41','#00cc33','#005518'],
-    thinking: ['#00ff41','#39ff14','#00dd33'],
-    speaking: ['#00ff41','#44ff77','#00e838'],
-    listening:['#39ff14','#00ff41','#00cc33'],
-  }
-  function drawGlow(color){
-    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,280)
-    g.addColorStop(0,   'rgba(0,255,65,0.18)')
-    g.addColorStop(0.3, 'rgba(0,255,65,0.08)')
-    g.addColorStop(0.6, 'rgba(0,255,65,0.03)')
-    g.addColorStop(1,   'rgba(0,255,65,0.00)')
-    ctx.fillStyle = g
-    ctx.beginPath(); ctx.arc(cx,cy,280,0,Math.PI*2); ctx.fill()
-  }
-  function draw(){
-    if(paused){requestAnimationFrame(draw);return}
-    ctx.clearRect(0,0,800,800); frame++
-    const p = pal[state] || pal.idle
+  // ── JARVIS HUD Engine ──────────────────────────────────────────────
+  const core = document.getElementById('jarvis-core')
+  const waveCanvas = document.getElementById('j-wave')
+  const wctx = waveCanvas ? waveCanvas.getContext('2d') : null
+  const stateLabel = document.getElementById('j-state-label')
+  const centerDot = document.getElementById('j-center-dot')
 
-    // Each state has distinct speed and pulse behaviour
-    const spinSpeed = state==='thinking'  ? 0.014  // fast spin
-                    : state==='speaking'  ? 0.010  // medium spin
-                    : state==='listening' ? 0.008  // slow pulse
-                    : 0.004                         // idle crawl
+  let _state = 'idle'
+  let _frame = 0
+  let _audioCtx = null
+  let _analyser = null
+  let _micStream = null
+  let paused = false
 
-    const pulseSpeed = state==='thinking'  ? 0.18   // rapid pulse
-                     : state==='speaking'  ? 0.13   // speech rhythm
-                     : state==='listening' ? 0.06   // gentle
-                     : 0.025                        // slow idle
-
-    const pulseDepth = state==='thinking'  ? 0.22   // big oscillation
-                     : state==='speaking'  ? 0.18
-                     : state==='listening' ? 0.10
-                     : 0.08
-
-    const pls = Math.sin(frame * pulseSpeed) * pulseDepth + (1 - pulseDepth*0.5)
-    const ry  = frame * spinSpeed
-
-    // Glow intensity
-    const glowAlpha = state==='thinking'  ? 0.28
-                    : state==='speaking'  ? 0.22
-                    : state==='listening' ? 0.18
-                    : 0.14
-    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,300)
-    g.addColorStop(0,   `rgba(0,255,65,${glowAlpha})`)
-    g.addColorStop(0.4, `rgba(0,255,65,${glowAlpha*0.4})`)
-    g.addColorStop(1,   'rgba(0,255,65,0)')
-    ctx.fillStyle = g
-    ctx.beginPath(); ctx.arc(cx,cy,300,0,Math.PI*2); ctx.fill()
-
-    ctx.globalAlpha=1; ctx.fillStyle=p[0]
-    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill()
-
-    for(let i=0;i<N;i++){
-      const d=dots[i], t=d.theta+frame*d.sp*(state==='thinking'?2.5:state==='speaking'?1.8:1)
-      const x0=Math.sin(d.phi)*Math.cos(t), y0=Math.sin(d.phi)*Math.sin(t), z0=Math.cos(d.phi)
-      const x1=x0*Math.cos(ry)+z0*Math.sin(ry), z1=-x0*Math.sin(ry)+z0*Math.cos(ry)
-      const sc=(z1+1.6)/2.6*pls
-      ctx.globalAlpha=Math.max(0.15,sc*.85+.05); ctx.fillStyle=p[i%3]
-      const r=Math.max(1.5,d.r*sc); ctx.fillRect(cx+x1*R*sc-r/2,cy+y0*R*sc-r/2,r,r)
-    }
-    ctx.globalAlpha=1; requestAnimationFrame(draw)
-  }
-  draw()
-  document.addEventListener('visibilitychange',()=>{paused=document.hidden})
-  window._setOrb=s=>{state=s;const ow=el('orb-wrap');if(ow)ow.className=s==='idle'?'':s}
-}
-
-
-// ══════════════════════════════════════════════════════════════════════════
-// AETHER HUD ENGINE — Dual-Mode State Manager
-// ══════════════════════════════════════════════════════════════════════════
-var _aeMode   = 'standby'   // 'hud' | 'standby'
-var _aeState  = 'idle'
-var _aeBoot   = Date.now()
-var _aeIdle   = null
-var _aeHUDTimeout = 30000   // ms before reverting to standby
-
-function initAether() {
-  _aeApplyMode('standby')
-  _aeTick()
-  setInterval(_aeTick, 50)          // 20fps clock + 50ms precision
-  setInterval(_aeTelemetry, 2000)   // telemetry every 2s
-  setInterval(_aeInputWatch, 200)   // user input watch
-  _aeTelemetry()
-
-  // Any interaction → switch to HUD, reset idle timer
-  document.addEventListener('click',   _aeWake)
-  document.addEventListener('keydown', _aeWake)
-  document.addEventListener('mousedown', _aeWake)
-}
-
-function _aeWake() {
-  _aeApplyMode('hud')
-  clearTimeout(_aeIdle)
-  _aeIdle = setTimeout(function() { _aeApplyMode('standby') }, _aeHUDTimeout)
-}
-
-function _aeApplyMode(mode) {
-  _aeMode = mode
-  var wrap    = document.getElementById('orb-wrap')
-  var grids   = document.querySelectorAll('.ae-grid')
-  var standby = document.getElementById('ae-standby')
-  var chrono  = document.getElementById('ae-chrono')
-  var trans   = document.getElementById('ae-transcript')
-
-  if (mode === 'hud') {
-    // ── Active HUD ───────────────────────────────────────────────────
-    if (wrap)    { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
-    grids.forEach(function(g) { g.classList.add('ae-show') })
-    if (standby) standby.classList.remove('ae-show')
-    if (chrono)  chrono.classList.add('ae-hide')
-    if (trans)   trans.classList.add('ae-show')
-  } else {
-    // ── Ambient Standby ──────────────────────────────────────────────
-    if (wrap)    { wrap.classList.remove('ae-hud'); wrap.classList.add('ae-sby') }
-    grids.forEach(function(g) { g.classList.remove('ae-show') })
-    if (standby) standby.classList.add('ae-show')
-    if (chrono)  chrono.classList.remove('ae-hide')
-    if (trans)   trans.classList.remove('ae-show')
-  }
-}
-
-function _aeSetState(s) {
-  _aeState = s
-  var rings  = document.getElementById('ae-rings')
-  var lbl    = document.getElementById('ae-state-lbl')
-  var istr   = document.getElementById('ae-istream')
-  var wrap   = document.getElementById('orb-wrap')
-
-  // Map orb states to AETHER display values
-  var map = {
-    idle:      { st: 'idle',      lbl: 'AMBIENT_WAIT',  istr: 'IDLE' },
-    listening: { st: 'listening', lbl: 'RECEIVING',     istr: 'ACTIVE' },
-    thinking:  { st: 'thinking',  lbl: 'PROCESSING',    istr: 'IDLE' },
-    speaking:  { st: 'speaking',  lbl: 'TRANSMITTING',  istr: 'IDLE' },
-  }
-  var m = map[s] || map.idle
-  if (rings) rings.setAttribute('data-st', m.st)
-  if (lbl)   lbl.textContent = m.lbl
-  if (istr)  istr.textContent = m.istr
-  if (wrap)  wrap.setAttribute('data-ae', s)
-
-  // Wake HUD on activity
-  if (s !== 'idle') _aeWake()
-
-  // Transcript — show Yoda's reply while speaking
-  var transcEl = document.getElementById('ae-transcript')
-  if (transcEl) {
-    if (s === 'speaking' && window.lastResponse)
-      transcEl.textContent = lastResponse.slice(0, 52)
-    else if (s === 'idle')
-      transcEl.textContent = ''
-  }
-}
-
-function _aeTick() {
-  var now = new Date()
-  var hh  = now.getHours().toString().padStart(2,'0')
-  var mm  = now.getMinutes().toString().padStart(2,'0')
-  var ss  = now.getSeconds().toString().padStart(2,'0')
-  var ms  = Math.floor(now.getMilliseconds()/10).toString().padStart(2,'0')
-
-  // Corner clock (millisecond precision)
-  var clk = document.getElementById('ae-clock')
-  if (clk) clk.textContent = hh+':'+mm+':'+ss+'.'+ms
-
-  // Standby large clock (HH:MM only — runs every tick for smooth update)
-  var big = document.getElementById('ae-hhmm')
-  if (big) big.textContent = hh+':'+mm
-
-  // Date row (updates once a minute is fine but runs every tick — cheap)
-  var DAYS   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
-  var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-  var dr = document.getElementById('ae-date-row')
-  if (dr) dr.textContent = DAYS[now.getDay()]+' '+now.getDate()+' '+MONTHS[now.getMonth()]
-
-  // Uptime
-  var up = document.getElementById('ae-up')
-  if (up) {
-    var elapsed = Date.now() - _aeBoot
-    var um = Math.floor(elapsed/60000)
-    var us = Math.floor((elapsed % 60000)/1000)
-    up.textContent = um+':'+(us<10?'0':'')+us
-  }
-}
-
-function _aeTelemetry() {
-  // Bridge status
-  var br = document.getElementById('ae-bridge')
-  if (br) br.textContent = (window._openclaw && _openclaw.available) ? 'ONLINE' : 'OFFLINE'
-
-  // Performance mode
-  var pm = document.getElementById('ae-pmode')
-  if (pm && window._perfMode) pm.textContent = _perfMode.toUpperCase()
-
-  // Weather from Yoda's weather bar
-  var wx = document.getElementById('ae-wx')
-  var ws = document.getElementById('ss-weather-sb')
-  if (wx && ws && ws.textContent.trim()) wx.textContent = ws.textContent.trim()
-}
-
-function _aeInputWatch() {
-  var inp = document.getElementById('inp-txt')
-  var el  = document.getElementById('ae-userinput')
-  if (!el) return
-  el.textContent = (inp && inp.value) ? inp.value.slice(-24).toUpperCase() : ''
-}
-
-// Intercept _setOrb so AETHER state tracks orb state
-;(function() {
-  var _orig = window._setOrb || function(){}
+  // Expose state setter
   window._setOrb = function(s) {
-    _orig(s)
-    _aeSetState(s)
+    _state = s
+    if (core) core.setAttribute('data-state', s)
+    if (stateLabel) stateLabel.textContent = s.toUpperCase()
   }
-})()
-// ══════════════════════════════════════════════════════════════════════════
-// END AETHER ENGINE
-// ══════════════════════════════════════════════════════════════════════════
 
+  // ── Waveform drawing ────────────────────────────────────────────────
+  function drawWave() {
+    if (!wctx) return
+    const w = 300, h = 300, cx = 150, cy = 150
+    wctx.clearRect(0, 0, w, h)
+
+    if (_state === 'idle' || _state === 'thinking') {
+      // Flat line with subtle pulse when idle/thinking
+      const pulse = Math.sin(_frame * (_state === 'thinking' ? 0.18 : 0.025)) * (_state === 'thinking' ? 8 : 3)
+      wctx.beginPath()
+      wctx.moveTo(60, cy + pulse)
+      wctx.lineTo(240, cy + pulse)
+      const col = _state === 'thinking' ? '0,119,255' : '0,240,255'
+      wctx.strokeStyle = `rgba(${col},0.4)`
+      wctx.lineWidth = 1
+      wctx.stroke()
+      return
+    }
+
+    // Speaking/listening — animated waveform
+    const points = 48
+    const col = _state === 'interrupt' ? '255,61,0' : _state === 'speaking' ? '68,255,119' : '57,255,20'
+    const amp = _state === 'speaking' ? 28 : 14
+
+    wctx.beginPath()
+    for (let i = 0; i <= points; i++) {
+      const x = 50 + (200 * i / points)
+      const phase = _frame * (_state === 'speaking' ? 0.13 : 0.06) + i * 0.4
+      const y = cy + Math.sin(phase) * amp * Math.sin(i * Math.PI / points)
+      if (i === 0) wctx.moveTo(x, y)
+      else wctx.lineTo(x, y)
+    }
+    wctx.strokeStyle = `rgba(${col},0.85)`
+    wctx.lineWidth = 1.5
+    wctx.shadowBlur = 8
+    wctx.shadowColor = `rgba(${col},1)`
+    wctx.stroke()
+    wctx.shadowBlur = 0
+
+    // Mirror wave
+    wctx.beginPath()
+    for (let i = 0; i <= points; i++) {
+      const x = 50 + (200 * i / points)
+      const phase = _frame * (_state === 'speaking' ? 0.13 : 0.06) + i * 0.4 + Math.PI
+      const y = cy + Math.sin(phase) * amp * 0.5 * Math.sin(i * Math.PI / points)
+      if (i === 0) wctx.moveTo(x, y)
+      else wctx.lineTo(x, y)
+    }
+    wctx.strokeStyle = `rgba(${col},0.35)`
+    wctx.lineWidth = 1
+    wctx.stroke()
+  }
+
+  // ── Telemetry updater ───────────────────────────────────────────────
+  function updateTelemetry() {
+    // Time
+    var timeEl = document.getElementById('j-time')
+    if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
+    // Session
+    var sessEl = document.getElementById('j-session')
+    if (sessEl && window._sessionStart) {
+      var ms = Date.now() - _sessionStart
+      var m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000)
+      sessEl.textContent = 'SESSION: ' + m + ':' + (s<10?'0':'')+s
+    }
+    // OpenClaw
+    var ocEl = document.getElementById('j-openclaw-hud')
+    if (ocEl) ocEl.textContent = 'OPENCLAW: ' + (window._openclaw && _openclaw.available ? 'LIVE' : 'OFFLINE')
+    // Perf mode
+    var perfEl = document.getElementById('j-perf-hud')
+    if (perfEl && window._perfMode) perfEl.textContent = 'MODE: ' + _perfMode.toUpperCase()
+    // Mic
+    var micEl = document.getElementById('j-mic-hud')
+    if (micEl) micEl.textContent = 'MIC: ' + (_state === 'listening' ? 'ACTIVE' : 'STANDBY')
+    // Weather in HUD
+    var wEl = document.getElementById('j-weather-hud')
+    var mainWEl = document.getElementById('ss-weather-sb')
+    if (wEl && mainWEl && mainWEl.textContent) wEl.textContent = mainWEl.textContent
+  }
+
+  // ── Main render loop ────────────────────────────────────────────────
+  function draw() {
+    if (!paused) {
+      _frame++
+      drawWave()
+      if (_frame % 30 === 0) updateTelemetry()
+    }
+    requestAnimationFrame(draw)
+  }
+
+  document.addEventListener('visibilitychange', () => { paused = document.hidden })
+  window._setOrb = s => {
+    _state = s
+    if (core) core.setAttribute('data-state', s)
+    if (stateLabel) stateLabel.textContent = s.toUpperCase()
+  }
+
+  draw()
+}
 
 function setOrbState(s) { if(window._setOrb) window._setOrb(s) }
 
