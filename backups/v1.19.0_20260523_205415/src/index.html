@@ -6,15 +6,6 @@
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
-  /* JARVIS HUD colors */
-  --j-cyan:      #00f0ff;
-  --j-cyan-dim:  rgba(0,240,255,0.15);
-  --j-cyan-glow: rgba(0,240,255,0.6);
-  --j-blue:      #0077ff;
-  --j-amber:     #ff3d00;
-  --j-white:     #f0f4f8;
-  --j-bg:        rgba(13,17,23,0.92);
-
   --bg:#010d01;--bg2:#0a110a;--bg3:#0d160d;
   --ac:#cc785c;--ac2:#b5623e;
   --wh:#e8ffe8;--dim:#5aaa5a;--dim2:#1e3a1e;
@@ -56,7 +47,10 @@ input,select,textarea{font-family:inherit}
 #app{display:none;width:100%;height:100%}
 
 /* ORB */
-#orb-wrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+#orb-wrap{position:absolute;left:50%;top:42%;
+  transform:translate(-50%,-50%);
+  width:680px;height:680px;pointer-events:none}
+#orb{width:100%;height:100%}
 
 /* STATUS */
 #tb-status{position:absolute;left:50%;bottom:calc(68px + 20px);
@@ -117,15 +111,6 @@ input,select,textarea{font-family:inherit}
 
 /* SIDEBAR — Exact Claude replica, Yoda green */
 :root{
-  /* JARVIS HUD colors */
-  --j-cyan:      #00f0ff;
-  --j-cyan-dim:  rgba(0,240,255,0.15);
-  --j-cyan-glow: rgba(0,240,255,0.6);
-  --j-blue:      #0077ff;
-  --j-amber:     #ff3d00;
-  --j-white:     #f0f4f8;
-  --j-bg:        rgba(13,17,23,0.92);
-
   --sb-w:260px;
   --sb-col:52px;
 }
@@ -838,192 +823,6 @@ input,select,textarea{font-family:inherit}
   from { transform: rotate(0deg); }
   to   { transform: rotate(360deg); }
 }
-
-/* ═══ JARVIS HUD ═══════════════════════════════════════════════════════ */
-#jarvis-hud {
-  position: relative;
-  width: 100%;
-  height: 100%;
-  font-family: 'JetBrains Mono','Space Mono','Courier New',monospace;
-}
-
-/* Telemetry boxes */
-.j-telemetry {
-  position: absolute;
-  font-size: 10px;
-  letter-spacing: 0.18em;
-  color: var(--j-cyan);
-  text-transform: uppercase;
-  line-height: 1.8;
-  padding: 6px 10px;
-  border: 1px solid var(--j-cyan-dim);
-  background: rgba(0,240,255,0.03);
-  min-width: 130px;
-}
-.j-telemetry .j-label {
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  color: var(--j-cyan-glow);
-  border-bottom: 1px solid var(--j-cyan-dim);
-  margin-bottom: 4px;
-  padding-bottom: 2px;
-  text-shadow: 0 0 8px var(--j-cyan);
-}
-.j-telemetry .j-val {
-  color: var(--j-white);
-  font-size: 9px;
-  opacity: 0.8;
-}
-.j-tl { top: 12px; left: 12px; }
-.j-tr { top: 12px; right: 12px; text-align: right; }
-.j-bl { bottom: 80px; left: 12px; }
-.j-br { bottom: 80px; right: 12px; text-align: right; }
-
-/* Core widget */
-#jarvis-core {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -52%);
-  width: 300px;
-  height: 300px;
-}
-
-/* SVG rings */
-.j-ring {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%;
-  height: 100%;
-}
-
-.j-arc-base {
-  fill: none;
-  stroke: var(--j-cyan-dim);
-  stroke-width: 0.5;
-}
-.j-arc-seg {
-  fill: none;
-  stroke: var(--j-cyan);
-  stroke-width: 1.5;
-  filter: drop-shadow(0 0 4px var(--j-cyan));
-}
-.j-arc-mid {
-  fill: none;
-  stroke: var(--j-cyan-dim);
-  stroke-width: 0.5;
-}
-.j-arc-mid-seg {
-  fill: none;
-  stroke: var(--j-cyan);
-  stroke-width: 1.2;
-  filter: drop-shadow(0 0 3px var(--j-cyan));
-}
-.j-tick {
-  fill: var(--j-cyan);
-  filter: drop-shadow(0 0 3px var(--j-cyan));
-}
-
-/* Animations */
-.j-ring-outer { animation: j-rotate-cw 12s linear infinite; }
-.j-ring-mid   { animation: j-rotate-ccw 6s linear infinite; }
-
-@keyframes j-rotate-cw  { from{transform:rotate(0deg)}  to{transform:rotate(360deg)} }
-@keyframes j-rotate-ccw { from{transform:rotate(360deg)} to{transform:rotate(0deg)} }
-@keyframes j-breath { 0%,100%{transform:translate(-50%,-52%) scale(0.97);opacity:0.5} 50%{transform:translate(-50%,-52%) scale(1.03);opacity:0.9} }
-@keyframes j-pulse-collapse { 0%{transform:translate(-50%,-52%) scale(1);opacity:1} 100%{transform:translate(-50%,-52%) scale(1.4);opacity:0} }
-@keyframes j-step-rotate { from{transform:rotate(0deg)} to{transform:rotate(360deg)} }
-
-/* State: idle */
-[data-state="idle"] #jarvis-core {
-  animation: j-breath 4s ease-in-out infinite;
-}
-[data-state="idle"] .j-ring-outer {
-  animation: j-rotate-cw 16s linear infinite;
-}
-[data-state="idle"] .j-ring-mid {
-  animation: j-rotate-ccw 12s linear infinite;
-}
-
-/* State: listening */
-[data-state="listening"] .j-ring-outer { animation: j-rotate-cw 8s linear infinite; }
-[data-state="listening"] .j-ring-mid   { animation: j-rotate-ccw 4s linear infinite; }
-[data-state="listening"] .j-arc-seg    { stroke: #39ff14; filter: drop-shadow(0 0 6px #39ff14); }
-
-/* State: thinking */
-[data-state="thinking"] .j-ring-outer {
-  animation: j-step-rotate 2s steps(12,end) infinite;
-}
-[data-state="thinking"] .j-ring-mid {
-  animation: j-step-rotate 1s steps(8,end) infinite reverse;
-}
-[data-state="thinking"] .j-arc-seg {
-  stroke: var(--j-blue);
-  filter: drop-shadow(0 0 6px var(--j-blue));
-}
-[data-state="thinking"] .j-arc-mid-seg { stroke: var(--j-blue); }
-
-/* State: speaking */
-[data-state="speaking"] .j-ring-outer { animation: j-rotate-cw 6s linear infinite; }
-[data-state="speaking"] .j-ring-mid   { animation: j-rotate-ccw 3s linear infinite; }
-[data-state="speaking"] .j-arc-seg    { stroke: #44ff77; filter: drop-shadow(0 0 8px #44ff77); }
-
-/* State: interrupt */
-[data-state="interrupt"] .j-ring-outer,
-[data-state="interrupt"] .j-ring-mid {
-  animation: j-pulse-collapse 0.2s ease-out forwards;
-}
-[data-state="interrupt"] .j-arc-seg     { stroke: var(--j-amber); filter: drop-shadow(0 0 8px var(--j-amber)); }
-[data-state="interrupt"] .j-arc-mid-seg { stroke: var(--j-amber); }
-
-/* Center dot */
-#j-center-dot {
-  position: absolute;
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: var(--j-cyan);
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  box-shadow: 0 0 12px var(--j-cyan), 0 0 24px var(--j-cyan-glow);
-}
-[data-state="thinking"] #j-center-dot { background: var(--j-blue); box-shadow: 0 0 12px var(--j-blue); }
-[data-state="interrupt"] #j-center-dot { background: var(--j-amber); box-shadow: 0 0 12px var(--j-amber); }
-
-/* State label */
-#j-state-label {
-  position: absolute;
-  bottom: -24px;
-  left: 50%; transform: translateX(-50%);
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  color: var(--j-cyan);
-  text-shadow: 0 0 8px var(--j-cyan);
-  font-family: 'JetBrains Mono','Courier New',monospace;
-  white-space: nowrap;
-}
-
-/* Waveform canvas */
-#j-wave {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  pointer-events: none;
-}
-
-/* Override chat area for JARVIS look */
-#chat .y {
-  color: var(--j-cyan) !important;
-  font-family: 'JetBrains Mono','Courier New',monospace;
-  font-size: 12px;
-  letter-spacing: 0.05em;
-  text-shadow: 0 0 6px var(--j-cyan-dim);
-}
-#chat .u {
-  color: var(--j-white) !important;
-  letter-spacing: 0.05em;
-}
-/* ═══ END JARVIS HUD ══════════════════════════════════════════════════ */
-
 </style>
 </head>
 <body>
@@ -1073,75 +872,7 @@ input,select,textarea{font-family:inherit}
     </div>
   </div>
   <div id="main">
-    <div id="orb-wrap">
-  <!-- JARVIS HUD -->
-  <div id="jarvis-hud">
-    <!-- Telemetry corners -->
-    <div class="j-telemetry j-tl" id="j-sys">
-      <div class="j-label">SYS</div>
-      <div class="j-val" id="j-cpu">CPU: ---%</div>
-      <div class="j-val" id="j-ram">RAM: ---%</div>
-      <div class="j-val" id="j-time">--:--:--</div>
-    </div>
-    <div class="j-telemetry j-tr" id="j-media">
-      <div class="j-label">STATUS</div>
-      <div class="j-val" id="j-status-text">SYSTEM READY</div>
-      <div class="j-val" id="j-weather-hud">--- °C</div>
-      <div class="j-val" id="j-session">SESSION: 0:00</div>
-    </div>
-    <div class="j-telemetry j-bl" id="j-net">
-      <div class="j-label">NETWORK</div>
-      <div class="j-val" id="j-openclaw-hud">OPENCLAW: ---</div>
-      <div class="j-val" id="j-model">MODEL: HAIKU</div>
-    </div>
-    <div class="j-telemetry j-br" id="j-input">
-      <div class="j-label">INPUT</div>
-      <div class="j-val" id="j-mic-hud">MIC: STANDBY</div>
-      <div class="j-val" id="j-perf-hud">MODE: GOOD</div>
-    </div>
-
-    <!-- Core widget -->
-    <div id="jarvis-core" data-state="idle">
-      <!-- Outer slow clockwise ring -->
-      <svg class="j-ring j-ring-outer" viewBox="0 0 300 300">
-        <circle cx="150" cy="150" r="140" class="j-arc-base"/>
-        <!-- Quadrant arcs broken into 4 segments -->
-        <path d="M 150 10 A 140 140 0 0 1 290 150" class="j-arc-seg"/>
-        <path d="M 290 150 A 140 140 0 0 1 150 290" class="j-arc-seg"/>
-        <path d="M 150 290 A 140 140 0 0 1 10 150" class="j-arc-seg"/>
-        <path d="M 10 150 A 140 140 0 0 1 150 10" class="j-arc-seg"/>
-        <!-- Tick marks -->
-        <circle cx="150" cy="12" r="3" class="j-tick"/>
-        <circle cx="288" cy="150" r="3" class="j-tick"/>
-        <circle cx="150" cy="288" r="3" class="j-tick"/>
-        <circle cx="12" cy="150" r="3" class="j-tick"/>
-        <circle cx="256" cy="56" r="2" class="j-tick"/>
-        <circle cx="256" cy="244" r="2" class="j-tick"/>
-        <circle cx="44" cy="244" r="2" class="j-tick"/>
-        <circle cx="44" cy="56" r="2" class="j-tick"/>
-      </svg>
-
-      <!-- Middle counter-rotating ring -->
-      <svg class="j-ring j-ring-mid" viewBox="0 0 300 300">
-        <circle cx="150" cy="150" r="110" class="j-arc-mid"/>
-        <path d="M 150 40 A 110 110 0 0 1 260 150" class="j-arc-mid-seg"/>
-        <path d="M 260 150 A 110 110 0 0 1 150 260" class="j-arc-mid-seg" style="opacity:0.5"/>
-        <path d="M 150 260 A 110 110 0 0 1 40 150" class="j-arc-mid-seg"/>
-        <path d="M 40 150 A 110 110 0 0 1 150 40" class="j-arc-mid-seg" style="opacity:0.5"/>
-      </svg>
-
-      <!-- Inner waveform canvas -->
-      <canvas id="orb" width="800" height="800" style="display:none"></canvas>
-      <canvas id="j-wave" width="300" height="300"></canvas>
-
-      <!-- Center dot -->
-      <div id="j-center-dot"></div>
-
-      <!-- State label -->
-      <div id="j-state-label">IDLE</div>
-    </div>
-  </div>
-</div>
+    <div id="orb-wrap"><canvas id="orb" width="800" height="800"></canvas></div>
     <div id="chat"></div>
     <!-- Small 8px hitbox strip at bottom — triggers input bar on hover -->
     <div id="inp-trigger" onmouseenter="showInp()"></div>
@@ -1477,22 +1208,6 @@ input,select,textarea{font-family:inherit}
         <button class="sbt" id="theme-custom" onclick="setCustomColor(document.getElementById('custom-color-picker').value)">Apply Custom</button>
       </div>
     </div>
-    <div class="sg">
-      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">GITHUB</label>
-      <label class="sl" style="margin-top:8px">Repository URL</label>
-      <input class="si2" id="setting-git-url" placeholder="https://github.com/user/repo.git"
-        onchange="saveGitSettings()">
-      <label class="sl" style="margin-top:6px">Access Token</label>
-      <input class="si2" id="setting-git-token" type="password" placeholder="ghp_..."
-        onchange="saveGitSettings()">
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <button class="sbt" onclick="setupGitFromSettings()">Connect</button>
-        <button class="sbt" onclick="gitSave()">Save + Release</button>
-        <button class="sbt" onclick="gitPublish()">Publish</button>
-        <button class="sbt" onclick="gitPull()">Pull</button>
-      </div>
-      <div id="git-status-bar" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
-    </div>
     <div style="height:16px"></div>
   </div>
 
@@ -1666,7 +1381,7 @@ function newConversation() {
 
 // ── DOM helper — defined first ────────────────────────
 const _els = {}
-function clearElCache(id) { if(id) delete _els[id]; else { _els={}; console.log("[Cache] cleared") } }
+function clearElCache(id) { if(id) delete _els[id]; else _els={} }
 const el = id => {
   // Always re-look if not cached — never cache null
   if (!_els[id]) {
@@ -1681,125 +1396,86 @@ const el = id => {
 // ORB — original simple version, 180 dots
 // ═══════════════════════════════════════════════════════
 function initOrb() {
-  // ── JARVIS HUD Engine ──────────────────────────────────────────────
-  const core = document.getElementById('jarvis-core')
-  const waveCanvas = document.getElementById('j-wave')
-  const wctx = waveCanvas ? waveCanvas.getContext('2d') : null
-  const stateLabel = document.getElementById('j-state-label')
-  const centerDot = document.getElementById('j-center-dot')
-
-  let _state = 'idle'
-  let _frame = 0
-  let _audioCtx = null
-  let _analyser = null
-  let _micStream = null
-  let paused = false
-
-  // Expose state setter
-  window._setOrb = function(s) {
-    _state = s
-    if (core) core.setAttribute('data-state', s)
-    if (stateLabel) stateLabel.textContent = s.toUpperCase()
+  const cv=el('orb'), ctx=cv.getContext('2d')
+  const cx=400, cy=400, R=340, N=300
+  const dots=Array.from({length:N},(_,i)=>({
+    phi:Math.acos(1-2*(i+.5)/N),
+    theta:Math.PI*(1+Math.sqrt(5))*i,
+    r:2+Math.random()*3.5,
+    sp:.0015+Math.random()*.0035,
+  }))
+  let frame=0, state='idle', paused=false
+  // Expose state setter globally so setOrbState() works
+  window._setOrb = (s) => { state = s }
+  window._orbPause = false
+  // Pause when window hidden
+  const pal={
+    idle:     ['#00ff41','#00cc33','#005518'],
+    thinking: ['#00ff41','#39ff14','#00dd33'],
+    speaking: ['#00ff41','#44ff77','#00e838'],
+    listening:['#39ff14','#00ff41','#00cc33'],
   }
-
-  // ── Waveform drawing ────────────────────────────────────────────────
-  function drawWave() {
-    if (!wctx) return
-    const w = 300, h = 300, cx = 150, cy = 150
-    wctx.clearRect(0, 0, w, h)
-
-    if (_state === 'idle' || _state === 'thinking') {
-      // Flat line with subtle pulse when idle/thinking
-      const pulse = Math.sin(_frame * (_state === 'thinking' ? 0.18 : 0.025)) * (_state === 'thinking' ? 8 : 3)
-      wctx.beginPath()
-      wctx.moveTo(60, cy + pulse)
-      wctx.lineTo(240, cy + pulse)
-      const col = _state === 'thinking' ? '0,119,255' : '0,240,255'
-      wctx.strokeStyle = `rgba(${col},0.4)`
-      wctx.lineWidth = 1
-      wctx.stroke()
-      return
-    }
-
-    // Speaking/listening — animated waveform
-    const points = 48
-    const col = _state === 'interrupt' ? '255,61,0' : _state === 'speaking' ? '68,255,119' : '57,255,20'
-    const amp = _state === 'speaking' ? 28 : 14
-
-    wctx.beginPath()
-    for (let i = 0; i <= points; i++) {
-      const x = 50 + (200 * i / points)
-      const phase = _frame * (_state === 'speaking' ? 0.13 : 0.06) + i * 0.4
-      const y = cy + Math.sin(phase) * amp * Math.sin(i * Math.PI / points)
-      if (i === 0) wctx.moveTo(x, y)
-      else wctx.lineTo(x, y)
-    }
-    wctx.strokeStyle = `rgba(${col},0.85)`
-    wctx.lineWidth = 1.5
-    wctx.shadowBlur = 8
-    wctx.shadowColor = `rgba(${col},1)`
-    wctx.stroke()
-    wctx.shadowBlur = 0
-
-    // Mirror wave
-    wctx.beginPath()
-    for (let i = 0; i <= points; i++) {
-      const x = 50 + (200 * i / points)
-      const phase = _frame * (_state === 'speaking' ? 0.13 : 0.06) + i * 0.4 + Math.PI
-      const y = cy + Math.sin(phase) * amp * 0.5 * Math.sin(i * Math.PI / points)
-      if (i === 0) wctx.moveTo(x, y)
-      else wctx.lineTo(x, y)
-    }
-    wctx.strokeStyle = `rgba(${col},0.35)`
-    wctx.lineWidth = 1
-    wctx.stroke()
+  function drawGlow(color){
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,280)
+    g.addColorStop(0,   'rgba(0,255,65,0.18)')
+    g.addColorStop(0.3, 'rgba(0,255,65,0.08)')
+    g.addColorStop(0.6, 'rgba(0,255,65,0.03)')
+    g.addColorStop(1,   'rgba(0,255,65,0.00)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(cx,cy,280,0,Math.PI*2); ctx.fill()
   }
+  function draw(){
+    if(paused){requestAnimationFrame(draw);return}
+    ctx.clearRect(0,0,800,800); frame++
+    const p = pal[state] || pal.idle
 
-  // ── Telemetry updater ───────────────────────────────────────────────
-  function updateTelemetry() {
-    // Time
-    var timeEl = document.getElementById('j-time')
-    if (timeEl) timeEl.textContent = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit',second:'2-digit'})
-    // Session
-    var sessEl = document.getElementById('j-session')
-    if (sessEl && window._sessionStart) {
-      var ms = Date.now() - _sessionStart
-      var m = Math.floor(ms/60000), s = Math.floor((ms%60000)/1000)
-      sessEl.textContent = 'SESSION: ' + m + ':' + (s<10?'0':'')+s
+    // Each state has distinct speed and pulse behaviour
+    const spinSpeed = state==='thinking'  ? 0.014  // fast spin
+                    : state==='speaking'  ? 0.010  // medium spin
+                    : state==='listening' ? 0.008  // slow pulse
+                    : 0.004                         // idle crawl
+
+    const pulseSpeed = state==='thinking'  ? 0.18   // rapid pulse
+                     : state==='speaking'  ? 0.13   // speech rhythm
+                     : state==='listening' ? 0.06   // gentle
+                     : 0.025                        // slow idle
+
+    const pulseDepth = state==='thinking'  ? 0.22   // big oscillation
+                     : state==='speaking'  ? 0.18
+                     : state==='listening' ? 0.10
+                     : 0.08
+
+    const pls = Math.sin(frame * pulseSpeed) * pulseDepth + (1 - pulseDepth*0.5)
+    const ry  = frame * spinSpeed
+
+    // Glow intensity
+    const glowAlpha = state==='thinking'  ? 0.28
+                    : state==='speaking'  ? 0.22
+                    : state==='listening' ? 0.18
+                    : 0.14
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,300)
+    g.addColorStop(0,   `rgba(0,255,65,${glowAlpha})`)
+    g.addColorStop(0.4, `rgba(0,255,65,${glowAlpha*0.4})`)
+    g.addColorStop(1,   'rgba(0,255,65,0)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(cx,cy,300,0,Math.PI*2); ctx.fill()
+
+    ctx.globalAlpha=1; ctx.fillStyle=p[0]
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill()
+
+    for(let i=0;i<N;i++){
+      const d=dots[i], t=d.theta+frame*d.sp*(state==='thinking'?2.5:state==='speaking'?1.8:1)
+      const x0=Math.sin(d.phi)*Math.cos(t), y0=Math.sin(d.phi)*Math.sin(t), z0=Math.cos(d.phi)
+      const x1=x0*Math.cos(ry)+z0*Math.sin(ry), z1=-x0*Math.sin(ry)+z0*Math.cos(ry)
+      const sc=(z1+1.6)/2.6*pls
+      ctx.globalAlpha=Math.max(0.15,sc*.85+.05); ctx.fillStyle=p[i%3]
+      const r=Math.max(1.5,d.r*sc); ctx.fillRect(cx+x1*R*sc-r/2,cy+y0*R*sc-r/2,r,r)
     }
-    // OpenClaw
-    var ocEl = document.getElementById('j-openclaw-hud')
-    if (ocEl) ocEl.textContent = 'OPENCLAW: ' + (window._openclaw && _openclaw.available ? 'LIVE' : 'OFFLINE')
-    // Perf mode
-    var perfEl = document.getElementById('j-perf-hud')
-    if (perfEl && window._perfMode) perfEl.textContent = 'MODE: ' + _perfMode.toUpperCase()
-    // Mic
-    var micEl = document.getElementById('j-mic-hud')
-    if (micEl) micEl.textContent = 'MIC: ' + (_state === 'listening' ? 'ACTIVE' : 'STANDBY')
-    // Weather in HUD
-    var wEl = document.getElementById('j-weather-hud')
-    var mainWEl = document.getElementById('ss-weather-sb')
-    if (wEl && mainWEl && mainWEl.textContent) wEl.textContent = mainWEl.textContent
+    ctx.globalAlpha=1; requestAnimationFrame(draw)
   }
-
-  // ── Main render loop ────────────────────────────────────────────────
-  function draw() {
-    if (!paused) {
-      _frame++
-      drawWave()
-      if (_frame % 30 === 0) updateTelemetry()
-    }
-    requestAnimationFrame(draw)
-  }
-
-  document.addEventListener('visibilitychange', () => { paused = document.hidden })
-  window._setOrb = s => {
-    _state = s
-    if (core) core.setAttribute('data-state', s)
-    if (stateLabel) stateLabel.textContent = s.toUpperCase()
-  }
-
   draw()
+  document.addEventListener('visibilitychange',()=>{paused=document.hidden})
+  window._setOrb=s=>{state=s;const ow=el('orb-wrap');if(ow)ow.className=s==='idle'?'':s}
 }
 
 function setOrbState(s) { if(window._setOrb) window._setOrb(s) }
@@ -1851,8 +1527,6 @@ class TTSManager {
     const t = this._clean(text)
     if (!t) return
     if (!this.synth) { console.log('[TTS] No synth'); return }
-    // Cancel any ongoing speech first
-    try { this.synth.cancel() } catch(e) {}
     // Reload voices if not yet found
     if (!this.best) {
       this._loadVoices()
@@ -2171,8 +1845,7 @@ function startApp() {
     if (vb) yoda.loadConfig().then(c=>{if(c&&c.version)vb.textContent='v'+c.version}).catch(()=>{})
   } catch{}
   // Load saved git settings into fields
-  if (config.git_url)   { const gu=el('setting-git-url');   if(gu) gu.value=config.git_url }
-  if (config.git_token) { const gt=el('setting-git-token'); if(gt) gt.value=config.git_token }
+  if (config.git_url) { const gu=el('setting-git-url'); if(gu) { gu.value=config.git_url } }  // no onchange
   loadTodos()
   refreshNotesUI()
   _initJumpstart()
@@ -2235,8 +1908,6 @@ function send() {
 function ask(text) {
   if (!text || !text.trim()) return
   text = text.trim()
-  // Prevent double-firing on rapid Enter presses
-  if (busy && text === _lastCommand) return
   console.log('[ask]', text.slice(0,60))
   try { if (chatLog.length === 0) saveConvToHistory(text) } catch(e) {}
   // Add user message directly to DOM — no caching
@@ -2656,7 +2327,6 @@ function logExpense(amount, category) {
   var amt=parseFloat(amount)
   if (isNaN(amt)) return respond('How much was it?')
   _expenses.push({amount:amt,category:category||'general',time:new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})})
-  if (_expenses.length > 200) _expenses.shift()
   var total=_expenses.reduce(function(s,e){return s+e.amount},0)
   respond('Logged '+amt.toFixed(2)+' on '+(category||'general')+'. Total today: '+total.toFixed(2)+'.')
 }
@@ -3028,7 +2698,6 @@ function setSearchSpeed(speed){
   ;['fast','normal','slow'].forEach(function(s){var b=document.getElementById('search-'+s);if(b)b.style.background=s===speed?'var(--ac)':''})
 }
 function loadPerfSettings(){
-  var _ocurl=localStorage.getItem('openclaw_url'); if(_ocurl) _openclaw.url=_ocurl;
   setPerformance((config&&config.perf_mode)||'good')
   _responseDelay=(config&&config.perf_delay)||180
   setSearchSpeed((config&&config.search_speed)||'fast')
@@ -3053,7 +2722,7 @@ _decayPersonality()
 // Yoda uses it as AI brain + task automation engine
 
 var _openclaw = {
-  url:       localStorage.getItem('openclaw_url') || 'http://localhost:18789',
+  url:       'http://localhost:3141',
   available: null,  // null = unknown, true/false = checked
   model:     'default',
 }
@@ -3061,25 +2730,12 @@ var _openclaw = {
 // Check if OpenClaw is running
 async function _checkOpenClaw() {
   try {
-    if (!window.yoda) { _openclaw.available = false; return false }
-    // Try openclaw status via CLI — most reliable
-    if (yoda.openClawCli) {
-      var r = await yoda.openClawCli('openclaw status --json 2>nul')
-      if (r && r.ok && r.data) {
-        _openclaw.available = true
-        console.log('[OpenClaw] Connected via CLI')
-        return true
-      }
-    }
-    // Fallback: try HTTP health check on REST port (18790)
-    if (yoda.openClaw) {
-      var url2 = _openclaw.url.replace(':18789', ':18790')
-      var r2 = await yoda.openClaw({ endpoint: url2 + '/health' })
-      _openclaw.available = !!(r2 && r2.ok)
-      return _openclaw.available
-    }
-    _openclaw.available = false
-    return false
+    var r = await fetch(_openclaw.url + '/health', {
+      method: 'GET',
+      signal: AbortSignal.timeout(2000)
+    })
+    _openclaw.available = r.ok
+    return r.ok
   } catch(e) {
     _openclaw.available = false
     return false
@@ -3089,32 +2745,51 @@ async function _checkOpenClaw() {
 // Send a message to OpenClaw and get a response
 async function _queryOpenClaw(text, context) {
   try {
-    if (!window.yoda || !yoda.openClaw) return null
-    var r = await yoda.openClaw({
-      endpoint: _openclaw.url + '/chat',
-      body: { message:text, context:context||'', system:_getPersonalityPrompt(), history:_convHistory.slice(-8) }
+    var body = {
+      message: text,
+      context: context || '',
+      system: _getPersonalityPrompt(),
+      history: _convHistory.slice(-10),
+    }
+    var r = await fetch(_openclaw.url + '/chat', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(body),
+      signal: AbortSignal.timeout(15000)
     })
-    if (!r || !r.ok) return null
-    var d = r.data
-    return d.response || d.message || d.text || null
-  } catch(e) { console.log('[OpenClaw] chat error:', e.message); return null }
+    if (!r.ok) throw new Error('OpenClaw HTTP ' + r.status)
+    var data = await r.json()
+    return data.response || data.message || data.text || null
+  } catch(e) {
+    console.log('[OpenClaw] chat error:', e.message)
+    return null
+  }
 }
 
+// Run an autonomous task via OpenClaw
 async function _openClawTask(task) {
   try {
-    if (!window.yoda || !yoda.openClaw) return null
-    addMsg('s', 'Working on it...')
-    var r = await yoda.openClaw({
-      endpoint: _openclaw.url + '/task',
-      body: { task:task, tools:['shell','files','browser','code','spotify','gmail','github','hue','slack','discord'] }
+    addMsg('s', 'OpenClaw: running task...')
+    var r = await fetch(_openclaw.url + '/task', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({
+        task: task,
+        tools: ['shell', 'files', 'browser', 'code'],
+        stream: false,
+      }),
+      signal: AbortSignal.timeout(30000)
     })
-    if (!r || !r.ok) return null
-    var d = r.data
-    return d.result || d.output || d.response || d.text || 'Task complete.'
-  } catch(e) { console.log('[OpenClaw] task error:', e.message); return null }
+    if (!r.ok) throw new Error('Task HTTP ' + r.status)
+    var data = await r.json()
+    return data.result || data.output || data.response || 'Task complete.'
+  } catch(e) {
+    console.log('[OpenClaw] task error:', e.message)
+    return null
+  }
 }
 
-
+// Main OpenClaw handler — called from dispatch for complex requests
 async function openClawDo(request) {
   // Check if running
   if (_openclaw.available === null) await _checkOpenClaw()
@@ -3144,7 +2819,6 @@ async function openClawDo(request) {
 // Settings for OpenClaw
 function setOpenClawURL(url) {
   _openclaw.url = url.trim().replace(/\/$/, '')
-  localStorage.setItem('openclaw_url', _openclaw.url)
   _openclaw.available = null  // reset check
   saveSett('openclaw_url', _openclaw.url)
   _checkOpenClaw().then(function(ok) {
@@ -3153,22 +2827,10 @@ function setOpenClawURL(url) {
 }
 
 async function checkOpenClawStatus() {
-  if (!window.yoda || !yoda.openClawCli) {
-    return respond('OpenClaw bridge not available. Restart Yoda.')
-  }
-  try {
-    var r = await yoda.openClawCli('openclaw status')
-    if (r && r.ok) {
-      _openclaw.available = true
-      respond('OpenClaw is running and connected. Ready for tasks.')
-    } else {
-      _openclaw.available = false
-      respond('OpenClaw is not responding. Run "openclaw gateway run" in PowerShell to start it.')
-    }
-  } catch(e) {
-    _openclaw.available = false
-    respond('OpenClaw is not running. Open PowerShell and run: openclaw gateway run')
-  }
+  var ok = await _checkOpenClaw()
+  respond(ok
+    ? 'OpenClaw is running at ' + _openclaw.url + '. Ready for tasks.'
+    : 'OpenClaw is not running. Install from github.com/openclaw/openclaw and start it.')
 }
 
 // ══ END OPENCLAW ══════════════════════════════════════════════════════════
@@ -3220,7 +2882,7 @@ async function _pollRemoteCommands() {
     }
   } catch(e) {}
 }
-setInterval(function(){ if(_remoteEnabled && _openclaw.available) _pollRemoteCommands() }, 3000)
+setInterval(function(){ if(_remoteEnabled) _pollRemoteCommands() }, 3000)
 
 async function getPCStatus() {
   var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
@@ -3552,26 +3214,14 @@ function loadThemeSettings() {
 // == OPENCLAW FULL INTEGRATION ==
 async function oc(task, showProgress) {
   if (_openclaw.available === null) await _checkOpenClaw()
-  if (!_openclaw.available) return respond('OpenClaw is not running. Start it with: openclaw gateway run')
+  if (!_openclaw.available) return respond('OpenClaw not running. Install from github.com/openclaw/openclaw')
   if (showProgress !== false) addMsg('s', 'Working on it...')
-  try {
-    // Use openclaw CLI to send a message to the agent
-    if (yoda.openClawCli) {
-      var escaped = task.replace(/"/g, '\\"')
-      var r = await yoda.openClawCli('openclaw agent --message "' + escaped + '" --deliver')
-      if (r && r.ok && r.data) {
-        var result = String(r.data).trim()
-        if (result && result.length > 0) { respond(result.slice(0, 500)); return result }
-      }
-    }
-    // HTTP fallback
-    var r2 = await yoda.openClaw({endpoint:_openclaw.url.replace(':18789',':18790')+'/task',body:{task:task}})
-    if (r2 && r2.ok && r2.data) {
-      var res2 = r2.data.result || r2.data.output || r2.data.response || r2.data.text
-      if (res2) { respond(String(res2).slice(0,500)); return res2 }
-    }
-  } catch(e) { console.log('[OpenClaw] oc error:', e.message) }
-  respond('OpenClaw could not complete that task.')
+  var r = await yoda.openClaw({endpoint:_openclaw.url+'/task',body:{task:task,tools:['shell','files','browser','code','spotify','gmail','github','hue','slack','discord']}})
+  if (r && r.ok && r.data) {
+    var result = r.data.result || r.data.output || r.data.response || r.data.text
+    if (result) { respond(String(result).slice(0,500)); return result }
+  }
+  respond('OpenClaw could not complete that.')
   return null
 }
 async function ocBrowse(url) { return oc('Go to '+url+' and tell me what you see') }
@@ -4992,10 +4642,7 @@ function addMsg(type, text) {
   var safe = String(text).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')
   c.insertAdjacentHTML('beforeend', '<div class="' + type + '">' + safe + '</div>')
   if (c.scrollHeight - c.scrollTop - c.clientHeight < 200) c.scrollTop = c.scrollHeight
-  // Throttle saves — max once per 2 seconds
-  if (!window._chatSaveTimer) {
-    window._chatSaveTimer = setTimeout(function(){ window._chatSaveTimer=null; try{saveChatLog()}catch(e){} }, 2000)
-  }
+  try { saveChatLog() } catch(e) {}
 }
 function updateHist(){
   const h=el('sb-hist'); if(!h||!histList)return; h.innerHTML=''
@@ -5100,7 +4747,19 @@ function closeSett(){
   setTimeout(()=>{ if(s){s.style.display='none';s.style.transform='translateX(-100%)'} },220)  // hide after animation
 }
 
-
+function applyTheme(t){
+  const themes={
+    yoda:    ['#00c832','#39ff14','#00ff41','#020d02','#051405'],
+    darkside:['#cc0000','#ff4444','#ff0000','#0d0000','#150000'],
+    jedi:    ['#0088ff','#44aaff','#00ccff','#000d1a','#001428'],
+    cyber:   ['#ff0066','#ff44aa','#ff00ff','#0d0008','#150010'],
+  }
+  const c=themes[t]||themes.yoda,r=document.documentElement
+  r.style.setProperty('--ac',c[0]); r.style.setProperty('--ac3',c[1])
+  r.style.setProperty('--glow',c[2]); r.style.setProperty('--bg',c[3])
+  r.style.setProperty('--bg2',c[4]); document.body.style.background=c[3]
+  saveSett('theme',t)
+}
 
 // ── SIDEBAR ───────────────────────────────────────────
 // FIX: Hide strip when open, show when closed
@@ -5890,7 +5549,6 @@ function setTimer(seconds, label) {
     if (!whisperMode) speak((label || 'Timer') + ' done!')
   }, seconds * 1000)
   _activeTimers.push(id)
-  if (_activeTimers.length > 50) _activeTimers.shift()
   const mins = Math.floor(seconds/60), secs = seconds%60
   const desc = mins > 0 ? `${mins} minute${mins>1?'s':''}` : `${secs} second${secs>1?'s':''}`
   addMsg('s', 'Timer set: ' + desc + (label ? ' — ' + label : '') + '.')
@@ -6157,7 +5815,6 @@ var _moods = []
 function logMood(mood) {
   var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
   _moods.push({mood:mood,time:time})
-  if (_moods.length > 100) _moods.shift()
   respond('Mood logged: '+mood+'. Total today: '+_moods.length+'.')
 }
 function showMoods() {
