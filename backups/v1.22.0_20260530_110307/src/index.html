@@ -855,7 +855,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
-  z-index: 1;             /* Above body bg, below chat UI */
+  z-index: 0;             /* BEHIND chat UI — camera shows through as bg */
   font-family: var(--orion-font);
   overflow: hidden;
 }
@@ -874,7 +874,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   opacity: 0;
   transition: opacity 400ms ease;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;  /* behind chat UI */
 }
 #orion-standby.orion-show { opacity: 1; }
 
@@ -946,7 +946,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   opacity: 0;
   transition: opacity 400ms ease;
   pointer-events: none;
-  z-index: 1;
+  z-index: 0;  /* behind chat UI */
 }
 #orion-active.orion-show { opacity: 1; }
 
@@ -1107,7 +1107,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   opacity: 0;
   transition: opacity 500ms ease;
   pointer-events: none;   /* never blocks the chat/buttons underneath */
-  z-index: 1;             /* above background */
+  z-index: 0;             /* sits BELOW the chat UI */
 }
 #orion-camera.orion-show { opacity: 1; }
 
@@ -1193,8 +1193,8 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   top: 0; left: 0; width: 100%; height: 100%;
   opacity: 0;
   transition: opacity 500ms ease;
-  pointer-events: none;
-  z-index: 2;
+  pointer-events: none;   /* chat + buttons stay clickable */
+  z-index: 0;
   background: transparent;
 }
 #orion-map.orion-show { opacity: 1; }
@@ -1303,20 +1303,14 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
 
 
 /* Camera/map show through chat bg */
-/* chat bg handled by theme */
-#main { background: var(--orion-bg) !important; }
+#chat { background: transparent !important; }
+#main { background: transparent !important; }
 /* Keep input bar readable */
 #inp-row { background: rgba(7,11,20,0.75) !important; backdrop-filter: blur(4px); }
 /* Tbar stays readable */
 #tbar { background: rgba(7,11,20,0.8) !important; backdrop-filter: blur(6px); }
 /* App bg transparent so orb-wrap shows */
-#app { background: var(--orion-bg) !important; }
-
-
-/* Ensure chat UI sits above all HUD overlays */
-#tbar  { position: relative; z-index: 10; }
-#main  { position: relative; z-index: 5;  }
-#sb    { position: relative; z-index: 10; }
+#app { background: transparent !important; }
 
 </style>
 </head>
@@ -2133,29 +2127,37 @@ function _orionWake() {
 function _orionSetMode(mode) {
   _orionMode = mode
 
-  var wrap    = document.getElementById('orb-wrap')
   var standby = document.getElementById('orion-standby')
   var active  = document.getElementById('orion-active')
   var camera  = document.getElementById('orion-camera')
-  var mapEl   = document.getElementById('orion-map')
   var grids   = document.querySelectorAll('.ae-grid')
   var trans   = document.getElementById('ae-transcript')
+  var wrap    = document.getElementById('orb-wrap')
 
-  // Reset all states cleanly
-  ;[standby, active, camera, mapEl].forEach(function(el) { if (el) el.classList.remove('orion-show') })
+  // Reset all
+  if (standby) standby.classList.remove('orion-show')
+  if (active)  active.classList.remove('orion-show')
+  if (camera)  camera.classList.remove('orion-show')
   grids.forEach(function(g) { g.classList.remove('ae-show') })
   if (trans) trans.classList.remove('ae-show')
 
+  var mapEl = document.getElementById('orion-map')
+  if (mapEl) mapEl.classList.remove('orion-show')
+
   if (mode === 'standby') {
     if (standby) standby.classList.add('orion-show')
+    if (wrap) { wrap.classList.remove('ae-hud'); wrap.classList.add('ae-sby') }
   } else if (mode === 'active') {
     if (active) active.classList.add('orion-show')
     grids.forEach(function(g) { g.classList.add('ae-show') })
     if (trans) trans.classList.add('ae-show')
+    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
   } else if (mode === 'camera') {
     if (camera) camera.classList.add('orion-show')
+    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
   } else if (mode === 'map') {
     if (mapEl) mapEl.classList.add('orion-show')
+    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
   }
 }
 
@@ -2668,7 +2670,7 @@ function startApp() {
     const vb = el('sb-version')
     if (vb && config.version) vb.textContent = 'v'+config.version
   } catch{}
-  loadSettValues(); initOrb(); setTimeout(initAether, 500)
+  loadSettValues(); initOrb()
   ttsMgr = new TTSManager()
   micMgr = new MicrophoneManager()
   buildShortcuts(); updateMemUI()
