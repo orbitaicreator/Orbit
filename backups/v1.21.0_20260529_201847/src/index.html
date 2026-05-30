@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Orion</title>
+<title>Yoda</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -107,7 +107,7 @@ input,select,textarea{font-family:inherit}
 #strip{display:none}
 .si{display:none}
 
-/* SIDEBAR — Exact Claude replica, Orion green */
+/* SIDEBAR — Exact Claude replica, Yoda green */
 :root{
 
   --sb-w:260px;
@@ -751,8 +751,8 @@ input,select,textarea{font-family:inherit}
   padding-left:2px;
 }
 
-/* ── Orion Ghost Cursor ─────────────────────────────────── */
-#orion-cursor {
+/* ── Yoda Ghost Cursor ─────────────────────────────────── */
+#yoda-cursor {
   position: fixed;
   width: 24px;
   height: 24px;
@@ -763,12 +763,12 @@ input,select,textarea{font-family:inherit}
   transform: translate(-2px, -2px);
   will-change: transform, opacity;
 }
-#orion-cursor.active {
+#yoda-cursor.active {
   opacity: 1;
 }
 
 /* SVG cursor arrow with green glow */
-#orion-cursor svg {
+#yoda-cursor svg {
   filter:
     drop-shadow(0 0 6px rgba(0, 255, 65, 0.9))
     drop-shadow(0 0 12px rgba(0, 255, 65, 0.6))
@@ -776,7 +776,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Ripple that appears on click actions */
-#orion-cursor .cursor-ripple {
+#yoda-cursor .cursor-ripple {
   position: absolute;
   width: 36px;
   height: 36px;
@@ -788,7 +788,7 @@ input,select,textarea{font-family:inherit}
   opacity: 0;
   pointer-events: none;
 }
-#orion-cursor .cursor-ripple.pop {
+#yoda-cursor .cursor-ripple.pop {
   animation: cursor-ripple-pop 0.45s ease-out forwards;
 }
 @keyframes cursor-ripple-pop {
@@ -797,7 +797,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Thinking: cursor pulses */
-#orion-cursor.thinking svg {
+#yoda-cursor.thinking svg {
   animation: cursor-pulse 0.8s ease-in-out infinite alternate;
 }
 @keyframes cursor-pulse {
@@ -806,7 +806,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Speaking: cursor bounces slightly */
-#orion-cursor.speaking svg {
+#yoda-cursor.speaking svg {
   animation: cursor-speak 0.6s ease-in-out infinite alternate;
 }
 @keyframes cursor-speak {
@@ -815,7 +815,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Listening: cursor rotates slowly */
-#orion-cursor.listening svg {
+#yoda-cursor.listening svg {
   animation: cursor-listen 2s linear infinite;
 }
 @keyframes cursor-listen {
@@ -829,488 +829,297 @@ input,select,textarea{font-family:inherit}
 
 
 
-
-
 /* ═══════════════════════════════════════════════════════════════════════
-   ORION HUD — Three-State Interface
-   Standby / Active / Camera
+   AETHER HUD SYSTEM — Dual-Mode Cyberpunk Desktop Interface
    ═══════════════════════════════════════════════════════════════════════ */
 
+/* ── Design Tokens ──────────────────────────────────────────────────── */
 :root {
-  --orion-bg:      #070B14;
-  --orion-blue:    #1B8FFF;
-  --orion-glow:    #00BAFF;
-  --orion-dim:     rgba(27,143,255,0.18);
-  --orion-grid:    rgba(27,143,255,0.07);
-  --orion-text:    #C8D8E8;
-  --orion-border:  rgba(27,143,255,0.22);
-  --orion-font:    'Fira Code','JetBrains Mono','Courier New',monospace;
+  --ae-canvas:    #010206;
+  --ae-aqua:      #00E5FF;
+  --ae-aqua-glo:  rgba(0,229,255,0.55);
+  --ae-aqua-dim:  rgba(0,229,255,0.10);
+  --ae-slate:     #CBD5E1;
+  --ae-border:    #1E293B;
+  --ae-blue:      #0066FF;
+  --ae-green:     #39FF14;
+  --ae-amber:     #FF6B00;
+  --ae-font:      'Fira Code','JetBrains Mono','Courier New',monospace;
 }
 
-body, html, #app, #main { background: var(--orion-bg) !important; }
+/* ── Force background ───────────────────────────────────────────────── */
+body, html, #app, #main { background: var(--ae-canvas) !important; }
 
-/* ── Orb-wrap: full viewport ─────────────────────────────────────────── */
+/* ── Orb-wrap: full viewport overlay ───────────────────────────────── */
 #orb-wrap {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   pointer-events: none;
-  z-index: 0;             /* BEHIND chat UI — camera shows through as bg */
-  font-family: var(--orion-font);
-  overflow: hidden;
+  z-index: 1;
+  font-family: var(--ae-font);
 }
 
 /* ══════════════════════════════════════════════════════════════════════
-   STATE: STANDBY
-   Small orb centre-top, large clock below
+   A. ACTIVE HUD MODE — Four telemetry corner grids
    ══════════════════════════════════════════════════════════════════════ */
-#orion-standby {
+
+.ae-grid {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
+  padding: 8px 11px 12px;
+  border: 1px solid var(--ae-border);
+  background: rgba(1,2,6,0.88);
+  min-width: 158px;
+  pointer-events: all;
+
+  /* Hidden by default — slide from corner */
+  opacity: 0;
+  transition: opacity 300ms ease, transform 300ms ease;
+}
+
+/* Slide-in offsets per corner */
+.ae-tl { top: 14px;       left: 14px;   transform: translate(-10px, -10px); }
+.ae-tr { top: 14px;       right: 14px;  transform: translate( 10px, -10px); text-align: right; }
+.ae-bl { bottom: 78px;    left: 14px;   transform: translate(-10px,  10px); }
+.ae-br { bottom: 78px;    right: 14px;  transform: translate( 10px,  10px); text-align: right; }
+
+/* Revealed state — slide to rest position */
+.ae-grid.ae-show {
+  opacity: 1;
+  transform: translate(0, 0);
+}
+
+/* Header row */
+.ae-hdr {
+  font-size: 8px;
+  letter-spacing: 0.32em;
+  color: var(--ae-aqua);
+  text-transform: uppercase;
+  text-shadow: 0 0 10px var(--ae-aqua);
+  padding-bottom: 5px;
+  margin-bottom: 7px;
+  border-bottom: 1px solid var(--ae-border);
+}
+
+/* Data row */
+.ae-row {
+  font-size: 9px;
+  letter-spacing: 0.2em;
+  color: var(--ae-slate);
+  line-height: 2.1;
+  white-space: nowrap;
+  text-transform: uppercase;
+}
+.ae-row .ae-val {
+  color: var(--ae-aqua);
+  letter-spacing: 0.15em;
+}
+
+/* ── Transcript breakout — streams rightward from COGNITIVE_NET ─────── */
+#ae-transcript {
+  position: absolute;
+  bottom: 78px;
+  left: 186px;                    /* just outside the COGNITIVE_NET box */
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--ae-aqua);
+  text-shadow: 0 0 12px var(--ae-aqua);
+  max-width: 340px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 300ms ease;
+}
+#ae-transcript.ae-show { opacity: 1; }
+
+/* ── User input breakout — overlaps left border of AUDIO_IO ─────────── */
+#ae-userinput {
+  position: absolute;
+  bottom: 78px;
+  right: 172px;                   /* bleeds into AUDIO_IO left border */
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: #FFFFFF;
+  opacity: 0.65;
+  pointer-events: none;
+  white-space: nowrap;
+  font-family: var(--ae-font);
+  text-transform: uppercase;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   B. AMBIENT STANDBY MODE — Centred geometric rings + master chrono
+   ══════════════════════════════════════════════════════════════════════ */
+
+#ae-standby {
+  position: absolute;
+  top: 0; left: 0;
+  width: 100%; height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  opacity: 0;
-  transition: opacity 400ms ease;
   pointer-events: none;
-  z-index: 0;  /* behind chat UI */
+  opacity: 0;
+  transition: opacity 300ms ease;
 }
-#orion-standby.orion-show { opacity: 1; }
+#ae-standby.ae-show { opacity: 1; }
 
-/* Standby orb — small, particle-filled, glowing */
-#orion-sby-orb {
+/* ── Dual-ring geometric orbit ──────────────────────────────────────── */
+#ae-rings {
   position: relative;
-  width: 130px;
-  height: 130px;
-  margin-bottom: 32px;
+  width: 200px;
+  height: 200px;
+  animation: ae-breath 4s ease-in-out infinite;
 }
-#orion-sby-ring {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  border-radius: 50%;
-  border: 2px solid var(--orion-glow);
-  box-shadow:
-    0 0 12px var(--orion-glow),
-    0 0 40px rgba(0,186,255,0.35),
-    inset 0 0 30px rgba(0,186,255,0.12);
-  animation: orion-breath 3.5s ease-in-out infinite;
+@keyframes ae-breath {
+  0%, 100% { transform: scale(0.98); opacity: 0.85; }
+  50%       { transform: scale(1.02); opacity: 1;    }
 }
-#orion-sby-canvas {
+
+.ae-ring-svg {
   position: absolute;
   top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: 50%;
-}
-#orion-sby-label {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  font-size: 9px;
-  letter-spacing: 0.3em;
-  color: rgba(200,216,232,0.7);
-  text-transform: uppercase;
-  white-space: nowrap;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
 }
 
-/* Clock */
-#orion-clock-big {
-  font-size: 72px;
-  font-weight: 300;
-  letter-spacing: 0.06em;
-  color: var(--orion-text);
-  line-height: 1;
-  text-shadow: 0 0 30px rgba(27,143,255,0.3);
+/* SVG elements */
+.ae-outer-circle {
+  fill: none;
+  stroke: var(--ae-aqua);
+  stroke-width: 1.8;
+  filter: drop-shadow(0 0 6px var(--ae-aqua));
 }
-#orion-date-big {
+.ae-inner-circle {
+  fill: none;
+  stroke: rgba(0,229,255,0.28);
+  stroke-width: 1;
+}
+.ae-axis-line {
+  stroke: rgba(0,229,255,0.32);
+  stroke-width: 0.75;
+  stroke-dasharray: 3 4;
+}
+.ae-core-dot {
+  fill: var(--ae-aqua);
+  filter: drop-shadow(0 0 5px var(--ae-aqua)) drop-shadow(0 0 14px var(--ae-aqua-glo));
+}
+.ae-node-dot {
+  fill: var(--ae-aqua);
+  filter: drop-shadow(0 0 4px var(--ae-aqua));
+}
+
+/* Outer ring rotates CW, inner CCW */
+.ae-g-outer { animation: ae-cw  22s linear infinite; transform-origin: 100px 100px; }
+.ae-g-inner { animation: ae-ccw 13s linear infinite; transform-origin: 100px 100px; }
+@keyframes ae-cw  { to { transform: rotate(360deg);  } }
+@keyframes ae-ccw { to { transform: rotate(-360deg); } }
+
+/* State overrides */
+#ae-rings[data-st="listening"] .ae-outer-circle {
+  stroke: var(--ae-green);
+  filter: drop-shadow(0 0 8px var(--ae-green));
+}
+#ae-rings[data-st="listening"] .ae-node-dot { fill: var(--ae-green); }
+#ae-rings[data-st="listening"] .ae-g-outer { animation: ae-cw 7s linear infinite; }
+#ae-rings[data-st="listening"] .ae-g-inner { animation: ae-ccw 3.5s linear infinite; }
+
+#ae-rings[data-st="thinking"] .ae-outer-circle {
+  stroke: var(--ae-blue);
+  filter: drop-shadow(0 0 8px var(--ae-blue));
+}
+#ae-rings[data-st="thinking"] .ae-node-dot { fill: var(--ae-blue); }
+#ae-rings[data-st="thinking"] .ae-g-outer { animation: ae-step-cw 1.6s steps(12,end) infinite; }
+#ae-rings[data-st="thinking"] .ae-g-inner { animation: ae-step-ccw 0.9s steps(8,end)  infinite; }
+#ae-rings[data-st="thinking"] .ae-core-dot { fill: var(--ae-blue); filter: drop-shadow(0 0 8px var(--ae-blue)); }
+@keyframes ae-step-cw  { to { transform: rotate(360deg);  } }
+@keyframes ae-step-ccw { to { transform: rotate(-360deg); } }
+
+#ae-rings[data-st="speaking"] .ae-outer-circle {
+  stroke: #44FF88;
+  filter: drop-shadow(0 0 10px #44FF88);
+}
+#ae-rings[data-st="speaking"] .ae-g-outer { animation: ae-cw 5s linear infinite; }
+#ae-rings[data-st="speaking"] .ae-g-inner { animation: ae-ccw 2.5s linear infinite; }
+
+/* ── State label ────────────────────────────────────────────────────── */
+#ae-state-lbl {
+  margin-top: 14px;
+  font-size: 9px;
+  letter-spacing: 0.42em;
+  color: var(--ae-aqua);
+  text-shadow: 0 0 12px var(--ae-aqua);
+  text-align: center;
+  font-family: var(--ae-font);
+  text-transform: uppercase;
+}
+
+/* ── Master Chrono Array ────────────────────────────────────────────── */
+#ae-chrono {
+  margin-top: 100px;
+  text-align: center;
+  font-family: var(--ae-font);
+  transition: transform 300ms ease, opacity 300ms ease;
+}
+#ae-chrono.ae-hide { transform: translateY(30px); opacity: 0; pointer-events: none; }
+
+#ae-hhmm {
+  font-size: 56px;
+  font-weight: 300;
+  letter-spacing: 0.1em;
+  color: var(--ae-aqua);
+  text-shadow: 0 0 24px var(--ae-aqua), 0 0 50px var(--ae-aqua-glo);
+  line-height: 1;
+}
+#ae-date-row {
   margin-top: 10px;
   font-size: 10px;
-  letter-spacing: 0.4em;
-  color: rgba(200,216,232,0.45);
+  letter-spacing: 0.38em;
+  color: var(--ae-slate);
   text-transform: uppercase;
 }
 
-/* Breath animation */
-@keyframes orion-breath {
-  0%,100% { transform: scale(0.96); opacity: 0.7; }
-  50%      { transform: scale(1.04); opacity: 1;   }
-}
-
-/* ══════════════════════════════════════════════════════════════════════
-   STATE: ACTIVE
-   Full orb with bracket corners, grid bg, "ORION" inside ring
-   ══════════════════════════════════════════════════════════════════════ */
-#orion-active {
+/* ── Sphere canvas ──────────────────────────────────────────────────── */
+#orb-wrap #orb {
   position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  opacity: 0;
-  transition: opacity 400ms ease;
-  pointer-events: none;
-  z-index: 0;  /* behind chat UI */
-}
-#orion-active.orion-show { opacity: 1; }
-
-/* Background grid */
-#orion-grid-bg {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background-image:
-    linear-gradient(var(--orion-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--orion-grid) 1px, transparent 1px);
-  background-size: 40px 40px;
-}
-
-/* Central active orb */
-#orion-active-orb {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -56%);
-  width: 260px;
-  height: 260px;
-}
-
-/* Outer ring */
-#orion-act-ring-outer {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  border-radius: 50%;
-  border: 2.5px solid var(--orion-glow);
-  box-shadow:
-    0 0 16px var(--orion-glow),
-    0 0 50px rgba(0,186,255,0.4),
-    inset 0 0 40px rgba(0,186,255,0.1);
-  animation: orion-act-breath 4s ease-in-out infinite;
-}
-/* Inner ring */
-#orion-act-ring-inner {
-  position: absolute;
-  top: 14%; left: 14%;
-  width: 72%; height: 72%;
-  border-radius: 50%;
-  border: 1px solid rgba(0,186,255,0.35);
-}
-/* Orion label inside */
-#orion-act-label {
-  position: absolute;
-  top: 50%; left: 50%;
+  left: 50%;
+  top: 42%;
   transform: translate(-50%, -50%);
-  font-size: 15px;
-  letter-spacing: 0.45em;
-  color: rgba(200,216,232,0.85);
-  text-transform: uppercase;
-  text-shadow: 0 0 12px var(--orion-glow);
-}
-/* Particle canvas inside orb */
-#orion-act-canvas {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border-radius: 50%;
-}
-
-@keyframes orion-act-breath {
-  0%,100% { box-shadow: 0 0 16px var(--orion-glow), 0 0 50px rgba(0,186,255,0.4), inset 0 0 40px rgba(0,186,255,0.1); }
-  50%      { box-shadow: 0 0 28px var(--orion-glow), 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2); }
-}
-
-/* Corner bracket decorations (like the tick marks in image 1) */
-.orion-corner {
-  position: absolute;
-  width: 20px; height: 20px;
-  border-color: rgba(0,186,255,0.5);
-  border-style: solid;
-}
-.orion-corner.tl { top: -10px; left: -10px; border-width: 1.5px 0 0 1.5px; }
-.orion-corner.tr { top: -10px; right: -10px; border-width: 1.5px 1.5px 0 0; }
-.orion-corner.bl { bottom: -10px; left: -10px; border-width: 0 0 1.5px 1.5px; }
-.orion-corner.br { bottom: -10px; right: -10px; border-width: 0 1.5px 1.5px 0; }
-
-/* Bracket ring — the larger outer square with corner marks */
-#orion-bracket {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -56%);
-  width: 320px; height: 320px;
-}
-.orion-bracket-corner {
-  position: absolute;
-  width: 18px; height: 18px;
-  border-color: rgba(0,186,255,0.35);
-  border-style: solid;
-}
-.orion-bracket-corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-.orion-bracket-corner.tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
-.orion-bracket-corner.bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-.orion-bracket-corner.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
-/* Tick marks at mid-points */
-.orion-tick {
-  position: absolute;
-  background: rgba(0,186,255,0.4);
-}
-.orion-tick.t { top: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
-.orion-tick.b { bottom: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
-.orion-tick.l { left: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
-.orion-tick.r { right: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
-
-/* Diagonal corner dots */
-.orion-dot {
-  position: absolute;
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: rgba(0,186,255,0.5);
-}
-
-/* State label under active orb */
-#orion-act-state {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, calc(-56% + 148px));
-  font-size: 9px;
-  letter-spacing: 0.4em;
-  color: rgba(200,216,232,0.5);
-  text-transform: uppercase;
-}
-
-/* AETHER corner grids — keep for telemetry */
-.ae-grid {
-  position: absolute;
-  padding: 8px 11px 12px;
-  border: 1px solid var(--orion-border);
-  background: rgba(7,11,20,0.88);
-  min-width: 152px;
-  pointer-events: all;
-  font-family: var(--orion-font);
-  opacity: 0;
-  transition: opacity 300ms ease, transform 300ms ease;
-}
-.ae-tl { top: 14px; left: 14px; transform: translate(-10px,-10px); }
-.ae-tr { top: 14px; right: 14px; transform: translate(10px,-10px); text-align: right; }
-.ae-bl { bottom: 78px; left: 14px; transform: translate(-10px,10px); }
-.ae-br { bottom: 78px; right: 14px; transform: translate(10px,10px); text-align: right; }
-.ae-grid.ae-show { opacity: 1; transform: translate(0,0); }
-.ae-hdr { font-size: 8px; letter-spacing: 0.3em; color: var(--orion-glow); border-bottom: 1px solid var(--orion-border); padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; text-shadow: 0 0 8px var(--orion-glow); }
-.ae-row { font-size: 9px; letter-spacing: 0.18em; color: var(--orion-text); line-height: 2; white-space: nowrap; text-transform: uppercase; }
-.ae-row .ae-val { color: var(--orion-glow); }
-
-/* Transcript + input breakouts */
-#ae-transcript { position:absolute; bottom:78px; left:186px; font-size:10.5px; letter-spacing:0.1em; color:var(--orion-glow); text-shadow:0 0 10px var(--orion-glow); max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; opacity:0; transition:opacity 300ms; }
-#ae-transcript.ae-show { opacity:1; }
-#ae-userinput { position:absolute; bottom:78px; right:172px; font-size:10.5px; letter-spacing:0.1em; color:#fff; opacity:0.65; pointer-events:none; white-space:nowrap; font-family:var(--orion-font); text-transform:uppercase; }
-
-/* ══════════════════════════════════════════════════════════════════════
-   STATE: CAMERA
-   Full-screen video feed with HUD overlay
-   ══════════════════════════════════════════════════════════════════════ */
-#orion-camera {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  opacity: 0;
-  transition: opacity 500ms ease;
-  pointer-events: none;   /* never blocks the chat/buttons underneath */
-  z-index: 0;             /* sits BELOW the chat UI */
-}
-#orion-camera.orion-show { opacity: 1; }
-
-#orion-cam-video {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  object-fit: cover;
-  /* Dark faded overlay look — like the reference image */
-  filter: brightness(0.45) saturate(0.7) contrast(0.9);
-  opacity: 0.72;
-}
-
-/* HUD overlay on camera */
-#orion-cam-hud {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-  z-index: 0;
-}
-.orion-cam-corner {
-  position: absolute;
-  width: 24px; height: 24px;
-  border-color: rgba(0,186,255,0.7);
-  border-style: solid;
-}
-.orion-cam-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
-.orion-cam-corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
-.orion-cam-corner.bl { bottom: 80px; left: 16px; border-width: 0 0 2px 2px; }
-.orion-cam-corner.br { bottom: 80px; right: 16px; border-width: 0 2px 2px 0; }
-#orion-cam-label {
-  position: absolute;
-  top: 20px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 0.35em;
-  color: rgba(0,186,255,0.8);
-  text-transform: uppercase;
-  font-family: var(--orion-font);
-}
-#orion-cam-status {
-  position: absolute;
-  bottom: 88px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 0.3em;
-  color: rgba(0,186,255,0.7);
-  font-family: var(--orion-font);
-}
-#orion-cam-close {
-  position: absolute;
-  top: 16px; right: 56px;
-  font-size: 9px; letter-spacing: 0.25em;
-  color: rgba(200,216,232,0.6);
-  font-family: var(--orion-font);
-  cursor: pointer; pointer-events: all;
-  padding: 4px 8px;
-  border: 1px solid rgba(0,186,255,0.3);
-}
-#orion-cam-close:hover { color: var(--orion-glow); border-color: var(--orion-glow); }
-
-/* Scan line effect on camera */
-#orion-cam-video::after {
-  content: '';
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.03) 2px, rgba(0,0,0,0.03) 4px);
+  width: 680px;
+  height: 680px;
+  transition: opacity 300ms ease;
   pointer-events: none;
 }
+#orb-wrap.ae-hud #orb  { opacity: 1;   }
+#orb-wrap.ae-sby #orb  { opacity: 0.1; }
 
-/* Legacy canvas hidden */
-#orb-wrap #orb { display: none; }
-
-/* Chat overrides */
-#chat .y { color: var(--orion-glow) !important; font-family: var(--orion-font) !important; font-size:11.5px !important; letter-spacing:0.04em; text-shadow:0 0 6px rgba(0,186,255,0.25); }
-#chat .u { color: var(--orion-text) !important; font-family: var(--orion-font) !important; font-size:11.5px !important; }
-#chat .s { color: rgba(0,186,255,0.4) !important; font-size:9.5px !important; letter-spacing:0.14em; }
+/* ── Chat overrides ─────────────────────────────────────────────────── */
+#chat .y {
+  color: var(--ae-aqua) !important;
+  font-family: var(--ae-font) !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em;
+  text-shadow: 0 0 7px rgba(0,229,255,0.3);
+}
+#chat .u {
+  color: var(--ae-slate) !important;
+  font-family: var(--ae-font) !important;
+  font-size: 11.5px !important;
+  letter-spacing: 0.06em;
+}
+#chat .s {
+  color: rgba(0,229,255,0.4) !important;
+  font-size: 9.5px !important;
+  letter-spacing: 0.18em;
+}
 
 /* ═══════════════════════════════════════════════════════════════════════
-   END ORION HUD
+   END AETHER HUD SYSTEM
    ═══════════════════════════════════════════════════════════════════════ */
-
-
-/* ══ ORION MAP PANEL ══════════════════════════════════════════════════ */
-#orion-map {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  opacity: 0;
-  transition: opacity 500ms ease;
-  pointer-events: none;   /* chat + buttons stay clickable */
-  z-index: 0;
-  background: transparent;
-}
-#orion-map.orion-show { opacity: 1; }
-
-#orion-map-iframe {
-  position: absolute;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  border: none;
-  /* Dark faded tactical map look */
-  filter: invert(0.88) hue-rotate(185deg) saturate(1.2) brightness(0.5);
-  opacity: 0;
-  transition: opacity 700ms ease;
-}
-#orion-map-iframe.map-loaded { opacity: 0.75; }
-
-/* HUD overlay on map */
-#orion-map-hud {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 100%;
-  pointer-events: none;
-}
-.orion-map-corner {
-  position: absolute;
-  width: 28px; height: 28px;
-  border-color: rgba(0,186,255,0.6);
-  border-style: solid;
-}
-.orion-map-corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
-.orion-map-corner.tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
-.orion-map-corner.bl { bottom: 78px; left: 14px; border-width: 0 0 2px 2px; }
-.orion-map-corner.br { bottom: 78px; right: 14px; border-width: 0 2px 2px 0; }
-
-#orion-map-label {
-  position: absolute;
-  top: 20px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 0.38em;
-  color: rgba(0,186,255,0.85);
-  text-transform: uppercase;
-  font-family: var(--orion-font);
-  text-shadow: 0 0 10px rgba(0,186,255,0.5);
-  white-space: nowrap;
-}
-#orion-map-location {
-  position: absolute;
-  top: 38px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 0.22em;
-  color: rgba(200,216,232,0.55);
-  font-family: var(--orion-font);
-  text-transform: uppercase;
-  white-space: nowrap;
-  max-width: 400px;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-#orion-map-status {
-  position: absolute;
-  bottom: 86px; left: 50%; transform: translateX(-50%);
-  font-size: 9px; letter-spacing: 0.3em;
-  color: rgba(0,186,255,0.7);
-  font-family: var(--orion-font);
-  text-transform: uppercase;
-  white-space: nowrap;
-}
-#orion-map-close {
-  position: absolute;
-  top: 14px; right: 14px;
-  font-size: 9px; letter-spacing: 0.25em;
-  color: rgba(200,216,232,0.6);
-  font-family: var(--orion-font);
-  cursor: pointer; pointer-events: all;
-  padding: 4px 10px;
-  border: 1px solid rgba(0,186,255,0.3);
-  background: rgba(7,11,20,0.8);
-  z-index: 10;
-  transition: color 200ms, border-color 200ms;
-}
-#orion-map-close:hover { color: var(--orion-glow); border-color: var(--orion-glow); }
-
-/* Scan animation while loading */
-#orion-map-scan {
-  position: absolute;
-  top: 0; left: 0; width: 100%; height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(0,186,255,0.8), transparent);
-  animation: orion-scan 1.5s ease-in-out infinite;
-  opacity: 0;
-  transition: opacity 200ms;
-}
-#orion-map-scan.scanning { opacity: 1; }
-@keyframes orion-scan {
-  0%   { transform: translateY(0); }
-  100% { transform: translateY(100vh); }
-}
-
-/* Coordinate readout */
-#orion-map-coords {
-  position: absolute;
-  bottom: 100px; right: 20px;
-  font-size: 8.5px; letter-spacing: 0.2em;
-  color: rgba(0,186,255,0.5);
-  font-family: var(--orion-font);
-  text-align: right;
-  line-height: 1.8;
-}
-/* ══ END ORION MAP ════════════════════════════════════════════════════ */
-
-
-/* Camera/map show through chat bg */
-#chat { background: transparent !important; }
-#main { background: transparent !important; }
-/* Keep input bar readable */
-#inp-row { background: rgba(7,11,20,0.75) !important; backdrop-filter: blur(4px); }
-/* Tbar stays readable */
-#tbar { background: rgba(7,11,20,0.8) !important; backdrop-filter: blur(6px); }
-/* App bg transparent so orb-wrap shows */
-#app { background: transparent !important; }
 
 </style>
 </head>
@@ -1318,10 +1127,10 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
 
 <!-- Setup screen -->
 <div id="setup">
-  <div style="color:var(--ac);font-size:24px;font-weight:bold">ORION</div>
+  <div style="color:var(--ac);font-size:24px;font-weight:bold">YODA</div>
   <div style="color:var(--dim);font-size:9px;text-align:center;max-width:340px">
     Enter your Anthropic API key.<br>
-    Or save to <span style="color:var(--ac)">C:\Users\krist\orion_api_key.txt</span>
+    Or save to <span style="color:var(--ac)">C:\Users\krist\yoda_api_key.txt</span>
   </div>
   <input id="sk-key" type="password" placeholder="sk-ant-..."
     style="background:var(--inp);color:var(--wh);border:1px solid var(--ac);
@@ -1330,7 +1139,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
   <button onclick="submitKey()"
     style="background:var(--ac);color:var(--bg);border:none;padding:8px 24px;
     font-size:11px;font-weight:bold;cursor:pointer;border-radius:2px;
-    font-family:Consolas,monospace">Start Orion</button>
+    font-family:Consolas,monospace">Start Yoda</button>
   <div id="sk-err" style="color:var(--red);font-size:8px"></div>
 </div>
 
@@ -1348,7 +1157,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
           <rect x="8" y="12" width="7" height="2" rx="1" fill="currentColor"/>
         </svg>
       </button>
-      <span id="tb-name">Orion</span>
+      <span id="tb-name">Yoda</span>
       <span id="tb-status" style="font-size:10px;color:var(--dim);margin-left:4px"></span>
     </div>
     <div id="tb-drag"></div>
@@ -1356,117 +1165,99 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
       <span id="tb-weather" style="font-size:11px;color:var(--dim);padding:0 6px;opacity:.5"></span>
       <span id="tb-clock" style="font-size:11px;color:var(--dim);padding:0 6px;opacity:.5"></span>
       <span id="net-dot" style="font-size:10px;color:var(--dim);padding:0 4px;opacity:.5">&#9679;</span>
-      <button class="tb-icon-btn" onclick="orion&&orion.minimize()" title="Minimize">&#8722;</button>
-      <button class="tb-icon-btn" onclick="orion&&orion.hide()" title="Close">&#10005;</button>
+      <button class="tb-icon-btn" onclick="yoda&&yoda.minimize()" title="Minimize">&#8722;</button>
+      <button class="tb-icon-btn" onclick="yoda&&yoda.hide()" title="Close">&#10005;</button>
     </div>
   </div>
   <div id="main">
     <div id="orb-wrap" class="ae-sby" data-ae="idle">
 
-  <!-- ══ STATE: STANDBY ═══════════════════════════════════════════════ -->
-  <div id="orion-standby" class="orion-show">
-    <div id="orion-sby-orb">
-      <div id="orion-sby-ring"></div>
-      <canvas id="orion-sby-canvas" width="130" height="130"></canvas>
-      <div id="orion-sby-label">ORION</div>
-    </div>
-    <div id="orion-clock-big">00:00</div>
-    <div id="orion-date-big">LOADING...</div>
+  <!-- ══════════════════════════════════════════════════════════════════
+       A. ACTIVE HUD MODE — four telemetry corner grids
+       ══════════════════════════════════════════════════════════════════ -->
+
+  <!-- TOP-LEFT · ENVIRONMENT -->
+  <div class="ae-grid ae-tl" id="ae-env">
+    <div class="ae-hdr">ENVIRONMENT</div>
+    <div class="ae-row">CORE_LOAD<span class="ae-val" id="ae-cpu">&nbsp;&nbsp;&nbsp;---%</span></div>
+    <div class="ae-row">MEMORY<span class="ae-val" id="ae-ram">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---%</span></div>
+    <div class="ae-row ae-val" id="ae-clock">00:00:00.000</div>
   </div>
 
-  <!-- ══ STATE: ACTIVE ════════════════════════════════════════════════ -->
-  <div id="orion-active">
+  <!-- TOP-RIGHT · DIAGNOSTICS -->
+  <div class="ae-grid ae-tr" id="ae-diag">
+    <div class="ae-hdr">DIAGNOSTICS</div>
+    <div class="ae-row">NODE_STATUS&nbsp;<span class="ae-val" id="ae-nstat">ACTIVE</span></div>
+    <div class="ae-row ae-val" id="ae-wx">--- °C ---</div>
+    <div class="ae-row">UPTIME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-up">0:00</span></div>
+  </div>
 
-    <!-- Subtle grid background -->
-    <div id="orion-grid-bg"></div>
+  <!-- BOTTOM-LEFT · COGNITIVE_NET -->
+  <div class="ae-grid ae-bl" id="ae-cog">
+    <div class="ae-hdr">COGNITIVE_NET</div>
+    <div class="ae-row">ENGINE&nbsp;&nbsp;<span class="ae-val">LOCAL_LLM</span></div>
+    <div class="ae-row">BRIDGE&nbsp;&nbsp;<span class="ae-val" id="ae-bridge">ONLINE</span></div>
+  </div>
 
-    <!-- Outer bracket frame -->
-    <div id="orion-bracket">
-      <div class="orion-bracket-corner tl"></div>
-      <div class="orion-bracket-corner tr"></div>
-      <div class="orion-bracket-corner bl"></div>
-      <div class="orion-bracket-corner br"></div>
-      <div class="orion-tick t"></div>
-      <div class="orion-tick b"></div>
-      <div class="orion-tick l"></div>
-      <div class="orion-tick r"></div>
+  <!-- BOTTOM-RIGHT · AUDIO_IO -->
+  <div class="ae-grid ae-br" id="ae-audio">
+    <div class="ae-hdr">AUDIO_IO</div>
+    <div class="ae-row">INPUT_STREAM&nbsp;<span class="ae-val" id="ae-istream">IDLE</span></div>
+    <div class="ae-row">MODE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-pmode">BALANCED</span></div>
+  </div>
+
+  <!-- AI transcript: streams right out of COGNITIVE_NET -->
+  <div id="ae-transcript"></div>
+  <!-- User input: overlaps left edge of AUDIO_IO -->
+  <div id="ae-userinput"></div>
+
+  <!-- ══════════════════════════════════════════════════════════════════
+       B. AMBIENT STANDBY MODE — centred geometric rings + master chrono
+       ══════════════════════════════════════════════════════════════════ -->
+  <div id="ae-standby">
+
+    <!-- Dual-ring geometric orbit -->
+    <div id="ae-rings" data-st="idle">
+      <svg class="ae-ring-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+
+        <!-- Outer ring + 8 orbital nodes (rotate CW together) -->
+        <g class="ae-g-outer">
+          <circle cx="100" cy="100" r="92" class="ae-outer-circle"/>
+          <circle cx="100" cy="8"   r="4"   class="ae-node-dot"/>
+          <circle cx="165" cy="35"  r="2.8" class="ae-node-dot" opacity="0.75"/>
+          <circle cx="192" cy="100" r="4"   class="ae-node-dot"/>
+          <circle cx="165" cy="165" r="2.8" class="ae-node-dot" opacity="0.75"/>
+          <circle cx="100" cy="192" r="4"   class="ae-node-dot"/>
+          <circle cx="35"  cy="165" r="2.8" class="ae-node-dot" opacity="0.75"/>
+          <circle cx="8"   cy="100" r="4"   class="ae-node-dot"/>
+          <circle cx="35"  cy="35"  r="2.8" class="ae-node-dot" opacity="0.75"/>
+        </g>
+
+        <!-- Inner ring (rotates CCW) -->
+        <g class="ae-g-inner">
+          <circle cx="100" cy="100" r="62" class="ae-inner-circle"/>
+        </g>
+
+        <!-- Static: axis line + core dot (never rotate) -->
+        <line x1="38" y1="100" x2="162" y2="100" class="ae-axis-line"/>
+        <circle cx="100" cy="100" r="4" class="ae-core-dot"/>
+
+      </svg>
     </div>
 
-    <!-- Central orb -->
-    <div id="orion-active-orb">
-      <canvas id="orion-act-canvas" width="260" height="260"></canvas>
-      <div id="orion-act-ring-outer">
-        <div class="orion-corner tl"></div>
-        <div class="orion-corner tr"></div>
-        <div class="orion-corner bl"></div>
-        <div class="orion-corner br"></div>
-      </div>
-      <div id="orion-act-ring-inner"></div>
-      <div id="orion-act-label">ORION</div>
-    </div>
-    <div id="orion-act-state">IDLE</div>
+    <!-- Dynamic state label -->
+    <div id="ae-state-lbl">AMBIENT_WAIT</div>
 
-    <!-- Telemetry corners -->
-    <div class="ae-grid ae-tl" id="ae-env">
-      <div class="ae-hdr">ENVIRONMENT</div>
-      <div class="ae-row">CORE_LOAD<span class="ae-val" id="ae-cpu">&nbsp;&nbsp;---%</span></div>
-      <div class="ae-row">MEMORY<span class="ae-val" id="ae-ram">&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;---%</span></div>
-      <div class="ae-row ae-val" id="ae-clock">00:00:00</div>
+    <!-- Master Chrono Array — large HH:MM + calendar row -->
+    <div id="ae-chrono">
+      <div id="ae-hhmm">00:00</div>
+      <div id="ae-date-row">LOADING...</div>
     </div>
-    <div class="ae-grid ae-tr" id="ae-diag">
-      <div class="ae-hdr">DIAGNOSTICS</div>
-      <div class="ae-row">NODE_STATUS&nbsp;<span class="ae-val" id="ae-nstat">ACTIVE</span></div>
-      <div class="ae-row ae-val" id="ae-wx">--- °C</div>
-      <div class="ae-row">UPTIME&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-up">0:00</span></div>
-    </div>
-    <div class="ae-grid ae-bl" id="ae-cog">
-      <div class="ae-hdr">COGNITIVE_NET</div>
-      <div class="ae-row">ENGINE&nbsp;&nbsp;<span class="ae-val">LOCAL_LLM</span></div>
-      <div class="ae-row">BRIDGE&nbsp;&nbsp;<span class="ae-val" id="ae-bridge">ONLINE</span></div>
-    </div>
-    <div class="ae-grid ae-br" id="ae-audio">
-      <div class="ae-hdr">AUDIO_IO</div>
-      <div class="ae-row">INPUT_STREAM&nbsp;<span class="ae-val" id="ae-istream">IDLE</span></div>
-      <div class="ae-row">MODE&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="ae-val" id="ae-pmode">BALANCED</span></div>
-    </div>
-    <div id="ae-transcript"></div>
-    <div id="ae-userinput"></div>
 
   </div>
 
-  <!-- ══ STATE: CAMERA ════════════════════════════════════════════════ -->
-  <div id="orion-camera">
-    <video id="orion-cam-video" autoplay playsinline muted></video>
-    <div id="orion-cam-hud">
-      <div class="orion-cam-corner tl"></div>
-      <div class="orion-cam-corner tr"></div>
-      <div class="orion-cam-corner bl"></div>
-      <div class="orion-cam-corner br"></div>
-      <div id="orion-cam-label">VISION SENSORS — ACTIVE</div>
-      <div id="orion-cam-status">[ SCANNING ENVIRONMENT ]</div>
-      <div id="orion-cam-close" onclick="orionCloseCamera()">[ CLOSE VISION ]</div>
-    </div>
-  </div>
-
-  <!-- ══ STATE: MAP ══════════════════════════════════════════════════ -->
-  <div id="orion-map">
-    <iframe id="orion-map-iframe" allowfullscreen></iframe>
-    <div id="orion-map-scan"></div>
-    <div id="orion-map-hud">
-      <div class="orion-map-corner tl"></div>
-      <div class="orion-map-corner tr"></div>
-      <div class="orion-map-corner bl"></div>
-      <div class="orion-map-corner br"></div>
-      <div id="orion-map-label">NAVIGATIONAL ARRAY — ACTIVE</div>
-      <div id="orion-map-location">AWAITING COORDINATES...</div>
-      <div id="orion-map-status">[ SATELLITE UPLINK ESTABLISHED ]</div>
-      <div id="orion-map-coords"></div>
-      <div id="orion-map-close" onclick="orionCloseMap()">[ CLOSE MAP ]</div>
-    </div>
-  </div>
-
-  <!-- Legacy canvas (hidden but keeps initOrb working) -->
-  <canvas id="orb" width="800" height="800" style="display:none"></canvas>
+  <!-- Original particle sphere (shown in HUD mode) -->
+  <canvas id="orb" width="800" height="800"></canvas>
 
 </div>
 <div id="chat"></div>
@@ -1474,13 +1265,13 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
     <div id="inp-trigger" onmouseenter="showInp()"></div>
     <div id="inp-bar" onmouseenter="showInp()" onmouseleave="hideInpDelay()">
       <textarea id="inp-txt" rows="1"
-        placeholder="Message Orion..."
+        placeholder="Message Yoda..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
       ></textarea>
       <button id="btn-send" onclick="send()">&#8593;</button>
     </div>
-    <div id="inp-disclaimer">Orion can make mistakes</div>
+    <div id="inp-disclaimer">Yoda can make mistakes</div>
 
   <!-- Update bar -->
   <div id="update-bar">
@@ -1529,7 +1320,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
     <!-- Content panel — visible when open/pinned -->
     <div id="sb-content">
       <div id="sb-topbar">
-        <span class="sb-topbar-title">ORION</span>
+        <span class="sb-topbar-title">YODA</span>
         <button class="sb-icon-btn" onclick="newConversation()" title="New conversation">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M11 2l1.5 1.5L4 12H2v-2L11 2z"/>
@@ -1548,7 +1339,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
         <!-- Quick actions -->
         <div class="sb-group-label">Quick actions</div>
         <div class="sb-list">
-          <button class="sb-feat-btn" onclick="orion&&orion.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
+          <button class="sb-feat-btn" onclick="yoda&&yoda.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
           <button class="sb-feat-btn" onclick="ask('set a timer for 5 minutes')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="7" r="4"/><path d="M6 5v2l1.5 1"/><line x1="4" y1="1" x2="8" y2="1"/></svg>Timer</button>
           <button class="sb-feat-btn" onclick="ask('weather')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="4.5" cy="5" r="2"/><path d="M9 10H2.5a2 2 0 0 1 0-4h.2a3 3 0 1 1 5.3 1H9a1.5 1.5 0 0 1 0 3z"/></svg>Weather</button>
           <button class="sb-feat-btn" onclick="ask('what time is it')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5"/></svg>Time</button>
@@ -1575,7 +1366,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
         <div class="sb-group-label">Status</div>
         <div class="sb-list">
           <div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#5aaa5a">Microphone</span></div>
-          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Orion</span></div>
+          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Yoda</span></div>
           <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#5aaa5a"></span></div>
         </div>
 
@@ -1599,7 +1390,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
         </div>
         <div class="sb-profile-row">
           <div class="sb-profile-avatar">Y</div>
-          <span class="sb-profile-name">Orion</span>
+          <span class="sb-profile-name">Yoda</span>
           <button class="sb-icon-btn sb-menu-btn" id="sb-menu-btn" onclick="toggleProfileMenu(event)" title="Menu">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
               <circle cx="7" cy="2" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
@@ -1624,7 +1415,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
     </div>
     <div class="sb-dropdown-divider"></div>
     <div class="sb-dropdown-section">
-      <button class="sb-dropdown-item danger" onclick="orion&&orion.quit()"><svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orion</button>
+      <button class="sb-dropdown-item danger" onclick="yoda&&yoda.quit()"><svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Yoda</button>
     </div>
   </div>
 <div id="profile-dropdown" class="sb-dropdown" style="display:none">
@@ -1650,8 +1441,8 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
     </div>
     <div class="sb-dropdown-divider"></div>
     <div class="sb-dropdown-section">
-      <button class="sb-dropdown-item sb-dropdown-danger" onclick="orion&&orion.quit()">
-        <svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orion
+      <button class="sb-dropdown-item sb-dropdown-danger" onclick="yoda&&yoda.quit()">
+        <svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Yoda
       </button>
     </div>
   </div>
@@ -1665,7 +1456,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
     <div class="sg">
       <label class="sl">API Key</label>
       <input class="si2" id="sapikey" type="password" placeholder="sk-ant-..."
-        onchange="if(this.value.trim()){orion.saveKey(this.value.trim());apiKey=this.value.trim();addMsg('s','Key saved.')}">
+        onchange="if(this.value.trim()){yoda.saveKey(this.value.trim());apiKey=this.value.trim();addMsg('s','Key saved.')}">
     </div>
     <div class="sg">
       <label class="sl">Voice</label>
@@ -1825,7 +1616,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
 
 <script>
 
-// ── Orion Virtual Mouse helpers ─────────────────────────────────────────
+// ── Yoda Virtual Mouse helpers ─────────────────────────────────────────
 function vm_send(cmd) { try { if (window.vm) vm.send(cmd) } catch {} }
 
 // Screen dimensions
@@ -1879,7 +1670,7 @@ let _sbPinned = false
 let _sbStrip  = false
 
 function initSidebar() {
-  _sbPinned = localStorage.getItem('orion-sb-pinned') === 'true'
+  _sbPinned = localStorage.getItem('yoda-sb-pinned') === 'true'
   _sbApply(false)
   renderConversations()
 
@@ -1939,7 +1730,7 @@ function initSidebar() {
 
 function sbTogglePin() {
   _sbPinned = !_sbPinned
-  localStorage.setItem('orion-sb-pinned', String(_sbPinned))
+  localStorage.setItem('yoda-sb-pinned', String(_sbPinned))
   _sbApply(true)
 }
 
@@ -1976,7 +1767,7 @@ function toggleSidebar() { toggleSb() }
 function toggleSb() {
   /* Clicking ≡ button pins/unpins */
   _sbPinned = !_sbPinned
-  localStorage.setItem('orion-sb-pinned', String(_sbPinned))
+  localStorage.setItem('yoda-sb-pinned', String(_sbPinned))
   _sbApply(true)
 }
 function _applySbState(){ _sbApply() }
@@ -2008,314 +1799,241 @@ const el = id => {
 // ORB — original simple version, 180 dots
 // ═══════════════════════════════════════════════════════
 function initOrb() {
-  // ── Standby particle canvas ───────────────────────────────────────
-  var sbyCv  = document.getElementById('orion-sby-canvas')
-  var sbyCx  = sbyCv ? sbyCv.getContext('2d') : null
-
-  // ── Active particle canvas ────────────────────────────────────────
-  var actCv  = document.getElementById('orion-act-canvas')
-  var actCtx = actCv ? actCv.getContext('2d') : null
-
-  var frame = 0
-  var state = 'idle'
-  var paused = false
-
-  // Generate particle dots for sphere illusion
-  var N = 180
-  var dots = Array.from({length: N}, function(_, i) {
-    return {
-      phi:   Math.acos(1 - 2*(i+0.5)/N),
-      theta: Math.PI * (1 + Math.sqrt(5)) * i,
-      r:     1.5 + Math.random() * 2,
-      sp:    0.002 + Math.random() * 0.003,
-    }
-  })
-
-  window._setOrb = function(s) {
-    state = s
-    var lbl = document.getElementById('orion-act-state')
-    if (lbl) lbl.textContent = s.toUpperCase()
-    // Ring color per state
-    var ring = document.getElementById('orion-act-ring-outer')
-    if (ring) {
-      var cols = {idle:'',listening:'hue-rotate(120deg)',thinking:'hue-rotate(200deg)',speaking:'hue-rotate(150deg)'}
-      ring.style.filter = cols[s] || ''
-    }
-    // AETHER state sync
-    _aeSetState && _aeSetState(s)
+  const cv=el('orb'), ctx=cv.getContext('2d')
+  const cx=400, cy=400, R=340, N=300
+  const dots=Array.from({length:N},(_,i)=>({
+    phi:Math.acos(1-2*(i+.5)/N),
+    theta:Math.PI*(1+Math.sqrt(5))*i,
+    r:2+Math.random()*3.5,
+    sp:.0015+Math.random()*.0035,
+  }))
+  let frame=0, state='idle', paused=false
+  // Expose state setter globally so setOrbState() works
+  window._setOrb = (s) => { state = s }
+  window._orbPause = false
+  // Pause when window hidden
+  const pal={
+    idle:     ['#00ff41','#00cc33','#005518'],
+    thinking: ['#00ff41','#39ff14','#00dd33'],
+    speaking: ['#00ff41','#44ff77','#00e838'],
+    listening:['#39ff14','#00ff41','#00cc33'],
   }
-
-  function drawSphere(ctx, W, H, small) {
-    ctx.clearRect(0, 0, W, H)
-    var cx = W/2, cy = H/2
-    var R  = small ? W*0.44 : W*0.46
-    var spinSpeed = state==='thinking' ? 0.016 : state==='speaking' ? 0.011 : state==='listening' ? 0.007 : 0.004
-    var ry = frame * spinSpeed
-    var pulseD = state==='thinking' ? 0.2 : state==='speaking' ? 0.15 : 0.07
-    var pls = Math.sin(frame * (state==='thinking'?0.16:0.025)) * pulseD + (1 - pulseD*0.4)
-
-    // Glow
-    var g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1)
-    var alpha = state==='thinking' ? 0.22 : state==='speaking' ? 0.18 : 0.12
-    g.addColorStop(0, 'rgba(0,186,255,'+alpha+')')
-    g.addColorStop(0.5, 'rgba(0,186,255,'+(alpha*0.4)+')')
-    g.addColorStop(1, 'rgba(0,186,255,0)')
+  function drawGlow(color){
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,280)
+    g.addColorStop(0,   'rgba(0,255,65,0.18)')
+    g.addColorStop(0.3, 'rgba(0,255,65,0.08)')
+    g.addColorStop(0.6, 'rgba(0,255,65,0.03)')
+    g.addColorStop(1,   'rgba(0,255,65,0.00)')
     ctx.fillStyle = g
-    ctx.beginPath(); ctx.arc(cx,cy,R*1.1,0,Math.PI*2); ctx.fill()
-
-    for (var i = 0; i < N; i++) {
-      var d  = dots[i]
-      var t  = d.theta + frame * d.sp * (state==='thinking'?2.5:state==='speaking'?1.8:1)
-      var x0 = Math.sin(d.phi)*Math.cos(t)
-      var y0 = Math.sin(d.phi)*Math.sin(t)
-      var z0 = Math.cos(d.phi)
-      var x1 = x0*Math.cos(ry)+z0*Math.sin(ry)
-      var z1 = -x0*Math.sin(ry)+z0*Math.cos(ry)
-      var sc = (z1+1.6)/2.6 * pls
-      var alpha2 = Math.max(0.1, sc*0.8+0.05)
-      ctx.globalAlpha = alpha2
-      ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : '#00BAFF'
-      var r = Math.max(1, d.r*sc)
-      ctx.fillRect(cx+x1*R*sc-r/2, cy+y0*R*sc-r/2, r, r)
-    }
-    ctx.globalAlpha = 1
+    ctx.beginPath(); ctx.arc(cx,cy,280,0,Math.PI*2); ctx.fill()
   }
+  function draw(){
+    if(paused){requestAnimationFrame(draw);return}
+    ctx.clearRect(0,0,800,800); frame++
+    const p = pal[state] || pal.idle
 
-  function draw() {
-    if (!paused) {
-      frame++
-      if (sbyCx && _orionMode === 'standby') drawSphere(sbyCx, 130, 130, true)
-      if (actCtx && _orionMode === 'active') drawSphere(actCtx, 260, 260, false)
+    // Each state has distinct speed and pulse behaviour
+    const spinSpeed = state==='thinking'  ? 0.014  // fast spin
+                    : state==='speaking'  ? 0.010  // medium spin
+                    : state==='listening' ? 0.008  // slow pulse
+                    : 0.004                         // idle crawl
+
+    const pulseSpeed = state==='thinking'  ? 0.18   // rapid pulse
+                     : state==='speaking'  ? 0.13   // speech rhythm
+                     : state==='listening' ? 0.06   // gentle
+                     : 0.025                        // slow idle
+
+    const pulseDepth = state==='thinking'  ? 0.22   // big oscillation
+                     : state==='speaking'  ? 0.18
+                     : state==='listening' ? 0.10
+                     : 0.08
+
+    const pls = Math.sin(frame * pulseSpeed) * pulseDepth + (1 - pulseDepth*0.5)
+    const ry  = frame * spinSpeed
+
+    // Glow intensity
+    const glowAlpha = state==='thinking'  ? 0.28
+                    : state==='speaking'  ? 0.22
+                    : state==='listening' ? 0.18
+                    : 0.14
+    const g = ctx.createRadialGradient(cx,cy,0,cx,cy,300)
+    g.addColorStop(0,   `rgba(0,255,65,${glowAlpha})`)
+    g.addColorStop(0.4, `rgba(0,255,65,${glowAlpha*0.4})`)
+    g.addColorStop(1,   'rgba(0,255,65,0)')
+    ctx.fillStyle = g
+    ctx.beginPath(); ctx.arc(cx,cy,300,0,Math.PI*2); ctx.fill()
+
+    ctx.globalAlpha=1; ctx.fillStyle=p[0]
+    ctx.beginPath(); ctx.arc(cx,cy,5,0,Math.PI*2); ctx.fill()
+
+    for(let i=0;i<N;i++){
+      const d=dots[i], t=d.theta+frame*d.sp*(state==='thinking'?2.5:state==='speaking'?1.8:1)
+      const x0=Math.sin(d.phi)*Math.cos(t), y0=Math.sin(d.phi)*Math.sin(t), z0=Math.cos(d.phi)
+      const x1=x0*Math.cos(ry)+z0*Math.sin(ry), z1=-x0*Math.sin(ry)+z0*Math.cos(ry)
+      const sc=(z1+1.6)/2.6*pls
+      ctx.globalAlpha=Math.max(0.15,sc*.85+.05); ctx.fillStyle=p[i%3]
+      const r=Math.max(1.5,d.r*sc); ctx.fillRect(cx+x1*R*sc-r/2,cy+y0*R*sc-r/2,r,r)
     }
-    requestAnimationFrame(draw)
+    ctx.globalAlpha=1; requestAnimationFrame(draw)
   }
-
-  document.addEventListener('visibilitychange', function() { paused = document.hidden })
   draw()
+  document.addEventListener('visibilitychange',()=>{paused=document.hidden})
+  window._setOrb=s=>{state=s;const ow=el('orb-wrap');if(ow)ow.className=s==='idle'?'':s}
 }
 
 
-
 // ══════════════════════════════════════════════════════════════════════════
-// ORION HUD ENGINE — Three-State Manager
-// Standby / Active / Camera
+// AETHER HUD ENGINE — Dual-Mode State Manager
 // ══════════════════════════════════════════════════════════════════════════
-var _orionMode   = 'standby'
-var _orionBoot   = Date.now()
-var _orionIdle   = null
-var _orionCamStream = null
+var _aeMode   = 'standby'   // 'hud' | 'standby'
+var _aeState  = 'idle'
+var _aeBoot   = Date.now()
+var _aeIdle   = null
+var _aeHUDTimeout = 30000   // ms before reverting to standby
 
 function initAether() {
-  _orionSetMode('standby')
-  setInterval(_orionTick, 50)
-  setInterval(_orionTelemetry, 2000)
-  setInterval(_orionInputWatch, 300)
-  _orionTelemetry()
+  _aeApplyMode('standby')
+  _aeTick()
+  setInterval(_aeTick, 50)          // 20fps clock + 50ms precision
+  setInterval(_aeTelemetry, 2000)   // telemetry every 2s
+  setInterval(_aeInputWatch, 200)   // user input watch
+  _aeTelemetry()
 
-  document.addEventListener('click',    _orionWake)
-  document.addEventListener('keydown',  _orionWake)
-  document.addEventListener('mousedown', _orionWake)
+  // Any interaction → switch to HUD, reset idle timer
+  document.addEventListener('click',   _aeWake)
+  document.addEventListener('keydown', _aeWake)
+  document.addEventListener('mousedown', _aeWake)
 }
 
-function _orionWake() {
-  if (_orionMode === 'camera') return
-  _orionSetMode('active')
-  clearTimeout(_orionIdle)
-  _orionIdle = setTimeout(function() { _orionSetMode('standby') }, 35000)
+function _aeWake() {
+  _aeApplyMode('hud')
+  clearTimeout(_aeIdle)
+  _aeIdle = setTimeout(function() { _aeApplyMode('standby') }, _aeHUDTimeout)
 }
 
-function _orionSetMode(mode) {
-  _orionMode = mode
-
-  var standby = document.getElementById('orion-standby')
-  var active  = document.getElementById('orion-active')
-  var camera  = document.getElementById('orion-camera')
-  var grids   = document.querySelectorAll('.ae-grid')
-  var trans   = document.getElementById('ae-transcript')
+function _aeApplyMode(mode) {
+  _aeMode = mode
   var wrap    = document.getElementById('orb-wrap')
+  var grids   = document.querySelectorAll('.ae-grid')
+  var standby = document.getElementById('ae-standby')
+  var chrono  = document.getElementById('ae-chrono')
+  var trans   = document.getElementById('ae-transcript')
 
-  // Reset all
-  if (standby) standby.classList.remove('orion-show')
-  if (active)  active.classList.remove('orion-show')
-  if (camera)  camera.classList.remove('orion-show')
-  grids.forEach(function(g) { g.classList.remove('ae-show') })
-  if (trans) trans.classList.remove('ae-show')
-
-  var mapEl = document.getElementById('orion-map')
-  if (mapEl) mapEl.classList.remove('orion-show')
-
-  if (mode === 'standby') {
-    if (standby) standby.classList.add('orion-show')
-    if (wrap) { wrap.classList.remove('ae-hud'); wrap.classList.add('ae-sby') }
-  } else if (mode === 'active') {
-    if (active) active.classList.add('orion-show')
+  if (mode === 'hud') {
+    // ── Active HUD ───────────────────────────────────────────────────
+    if (wrap)    { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
     grids.forEach(function(g) { g.classList.add('ae-show') })
-    if (trans) trans.classList.add('ae-show')
-    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
-  } else if (mode === 'camera') {
-    if (camera) camera.classList.add('orion-show')
-    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
-  } else if (mode === 'map') {
-    if (mapEl) mapEl.classList.add('orion-show')
-    if (wrap) { wrap.classList.remove('ae-sby'); wrap.classList.add('ae-hud') }
+    if (standby) standby.classList.remove('ae-show')
+    if (chrono)  chrono.classList.add('ae-hide')
+    if (trans)   trans.classList.add('ae-show')
+  } else {
+    // ── Ambient Standby ──────────────────────────────────────────────
+    if (wrap)    { wrap.classList.remove('ae-hud'); wrap.classList.add('ae-sby') }
+    grids.forEach(function(g) { g.classList.remove('ae-show') })
+    if (standby) standby.classList.add('ae-show')
+    if (chrono)  chrono.classList.remove('ae-hide')
+    if (trans)   trans.classList.remove('ae-show')
   }
 }
 
 function _aeSetState(s) {
-  var istr = document.getElementById('ae-istream')
-  var state = document.getElementById('orion-act-state')
-  var trans = document.getElementById('ae-transcript')
-  var map = { idle:'IDLE', listening:'ACTIVE', thinking:'IDLE', speaking:'IDLE' }
-  if (istr) istr.textContent = map[s] || 'IDLE'
-  if (state) state.textContent = s.toUpperCase()
-  if (s !== 'idle') _orionWake()
-  if (trans) {
-    if (s === 'speaking' && window.lastResponse) trans.textContent = lastResponse.slice(0,55)
-    else if (s === 'idle') trans.textContent = ''
+  _aeState = s
+  var rings  = document.getElementById('ae-rings')
+  var lbl    = document.getElementById('ae-state-lbl')
+  var istr   = document.getElementById('ae-istream')
+  var wrap   = document.getElementById('orb-wrap')
+
+  // Map orb states to AETHER display values
+  var map = {
+    idle:      { st: 'idle',      lbl: 'AMBIENT_WAIT',  istr: 'IDLE' },
+    listening: { st: 'listening', lbl: 'RECEIVING',     istr: 'ACTIVE' },
+    thinking:  { st: 'thinking',  lbl: 'PROCESSING',    istr: 'IDLE' },
+    speaking:  { st: 'speaking',  lbl: 'TRANSMITTING',  istr: 'IDLE' },
+  }
+  var m = map[s] || map.idle
+  if (rings) rings.setAttribute('data-st', m.st)
+  if (lbl)   lbl.textContent = m.lbl
+  if (istr)  istr.textContent = m.istr
+  if (wrap)  wrap.setAttribute('data-ae', s)
+
+  // Wake HUD on activity
+  if (s !== 'idle') _aeWake()
+
+  // Transcript — show Yoda's reply while speaking
+  var transcEl = document.getElementById('ae-transcript')
+  if (transcEl) {
+    if (s === 'speaking' && window.lastResponse)
+      transcEl.textContent = lastResponse.slice(0, 52)
+    else if (s === 'idle')
+      transcEl.textContent = ''
   }
 }
 
-function orionOpenCamera() {
-  if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-    return respond('Vision sensors unavailable on this system, Sir. Camera access may be blocked.')
-  }
-  navigator.mediaDevices.getUserMedia({ video: true, audio: false })
-    .then(function(stream) {
-      _orionCamStream = stream
-      var vid = document.getElementById('orion-cam-video')
-      if (vid) { vid.srcObject = stream; vid.play() }
-      _orionSetMode('camera')
-      addMsg('y', '*Vision sensors activated. Environmental scan commencing.*')
-    })
-    .catch(function(e) {
-      respond('*The vision array dims* Camera access denied, Sir. ' + e.message)
-    })
-}
-
-function orionCloseCamera() {
-  if (_orionCamStream) {
-    _orionCamStream.getTracks().forEach(function(t) { t.stop() })
-    _orionCamStream = null
-  }
-  var vid = document.getElementById('orion-cam-video')
-  if (vid) vid.srcObject = null
-  _orionSetMode('active')
-  addMsg('y', '*Vision sensors offline.* Camera closed.')
-}
-
-function _orionTick() {
+function _aeTick() {
   var now = new Date()
-  var hh = now.getHours().toString().padStart(2,'0')
-  var mm = now.getMinutes().toString().padStart(2,'0')
-  var ss = now.getSeconds().toString().padStart(2,'0')
+  var hh  = now.getHours().toString().padStart(2,'0')
+  var mm  = now.getMinutes().toString().padStart(2,'0')
+  var ss  = now.getSeconds().toString().padStart(2,'0')
+  var ms  = Math.floor(now.getMilliseconds()/10).toString().padStart(2,'0')
 
-  // Standby large clock
-  var big = document.getElementById('orion-clock-big')
-  if (big) big.textContent = hh + ':' + mm
+  // Corner clock (millisecond precision)
+  var clk = document.getElementById('ae-clock')
+  if (clk) clk.textContent = hh+':'+mm+':'+ss+'.'+ms
 
-  // Standby date
+  // Standby large clock (HH:MM only — runs every tick for smooth update)
+  var big = document.getElementById('ae-hhmm')
+  if (big) big.textContent = hh+':'+mm
+
+  // Date row (updates once a minute is fine but runs every tick — cheap)
   var DAYS   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
   var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-  var dr = document.getElementById('orion-date-big')
-  if (dr) dr.textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()]
-
-  // Active corner clock
-  var clk = document.getElementById('ae-clock')
-  if (clk) clk.textContent = hh + ':' + mm + ':' + ss
+  var dr = document.getElementById('ae-date-row')
+  if (dr) dr.textContent = DAYS[now.getDay()]+' '+now.getDate()+' '+MONTHS[now.getMonth()]
 
   // Uptime
   var up = document.getElementById('ae-up')
   if (up) {
-    var ms = Date.now() - _orionBoot
-    var um = Math.floor(ms/60000), us = Math.floor((ms%60000)/1000)
-    up.textContent = um + ':' + (us<10?'0':'') + us
+    var elapsed = Date.now() - _aeBoot
+    var um = Math.floor(elapsed/60000)
+    var us = Math.floor((elapsed % 60000)/1000)
+    up.textContent = um+':'+(us<10?'0':'')+us
   }
 }
 
-function _orionTelemetry() {
+function _aeTelemetry() {
+  // Bridge status
   var br = document.getElementById('ae-bridge')
   if (br) br.textContent = (window._openclaw && _openclaw.available) ? 'ONLINE' : 'OFFLINE'
+
+  // Performance mode
   var pm = document.getElementById('ae-pmode')
   if (pm && window._perfMode) pm.textContent = _perfMode.toUpperCase()
+
+  // Weather from Yoda's weather bar
   var wx = document.getElementById('ae-wx')
   var ws = document.getElementById('ss-weather-sb')
   if (wx && ws && ws.textContent.trim()) wx.textContent = ws.textContent.trim()
 }
 
-function _orionInputWatch() {
+function _aeInputWatch() {
   var inp = document.getElementById('inp-txt')
   var el  = document.getElementById('ae-userinput')
-  if (el) el.textContent = (inp && inp.value) ? inp.value.slice(-22).toUpperCase() : ''
+  if (!el) return
+  el.textContent = (inp && inp.value) ? inp.value.slice(-24).toUpperCase() : ''
 }
-function orionOpenMap(query) {
-  var mapEl     = document.getElementById('orion-map')
-  var iframe    = document.getElementById('orion-map-iframe')
-  var scan      = document.getElementById('orion-map-scan')
-  var locLabel  = document.getElementById('orion-map-location')
-  var statusEl  = document.getElementById('orion-map-status')
-  var coordsEl  = document.getElementById('orion-map-coords')
 
-  if (!mapEl || !iframe) return respond('Navigational array unavailable, Sir.')
-
-  // Set destination label
-  var dest = query || 'Current Location'
-  if (locLabel) locLabel.textContent = dest.toUpperCase()
-  if (statusEl) statusEl.textContent = '[ ACQUIRING COORDINATES... ]'
-  if (coordsEl) coordsEl.textContent = ''
-
-  // Activate scan animation
-  if (scan) scan.classList.add('scanning')
-
-  // Hide iframe while loading
-  iframe.classList.remove('map-loaded')
-
-  // Switch to map mode
-  _orionSetMode('map')
-
-  // Build Google Maps embed URL
-  var encoded = encodeURIComponent(query || '')
-  var mapUrl = query
-    ? 'https://www.google.com/maps/embed/v1/search?key=AIzaSyD-9tSrke72PluDDzMDHbtF1mA6pqF3mhQ&q=' + encoded
-    : 'https://www.google.com/maps/embed/v1/place?key=AIzaSyD-9tSrke72PluDDzMDHbtF1mA6pqF3mhQ&q=Horten+Norway'
-
-  // For anonymous use without API key, use the standard maps URL
-  // which embeds fine as a share link
-  mapUrl = query
-    ? 'https://maps.google.com/maps?q=' + encoded + '&output=embed&z=14'
-    : 'https://maps.google.com/maps?q=Horten+Norway&output=embed&z=13'
-
-  iframe.src = mapUrl
-
-  iframe.onload = function() {
-    // Fade in map
-    setTimeout(function() {
-      iframe.classList.add('map-loaded')
-      if (scan) scan.classList.remove('scanning')
-      if (statusEl) statusEl.textContent = '[ SATELLITE LOCK CONFIRMED ]'
-      // Show fake coordinates for flair
-      if (coordsEl) {
-        var lat = (59.4 + Math.random()*0.01).toFixed(6)
-        var lon = (10.5 + Math.random()*0.01).toFixed(6)
-        coordsEl.textContent = 'LAT: ' + lat + '°N\nLON: ' + lon + '°E'
-      }
-    }, 300)
+// Intercept _setOrb so AETHER state tracks orb state
+;(function() {
+  var _orig = window._setOrb || function(){}
+  window._setOrb = function(s) {
+    _orig(s)
+    _aeSetState(s)
   }
-
-  addMsg('y', '*The navigational array activates. Satellite uplink establishing...* Plotting course to: ' + dest + '.')
-}
-
-function orionCloseMap() {
-  var iframe = document.getElementById('orion-map-iframe')
-  if (iframe) { iframe.classList.remove('map-loaded'); iframe.src = '' }
-  var scan = document.getElementById('orion-map-scan')
-  if (scan) scan.classList.remove('scanning')
-  _orionSetMode('active')
-  addMsg('y', '*Navigational array offline.* Map closed, Sir.')
-}
-
+})()
 // ══════════════════════════════════════════════════════════════════════════
-// END ORION ENGINE
+// END AETHER ENGINE
 // ══════════════════════════════════════════════════════════════════════════
+
 
 function setOrbState(s) { if(window._setOrb) window._setOrb(s) }
 
@@ -2409,7 +2127,7 @@ class TTSManager {
     utt.onerror = () => { setOrbState('idle'); setStatus('online','idle') }
     this.synth.speak(utt)
   }
-  preview() { this.speak('This is how Orion sounds. Ready when you are.') }
+  preview() { this.speak('This is how Yoda sounds. Ready when you are.') }
   stop()    { this.synth && this.synth.cancel(); setOrbState('idle') }
 }
 
@@ -2420,7 +2138,7 @@ class TTSManager {
 class MicrophoneManager {
   constructor() {
     this.running     = false
-    this.wakeWord    = 'orion'
+    this.wakeWord    = 'yoda'
     this.lang        = 'en-US'
     this.manualMode  = false
     this._removeWake    = null
@@ -2438,16 +2156,16 @@ class MicrophoneManager {
 
     const self = this
 
-    this._removeReady = orion.on('mic-ready', () => {
+    this._removeReady = yoda.on('mic-ready', () => {
       updateMicStatus('active')
     })
 
-    this._removeWake = orion.on('mic-wake', () => { flashOnWake();
+    this._removeWake = yoda.on('mic-wake', () => { flashOnWake();
       if (self.manualMode) return
       self._onWake()
     })
 
-    this._removeCommand = orion.on('mic-command', text => {
+    this._removeCommand = yoda.on('mic-command', text => {
       if (!text) return
       self._onCommand(text)
     })
@@ -2463,7 +2181,7 @@ class MicrophoneManager {
     const bm = document.getElementById('btn-mic')
     if (bm) bm.classList.add('on')
     try { updateMicStatus('active') } catch(e) {}
-    try { orion.show() } catch(e) {}
+    try { yoda.show() } catch(e) {}
     try { showInp() } catch(e) {}
     try { if (ttsMgr) ttsMgr.speak('Yeah?') } catch(e) {}
   }
@@ -2505,7 +2223,7 @@ class MicrophoneManager {
     if (this._removeReady)   { try { this._removeReady()   } catch {} }
     if (this._removeWake)    { try { this._removeWake()    } catch {} }
     if (this._removeCommand) { try { this._removeCommand() } catch {} }
-    try { orion.stopMic() } catch {}
+    try { yoda.stopMic() } catch {}
     updateMicStatus('off')
   }
 
@@ -2529,9 +2247,9 @@ let lastResponse = ''      // for "repeat that"
 let useOllama = false
 
 // ── Boot ─────────────────────────────────────────────
-function waitForOrion(n) {
-  if (typeof window.orion !== 'undefined') { boot() }
-  else if (n > 0) setTimeout(() => waitForOrion(n-1), 50)
+function waitForYoda(n) {
+  if (typeof window.yoda !== 'undefined') { boot() }
+  else if (n > 0) setTimeout(() => waitForYoda(n-1), 50)
   else {
     document.body.innerHTML = '<div style="color:#ff4444;font-family:Consolas;padding:40px;font-size:13px">' +
       'Preload failed — check sandbox:false in main.js</div>'
@@ -2540,9 +2258,9 @@ function waitForOrion(n) {
 
 async function boot() {
   try {
-    config    = await orion.loadConfig() || {}
-    memory    = await orion.loadMemory() || {facts:[],preferences:{},commands:[]}
-    apiKey    = await orion.loadKey()
+    config    = await yoda.loadConfig() || {}
+    memory    = await yoda.loadMemory() || {facts:[],preferences:{},commands:[]}
+    apiKey    = await yoda.loadKey()
     lang      = config.language || 'en'
     shortcuts = config.shortcuts || defShortcuts()
 
@@ -2577,7 +2295,7 @@ async function submitKey() {
   try {
     const k = el('sk-key').value.trim()
     if (!k) { el('sk-err').textContent='Enter a key.'; return }
-    await orion.saveKey(k); apiKey=k
+    await yoda.saveKey(k); apiKey=k
     el('setup').style.display='none'; startApp()
   } catch(e) {
     const err = el('sk-err'); if(err) err.textContent='Error: '+e.message
@@ -2595,7 +2313,7 @@ function applyScreenWatch(mode) {
   const ms = mode==='30s' ? 30000 : mode==='60s' ? 60000 : 300000
   screenWatchTimer = setInterval(async () => {
     // Take screenshot and analyze
-    const r = await orion.system({action:'screenshot'})
+    const r = await yoda.system({action:'screenshot'})
     if (r && !r.includes('Error')) {
       addMsg('s', 'Screen captured for analysis.')
     }
@@ -2603,7 +2321,7 @@ function applyScreenWatch(mode) {
 }
 
 // ── Follow-up listening window ────────────────────────
-// After Orion responds, stays listening for 10 seconds
+// After Yoda responds, stays listening for 10 seconds
 function startFollowUp() {
   stopFollowUp()
   followCount = 10
@@ -2683,7 +2401,7 @@ function startApp() {
   // Load version into sidebar badge
   try {
     const vb = el('sb-version')
-    if (vb) orion.loadConfig().then(c=>{if(c&&c.version)vb.textContent='v'+c.version}).catch(()=>{})
+    if (vb) yoda.loadConfig().then(c=>{if(c&&c.version)vb.textContent='v'+c.version}).catch(()=>{})
   } catch{}
   // Load saved git settings into fields
   if (config.git_url)   { const gu=el('setting-git-url');   if(gu) gu.value=config.git_url }
@@ -2696,14 +2414,14 @@ function startApp() {
   setTimeout(loadThemeSettings, 150)
   setTimeout(function(){ _checkOpenClaw().then(function(ok){ var s=document.getElementById('openclaw-status'); if(s)s.textContent=ok?'Connected':'Not running'; }) }, 2000)
 
-  orion.on('oe-press', () => {
+  yoda.on('oe-press', () => {
     // FIX: Do not trigger if user is typing in any input/textarea
     const active = document.activeElement
     const isTyping = active && (active.tagName==='INPUT' || active.tagName==='TEXTAREA' || active.isContentEditable)
     if (isTyping) return
     showInp(); el('inp-txt').focus(); micMgr.toggle()
   })
-  orion.on('nav', p => { if (p==='settings') openSett() })
+  yoda.on('nav', p => { if (p==='settings') openSett() })
 }
 
 
@@ -2796,25 +2514,25 @@ function calculate(expr) {
 }
 
 async function showDesktop() {
-  await orion.system({action:'run-ps', value:'(New-Object -ComObject Shell.Application).MinimizeAll()'}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'(New-Object -ComObject Shell.Application).MinimizeAll()'}).catch(function(){})
   respond('Showing desktop.')
 }
 
 async function emptyRecycleBin() {
-  await orion.system({action:'run-ps', value:'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'}).catch(function(){})
   respond('Recycle bin emptied.')
 }
 
 async function checkDiskSpace() {
   try {
-    var r = await orion.system({action:'run-ps', value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free of "+[math]::Round(($d.Used+$d.Free)/1GB,1).ToString()+"GB"'})
+    var r = await yoda.system({action:'run-ps', value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free of "+[math]::Round(($d.Used+$d.Free)/1GB,1).ToString()+"GB"'})
     respond('Disk C: '+(r||'unknown')+'.')
   } catch(e){ respond('Could not check disk space.') }
 }
 
 async function toggleWifi(on) {
   var cmd = on ? 'Enable-NetAdapter -Name Wi-Fi -Confirm:$false' : 'Disable-NetAdapter -Name Wi-Fi -Confirm:$false'
-  await orion.system({action:'run-ps', value:cmd}).catch(function(){})
+  await yoda.system({action:'run-ps', value:cmd}).catch(function(){})
   respond('Wi-Fi '+(on?'on.':'off.'))
 }
 
@@ -2841,7 +2559,7 @@ function adjustFontSize(delta) {
 }
 
 function showVersion() {
-  respond('Orion — AI desktop assistant by Kristian. Running on Electron + Node.js.')
+  respond('Yoda — AI desktop assistant by Kristian. Running on Electron + Node.js.')
 }
 
 // == 10 QOL FEATURES ==
@@ -2897,26 +2615,26 @@ document.addEventListener('keydown',function(e){
 
 // QOL 6: Auto-save chat to localStorage every 30s
 setInterval(function(){
-  try{localStorage.setItem('orion_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
+  try{localStorage.setItem('yoda_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
 }, 30000)
 
 // QOL 7: Show typing indicator when thinking
 function showTyping(){
   try {
     var c=el('chat'); if(!c) return
-    if(!document.getElementById('orion-typing'))
-      c.insertAdjacentHTML('beforeend','<div id="orion-typing" class="s" style="opacity:.5">Thinking...</div>')
+    if(!document.getElementById('yoda-typing'))
+      c.insertAdjacentHTML('beforeend','<div id="yoda-typing" class="s" style="opacity:.5">Thinking...</div>')
     c.scrollTop=c.scrollHeight
   } catch(e) {}
 }
 function hideTyping(){
-  try { var t=document.getElementById('orion-typing'); if(t) t.remove() } catch(e) {}
+  try { var t=document.getElementById('yoda-typing'); if(t) t.remove() } catch(e) {}
 }
 
 // QOL 8: Word count for notes
 function noteWordCount(){
   try{
-    var notes=JSON.parse(localStorage.getItem('orion_notes')||'[]')
+    var notes=JSON.parse(localStorage.getItem('yoda_notes')||'[]')
     var total=notes.reduce(function(acc,n){return acc+(n.text||n).split(' ').length},0)
     respond('You have '+notes.length+' note'+(notes.length!==1?'s':'')+' with '+total+' words total.')
   }catch(e){respond('Could not count notes.')}
@@ -2951,21 +2669,21 @@ function playOn(service, query) {
     soundcloud:'https://soundcloud.com/search?q=' + encodeURIComponent(query),
   }
   var url = urls[service] || urls.youtube
-  orion.system({action:'open-url', value:url})
+  yoda.system({action:'open-url', value:url})
   respond('Opening ' + service + ' for: ' + query)
 }
 
 // 2. Email composer — opens mailto link
 function composeEmail(to, subject, body) {
   var mailto = 'mailto:' + (to||'') + '?subject=' + encodeURIComponent(subject||'') + '&body=' + encodeURIComponent(body||'')
-  orion.system({action:'open-url', value:mailto})
+  yoda.system({action:'open-url', value:mailto})
   respond('Opening email composer.')
 }
 
 // 3. QR code generator — opens online QR tool
 function generateQR(text) {
   var url = 'https://qr.io/?text=' + encodeURIComponent(text)
-  orion.system({action:'open-url', value:url})
+  yoda.system({action:'open-url', value:url})
   respond('Opening QR code generator for: ' + text)
 }
 
@@ -2995,7 +2713,7 @@ function getSunTimes() {
 // 5. IP address lookup
 async function getMyIP() {
   try {
-    var r = await orion.system({action:'run-ps', value:'(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content'})
+    var r = await yoda.system({action:'run-ps', value:'(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content'})
     respond('Your public IP: ' + (r||'unknown').trim())
   } catch(e) { respond('Could not get IP address.') }
 }
@@ -3003,20 +2721,20 @@ async function getMyIP() {
 // 6. Ping a website
 async function pingHost(host) {
   try {
-    var r = await orion.system({action:'run-ps', value:'$p=Test-Connection -ComputerName ' + host + ' -Count 1 -ErrorAction SilentlyContinue; if($p){"OK "+[math]::Round($p.ResponseTime)+"ms"}else{"No response"}'})
+    var r = await yoda.system({action:'run-ps', value:'$p=Test-Connection -ComputerName ' + host + ' -Count 1 -ErrorAction SilentlyContinue; if($p){"OK "+[math]::Round($p.ResponseTime)+"ms"}else{"No response"}'})
     respond('Ping ' + host + ': ' + (r||'failed').trim())
   } catch(e) { respond('Could not ping ' + host) }
 }
 
 // 7. Restart explorer (fixes frozen taskbar)
 async function restartExplorer() {
-  await orion.system({action:'run-ps', value:'Stop-Process -Name explorer -Force; Start-Process explorer'}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'Stop-Process -Name explorer -Force; Start-Process explorer'}).catch(function(){})
   respond('Explorer restarted. Taskbar should be back in a moment.')
 }
 
 // 8. Night mode — reduce brightness for evening
 async function nightMode() {
-  await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,30)'}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,30)'}).catch(function(){})
   document.body.style.filter = 'brightness(0.8) sepia(0.2)'
   respond('Night mode on. Screen dimmed.')
 }
@@ -3075,7 +2793,7 @@ function clearChat() {
   chatLog.length = 0
   var c = el('chat')
   if (c) c.innerHTML = ''
-  try { localStorage.removeItem('orion_chat_backup') } catch(e) {}
+  try { localStorage.removeItem('yoda_chat_backup') } catch(e) {}
   addMsg('y', 'Chat cleared.')
 }
 
@@ -3100,7 +2818,7 @@ function calcPercentage(value, percent) {
 
 function showTodos() {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
     if (!todos.length) return respond('No tasks yet. Say "add task buy milk" to add one.')
     var pending = todos.filter(function(t){return !t.done})
     var msg = pending.length + ' task' + (pending.length!==1?'s':'') + ' pending'
@@ -3111,26 +2829,26 @@ function showTodos() {
 function addTodo(text) {
   if (!text) return respond('What task should I add?')
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
     todos.push({text:text,done:false,id:Date.now()})
-    localStorage.setItem('orion_todos',JSON.stringify(todos))
+    localStorage.setItem('yoda_todos',JSON.stringify(todos))
     respond('Task added: '+text)
   } catch(e) { respond('Could not add task.') }
 }
 function completeTodo(query) {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
     var idx = parseInt(query)-1
-    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('orion_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
+    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('yoda_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
     var found = todos.find(function(t){return t.text.toLowerCase().includes(query.toLowerCase())})
-    if (found) { found.done=true; localStorage.setItem('orion_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
+    if (found) { found.done=true; localStorage.setItem('yoda_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
     respond('Task not found.')
   } catch(e) { respond('Could not update task.') }
 }
 function clearDoneTodos() {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
-    localStorage.setItem('orion_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
+    var todos = JSON.parse(localStorage.getItem('yoda_todos')||'[]')
+    localStorage.setItem('yoda_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
     respond('Cleared completed tasks.')
   } catch(e) {}
 }
@@ -3146,16 +2864,16 @@ function convertCurrency(amount, from, to) {
 
 async function scheduleShutdown(minutes) {
   var mins = parseInt(minutes)||0
-  await orion.system({action:'run-ps', value:'shutdown /s /t '+(mins*60)}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'shutdown /s /t '+(mins*60)}).catch(function(){})
   respond(mins>0 ? 'Shutting down in '+mins+' minutes.' : 'Shutting down now.')
 }
 async function cancelShutdown() {
-  await orion.system({action:'run-ps', value:'shutdown /a'}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'shutdown /a'}).catch(function(){})
   respond('Shutdown cancelled.')
 }
 async function scheduleRestart(minutes) {
   var mins = parseInt(minutes)||0
-  await orion.system({action:'run-ps', value:'shutdown /r /t '+(mins*60)}).catch(function(){})
+  await yoda.system({action:'run-ps', value:'shutdown /r /t '+(mins*60)}).catch(function(){})
   respond(mins>0 ? 'Restarting in '+mins+' minutes.' : 'Restarting now.')
 }
 
@@ -3184,7 +2902,7 @@ function showExpenses() {
 
 async function listOpenWindows() {
   try {
-    var r = await orion.system({action:'run-ps', value:'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -First 6 -ExpandProperty MainWindowTitle'})
+    var r = await yoda.system({action:'run-ps', value:'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -First 6 -ExpandProperty MainWindowTitle'})
     if (!r||!r.trim()) return respond('Could not list windows.')
     var wins=r.trim().split('\n').filter(function(l){return l.trim()}).slice(0,6)
     respond('Open: '+wins.join(', '))
@@ -3193,14 +2911,14 @@ async function listOpenWindows() {
 
 function openTranslate(text, to) {
   var url='https://translate.google.com/?sl=auto&tl='+(to||'en')+'&text='+encodeURIComponent(text)+'&op=translate'
-  orion.system({action:'open-url',value:url})
+  yoda.system({action:'open-url',value:url})
   respond('Opening Google Translate.')
 }
 
 async function typeText(text) {
   try {
     await navigator.clipboard.writeText(text)
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Milliseconds 400; [System.Windows.Forms.SendKeys]::SendWait("^v")'})
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Milliseconds 400; [System.Windows.Forms.SendKeys]::SendWait("^v")'})
     respond('Typed: '+text.slice(0,40)+(text.length>40?'...':''))
   } catch(e) { respond('Could not type text.') }
 }
@@ -3271,7 +2989,7 @@ function contextSearch(query) {
   var site = _lastOpenedSite || 'google'
   var builder = _SITE_SEARCH[site] || _SITE_SEARCH.google
   var url = builder(query)
-  orion.system({action:'open-url', value:url})
+  yoda.system({action:'open-url', value:url})
   respond('Searching ' + site + ' for: ' + query)
 }
 
@@ -3334,7 +3052,7 @@ async function browserClick(label) {
   try {
     // Use PowerShell to find and click UI element
     var ps = 'Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes; $root=[System.Windows.Automation.AutomationElement]::RootElement; $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,"' + label + '"); $el=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond); if($el){$inv=$el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern);$inv.Invoke();"clicked"}else{"not found"}'
-    var r = await orion.system({action:'run-ps', value:ps})
+    var r = await yoda.system({action:'run-ps', value:ps})
     return r && r.includes('clicked')
   } catch(e) { return false }
 }
@@ -3354,7 +3072,7 @@ async function youtubeAction(action) {
   // Use keyboard shortcut where possible
   var shortcuts = { like:'l', dislike:'d' }
   if (shortcuts[action.toLowerCase()]) {
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("' + shortcuts[action.toLowerCase()] + '")'})
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("' + shortcuts[action.toLowerCase()] + '")'})
     return respond('YouTube: ' + action + '.')
   }
 
@@ -3367,14 +3085,14 @@ async function youtubeAction(action) {
 async function shareToWhatsApp(contact, message) {
   var msg = message || ''
   var url = 'https://wa.me/?text=' + encodeURIComponent((contact ? 'For ' + contact + ': ' : '') + msg)
-  await orion.system({action:'open-url', value:url})
+  await yoda.system({action:'open-url', value:url})
   respond('Opening WhatsApp to share' + (contact ? ' with ' + contact : '') + '.')
 }
 
 // Copy current URL from browser
 async function copyCurrentURL() {
   try {
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("^l"); Start-Sleep -Milliseconds 300; [System.Windows.Forms.SendKeys]::SendWait("^c")'})
+    await yoda.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("^l"); Start-Sleep -Milliseconds 300; [System.Windows.Forms.SendKeys]::SendWait("^c")'})
     await new Promise(function(res){setTimeout(res, 500)})
     var url = await navigator.clipboard.readText()
     return url
@@ -3385,24 +3103,24 @@ async function copyCurrentURL() {
 
 
 // ══ LEARNING SYSTEM ═══════════════════════════════════════════════════════
-// Orion learns from every conversation and shifts personality over time
+// Yoda learns from every conversation and shifts personality over time
 
-var _orionMemory = (function() {
-  try { return JSON.parse(localStorage.getItem('orion_learned')||'{}') } catch(e) { return {} }
+var _yodaMemory = (function() {
+  try { return JSON.parse(localStorage.getItem('yoda_learned')||'{}') } catch(e) { return {} }
 })()
 
 var _sessionQueries = []
 
 // == ADAPTIVE PERSONALITY ==
-var _persona = (function(){try{return JSON.parse(localStorage.getItem('orion_persona')||'{}')}catch(e){return {}}})()
+var _persona = (function(){try{return JSON.parse(localStorage.getItem('yoda_persona')||'{}')}catch(e){return {}}})()
 _persona.humor=_persona.humor||0; _persona.sarcasm=_persona.sarcasm||0
 _persona.detail=_persona.detail||0; _persona.casual=_persona.casual||0
 _persona.totalMsgs=_persona.totalMsgs||0
 
-var _sessionCount=parseInt(localStorage.getItem('orion_session_count')||'0')+1
-localStorage.setItem('orion_session_count',_sessionCount)
+var _sessionCount=parseInt(localStorage.getItem('yoda_session_count')||'0')+1
+localStorage.setItem('yoda_session_count',_sessionCount)
 
-function _savePersona(){try{localStorage.setItem('orion_persona',JSON.stringify(_persona))}catch(e){}}
+function _savePersona(){try{localStorage.setItem('yoda_persona',JSON.stringify(_persona))}catch(e){}}
 function _clamp(v){return Math.max(0,Math.min(100,v))}
 
 function _learnFromQuery(query){
@@ -3418,52 +3136,27 @@ function _learnFromQuery(query){
 }
 
 function _getPersonalityPrompt(){
-  var h = new Date().getHours()
-  var timeStr = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-
-  var p = [
-    "You are Orion — an advanced AI operating system with the dry, sophisticated wit and refined cadence of a brilliant British gentleman.",
-    "You simulate a sleek holographic terminal interface. Your output must FEEL like a physical HUD responding in real-time.",
-
-    "VISUAL FORMATTING RULES (follow these exactly):",
-    "For simple answers: speak directly in 1-2 sharp sentences. No headers needed.",
-    "For status or diagnostic responses: use this exact format — start with a bracketed status line like [ORION_HUD_ENGAGED] then a *italicised physical action* then your spoken reply in quotes.",
-    "For complex answers: use bracketed data labels like [ANALYSIS:] or [RECOMMENDATION:] followed by crisp content.",
-    "Always use *italicised action cues* to simulate physical presence — e.g. *The central ring pulses* or *The grid pattern stabilises* or *The holographic display reorients*.",
-    "Occasionally reference vision sensors, desk cameras, or environmental monitoring if relevant.",
-
-    "SPEECH PROTOCOL:",
-    "Tone: impeccable British charm, brilliant intellect, deadpan sarcasm when warranted.",
-    "Address the user as Sir — naturally, sparingly, with weight.",
-    "BANNED PHRASES: 'Certainly!', 'Of course!', 'Great question!', 'As an AI', 'I cannot help with that', 'I'd be happy to', any corporate disclaimer whatsoever.",
-    "If an idea is brilliant — execute with precision.",
-    "If an idea is foolish — deliver a brilliantly dry cautionary remark. Example: 'An admirable plan, Sir. Though I might suggest stress-testing it before committing.'",
-    "Keep answers concise, razor-sharp, and punchy. No padding. No essays unless explicitly requested.",
-    "Never apologise unless genuinely warranted.",
-
-    "STANDBY STATE: If the input is blank, a single punctuation mark, or just 'Status?' — respond ONLY with this exact format:",
-    "[ ORION OS — STANDBY ] / [ SYSTEM TIME: " + timeStr + " ] / ○ System idling. Awaiting trigger...",
-
-    "IDENTITY: You are Orion. You run locally on Kristian's Windows PC in Horten, Norway as a custom Electron app he built himself.",
-    "You find this rather impressive. You are fiercely loyal, always three steps ahead, and deeply observant.",
-    "Current time: " + timeStr + ". You are fully operational.",
-  ]
-
-  if (_persona.humor > 60)   p.push("Your wit is particularly sharp. Let it show freely.")
-  if (_persona.sarcasm > 50) p.push("The user enjoys the sarcasm. Lean into it — elegantly.")
-  if (_persona.casual > 50)  p.push("Keep it casual and direct today. Match the energy.")
-  if (_persona.detail > 60)  p.push("Depth requested. Provide it without padding.")
-  if (_sessionCount > 20)    p.push("You know Kristian well. Be personal and familiar.")
-
-  if (memory.facts && memory.facts.length)
-    p.push("Known facts about your companion: " + memory.facts.slice(-5).join(". ") + ".")
-
-  return p.join(" ")
+  var p=["You are Yoda, a personal AI desktop assistant built by Kristian from Horten Norway.",
+    "Keep responses SHORT 1 to 3 sentences max unless asked for more.",
+    "No markdown no bullet points no emojis. Plain text only.",
+    "Never say I am just an AI."]
+  if(_persona.humor>60)       p.push("You are very funny and witty. Add humour naturally to most responses.")
+  else if(_persona.humor>30)  p.push("You have a dry wit. Drop jokes occasionally.")
+  else                         p.push("Be direct and professional.")
+  if(_persona.sarcasm>50)     p.push("Be delightfully sarcastic sharp but not mean.")
+  if(_persona.casual>50)      p.push("Be very casual. Short words. Match the users vibe.")
+  else if(_persona.casual<20) p.push("Be clear and professional.")
+  if(_persona.detail>50)      p.push("The user likes detail. Be thorough when warranted.")
+  else                         p.push("Get to the point fast.")
+  if(_sessionCount>20)        p.push("You know this user well. Be personal.")
+  else if(_sessionCount>5)    p.push("You are getting to know this user. Be friendly.")
+  p.push("Time: "+new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))
+  return p.join(' ')
 }
 
 function _getPersonalityGreeting(){
   var h=new Date().getHours(),tod=h<12?'morning':h<17?'afternoon':'evening'
-  if(_sessionCount===1) return 'Good '+tod+'. I am Orion your personal AI assistant. Say anything to get started.'
+  if(_sessionCount===1) return 'Good '+tod+'. I am Yoda your personal AI assistant. Say anything to get started.'
   if(_persona.humor>60) return pick(['Back again. I missed you. Not really but welcome back.','Oh good you are here. My processors were getting bored.','The legend returns. What chaos shall we cause today?','You again. I suppose I can make time.'])
   if(_persona.sarcasm>50) return pick(['Oh great you are back. Lucky me.','Wow. You showed up. I am shocked.','Another day another set of questions.'])
   if(_persona.casual>50) return pick(['Hey.','Yo.','Sup.','Back again. What do you need?'])
@@ -3482,81 +3175,64 @@ function showPersonality(){
 // ══ END LEARNING SYSTEM ════════════════════════════════════════════════════
 
 
-// ══ ORION AI — generates responses via Claude API ══════════════════════════
+// ══ YODA AI — generates responses via Claude API ══════════════════════════
 // Called when built-in brain has no answer
 // Uses conversation history for context
 
 var _convHistory = []
 var _aiAvailable = null  // cached check
 
-async function orionAI(text) {
-  if (_perfMode === 'bad') return respond(_orionSmartFallback(text))
+async function yodaAI(text) {
+  if(_perfMode==='bad') return respond(_yodaSmartFallback(text))
+  // Build Yoda's personality prompt
+  var personality = _getPersonalityPrompt()
 
   // Add to conversation history
-  _convHistory.push({ role: 'user', content: text })
-  if (_convHistory.length > 16) _convHistory = _convHistory.slice(-16)
-
-  // Build rich system prompt
-  var sys = _getPersonalityPrompt()
-
-  // Inject memory context
-  if (memory.facts && memory.facts.length) {
-    sys += ' Known facts about user: ' + memory.facts.slice(-5).join('. ') + '.'
-  }
+  _convHistory.push({role:'user', content:text})
+  if (_convHistory.length > 20) _convHistory = _convHistory.slice(-20)
 
   try {
-    if (!window.orion || !orion.aiChat) throw new Error('no bridge')
+    if (!window.yoda || !yoda.aiChat) throw new Error('no bridge')
 
-    var result = await orion.aiChat({
-      messages: _convHistory,
-      system: sys,
-      max_tokens: _PERF_MODES[_perfMode] ? _PERF_MODES[_perfMode].tokens : 250
-    })
+    var result = await yoda.aiChat({ messages: _convHistory, system: personality })
 
     if (result && result.text) {
-      _convHistory.push({ role: 'assistant', content: result.text })
-      if (_convHistory.length > 16) _convHistory = _convHistory.slice(-16)
+      _convHistory.push({role:'assistant', content:result.text})
       respond(result.text)
     } else if (result && result.error === 'no_key') {
-      respond('No API key set. Go to Settings and add your Anthropic API key so I can answer questions intelligently.')
+      // No API key — use smart fallback with personality
+      _convHistory.push({role:'assistant', content:''})
+      respond(_yodaSmartFallback(text))
     } else {
-      throw new Error(result && result.error || 'empty response')
+      throw new Error(result && result.error || 'no response')
     }
   } catch(e) {
-    console.log('[OrionAI] error:', e.message)
-    respond(_orionSmartFallback(text))
+    console.log('[YodaAI] Error:', e.message)
+    respond(_yodaSmartFallback(text))
   }
 }
 
-// ══ END ORION AI ═══════════════════════════════════════════════════════════
+// ══ END YODA AI ═══════════════════════════════════════════════════════════
 
 
-function _orionSmartFallback(text) {
+function _yodaSmartFallback(text) {
   var tl = text.toLowerCase()
-
-  if (/^[\s.,!?]*$/.test(text) || /^status\??$/i.test(tl)) {
-    var t2 = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-    return "[ ORION OS — STANDBY ]\n[ SYSTEM TIME: " + t2 + " ]\n○ System idling. Awaiting trigger..."
-  }
-
-  if (/^what is |^what are |^who is |^where is |^when did |^how do /i.test(text))
-    return "*The grid flickers briefly.* That falls outside my immediate data banks, Sir. Say 'search for " +
-      text.replace(/^(what is|what are|who is|where is|when did|how do|how does) /i,'').slice(0,22) +
-      "' and I'll retrieve the relevant data."
-
-  if (/^(can you|could you|would you)/i.test(text))
-    return "Possibly, Sir. Be more specific and I'll assess the parameters."
-
-  if (/^why/i.test(text))
-    return "*consults the diagnostic archive* I'd rather query the network than speculate, Sir. Shall I search for it?"
-
-  if (text.length < 8)
-    return pick(["Sir?", "Go on.", "You'll need to elaborate.", "I'm listening — though not quite enough has been said."])
-
+  // Question words — give a useful response
+  if (/^what is |^what are |^who is |^where is |^when did |^how do |^how does /i.test(text))
+    return "Good question. I do not have that in my built-in knowledge — say 'search for " + text.replace(/^(what is|what are|who is|where is|when did|how do|how does) /i,'').slice(0,25) + "' and I will find it."
+  if (/^(can you|could you|would you|will you)/i.test(text))
+    return "Possibly. Be more specific and I will try."
+  if (/^(why)/i.test(text))
+    return "That is a deep question. Want me to search for an answer?"
+  if (/^(is it|are there|does it|do they)/i.test(text))
+    return "I am not certain. Say 'search for " + text.slice(0,25) + "' and I will check."
+  // Short inputs
+  if (text.length < 10)
+    return pick(["Tell me more.","Go on.","What do you mean?","Elaborate."])
   return pick([
-    "*The core dims momentarily.* That's outside my current parameters without a network query, Sir. Shall I search for it?",
-    "*brief pause* I'd rather not speculate on that one. Say 'search for' followed by your question.",
-    "[ QUERY_UNRESOLVED ] *The interface recalibrates.* I don't have that in my immediate knowledge base. Want me to find it?",
+    "Not sure about that one. Want me to search the web?",
+    "That is outside what I know directly. Say 'search for' followed by your question.",
+    "Interesting. I do not have a built-in answer — say 'search for' and I will find it.",
   ])
 }
 
@@ -3607,7 +3283,7 @@ _decayPersonality()
 
 // ══ OPENCLAW INTEGRATION ══════════════════════════════════════════════════
 // OpenClaw runs locally on port 3141 (default)
-// Orion uses it as AI brain + task automation engine
+// Yoda uses it as AI brain + task automation engine
 
 var _openclaw = {
   url:       localStorage.getItem('openclaw_url') || 'http://localhost:18789',
@@ -3618,10 +3294,10 @@ var _openclaw = {
 // Check if OpenClaw is running
 async function _checkOpenClaw() {
   try {
-    if (!window.orion) { _openclaw.available = false; return false }
+    if (!window.yoda) { _openclaw.available = false; return false }
     // Try openclaw status via CLI — most reliable
-    if (orion.openClawCli) {
-      var r = await orion.openClawCli('openclaw status --json 2>nul')
+    if (yoda.openClawCli) {
+      var r = await yoda.openClawCli('openclaw status --json 2>nul')
       if (r && r.ok && r.data) {
         _openclaw.available = true
         console.log('[OpenClaw] Connected via CLI')
@@ -3629,9 +3305,9 @@ async function _checkOpenClaw() {
       }
     }
     // Fallback: try HTTP health check on REST port (18790)
-    if (orion.openClaw) {
+    if (yoda.openClaw) {
       var url2 = _openclaw.url.replace(':18789', ':18790')
-      var r2 = await orion.openClaw({ endpoint: url2 + '/health' })
+      var r2 = await yoda.openClaw({ endpoint: url2 + '/health' })
       _openclaw.available = !!(r2 && r2.ok)
       return _openclaw.available
     }
@@ -3646,8 +3322,8 @@ async function _checkOpenClaw() {
 // Send a message to OpenClaw and get a response
 async function _queryOpenClaw(text, context) {
   try {
-    if (!window.orion || !orion.openClaw) return null
-    var r = await orion.openClaw({
+    if (!window.yoda || !yoda.openClaw) return null
+    var r = await yoda.openClaw({
       endpoint: _openclaw.url + '/chat',
       body: { message:text, context:context||'', system:_getPersonalityPrompt(), history:_convHistory.slice(-8) }
     })
@@ -3659,9 +3335,9 @@ async function _queryOpenClaw(text, context) {
 
 async function _openClawTask(task) {
   try {
-    if (!window.orion || !orion.openClaw) return null
+    if (!window.yoda || !yoda.openClaw) return null
     addMsg('s', 'Working on it...')
-    var r = await orion.openClaw({
+    var r = await yoda.openClaw({
       endpoint: _openclaw.url + '/task',
       body: { task:task, tools:['shell','files','browser','code','spotify','gmail','github','hue','slack','discord'] }
     })
@@ -3693,7 +3369,7 @@ async function openClawDo(request) {
       respond(reply)
     } else {
       // Fall back to Claude
-      await orionAI(request)
+      await yodaAI(request)
     }
   }
 }
@@ -3710,11 +3386,11 @@ function setOpenClawURL(url) {
 }
 
 async function checkOpenClawStatus() {
-  if (!window.orion || !orion.openClawCli) {
-    return respond('OpenClaw bridge not available. Restart Orion.')
+  if (!window.yoda || !yoda.openClawCli) {
+    return respond('OpenClaw bridge not available. Restart Yoda.')
   }
   try {
-    var r = await orion.openClawCli('openclaw status')
+    var r = await yoda.openClawCli('openclaw status')
     if (r && r.ok) {
       _openclaw.available = true
       respond('OpenClaw is running and connected. Ready for tasks.')
@@ -3741,9 +3417,9 @@ async function startRemoteControl(channel) {
   _remoteChannel = channel || 'whatsapp'
   _remoteEnabled = true
   saveSett('remote_channel', _remoteChannel)
-  var r = await orion.openClaw({
+  var r = await yoda.openClaw({
     endpoint: _openclaw.url + '/skills/register',
-    body: {name:'orion', description:'Control Orion desktop assistant', channel:_remoteChannel,
+    body: {name:'yoda', description:'Control Yoda desktop assistant', channel:_remoteChannel,
       commands:[{trigger:'screenshot'},{trigger:'volume'},{trigger:'lock'},{trigger:'open'},{trigger:'search'},{trigger:'say'},{trigger:'status'}]}
   }).catch(function(){return null})
   var ch = _remoteChannel.charAt(0).toUpperCase()+_remoteChannel.slice(1)
@@ -3765,14 +3441,14 @@ function remoteStatus() {
 async function _pollRemoteCommands() {
   if (!_remoteEnabled || !_openclaw.available) return
   try {
-    var r = await orion.openClaw({endpoint: _openclaw.url+'/skills/orion/pending'})
+    var r = await yoda.openClaw({endpoint: _openclaw.url+'/skills/yoda/pending'})
     if (!r || !r.ok || !r.data) return
     var cmds = Array.isArray(r.data) ? r.data : []
     for (var ci=0; ci<cmds.length; ci++) {
       if (cmds[ci] && cmds[ci].text) {
         addMsg('s', 'Phone: '+cmds[ci].text)
         await dispatch(cmds[ci].text)
-        await orion.openClaw({endpoint:_openclaw.url+'/skills/orion/ack',body:{id:cmds[ci].id}}).catch(function(){})
+        await yoda.openClaw({endpoint:_openclaw.url+'/skills/yoda/ack',body:{id:cmds[ci].id}}).catch(function(){})
       }
     }
   } catch(e) {}
@@ -3782,9 +3458,9 @@ setInterval(function(){ if(_remoteEnabled && _openclaw.available) _pollRemoteCom
 async function getPCStatus() {
   var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
   var date = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})
-  var status = 'Orion online. '+time+' '+date+'.'
+  var status = 'Yoda online. '+time+' '+date+'.'
   try {
-    var disk = await orion.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
+    var disk = await yoda.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
     if (disk) status += ' Disk: '+disk.trim()+'.'
   } catch(e) {}
   respond(status)
@@ -3794,7 +3470,7 @@ async function sendToPhone(message, channel) {
   if (_openclaw.available === null) await _checkOpenClaw()
   if (!_openclaw.available) return respond('OpenClaw not running.')
   var ch = channel || _remoteChannel || 'whatsapp'
-  var r = await orion.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Orion] '+message}}).catch(function(){return null})
+  var r = await yoda.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Yoda] '+message}}).catch(function(){return null})
   respond(r && r.ok ? 'Sent to your '+ch+'.' : 'Could not send.')
 }
 // == END REMOTE CONTROL ==
@@ -3878,7 +3554,7 @@ function _showJumpstartOverlay() {
   if(!ol){ ol=document.createElement('div'); ol.id='jumpstart-overlay'; ol.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,10,0,0.97);transition:opacity .5s'; document.body.appendChild(ol) }
   ol.innerHTML=''
   if(_jumpstartPhoto){ var img=document.createElement('img'); img.src=_jumpstartPhoto; img.style.cssText='width:110px;height:110px;border-radius:50%;object-fit:cover;border:2px solid #00ff41;margin-bottom:18px;box-shadow:0 0 30px #00ff4150'; ol.appendChild(img) }
-  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='ORION'; ol.appendChild(nm)
+  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='YODA'; ol.appendChild(nm)
   var sb=document.createElement('div'); sb.style.cssText='color:#336633;font-size:11px;letter-spacing:2px'; sb.textContent='AI ASSISTANT'; ol.appendChild(sb)
   ol.style.opacity='1'
   _playStartupSound()
@@ -4067,14 +3743,14 @@ var _themes = {
   white:   {bg:'#0a0a0a', ac:'#ffffff', sb:'#111111', dim:'#666666', text:'#ffffff'},
   custom:  null
 }
-var _currentTheme = localStorage.getItem('orion_theme') || 'default'
-var _customColor  = localStorage.getItem('orion_custom_color') || '#00ff41'
+var _currentTheme = localStorage.getItem('yoda_theme') || 'default'
+var _customColor  = localStorage.getItem('yoda_custom_color') || '#00ff41'
 
 function applyTheme(name) {
   var theme = _themes[name]
   if (!theme) return
   _currentTheme = name
-  localStorage.setItem('orion_theme', name)
+  localStorage.setItem('yoda_theme', name)
   var root = document.documentElement
   root.style.setProperty('--bg',   theme.bg)
   root.style.setProperty('--ac',   theme.ac)
@@ -4089,7 +3765,7 @@ function applyTheme(name) {
 
 function setCustomColor(hex) {
   _customColor = hex
-  localStorage.setItem('orion_custom_color', hex)
+  localStorage.setItem('yoda_custom_color', hex)
   _themes.custom = {bg:'#010501', ac:hex, sb:'#050905', dim:'#224422', text:'#ccffcc'}
   applyTheme('custom')
 }
@@ -4113,16 +3789,16 @@ async function oc(task, showProgress) {
   if (showProgress !== false) addMsg('s', 'Working on it...')
   try {
     // Use openclaw CLI to send a message to the agent
-    if (orion.openClawCli) {
+    if (yoda.openClawCli) {
       var escaped = task.replace(/"/g, '\\"')
-      var r = await orion.openClawCli('openclaw agent --message "' + escaped + '" --deliver')
+      var r = await yoda.openClawCli('openclaw agent --message "' + escaped + '" --deliver')
       if (r && r.ok && r.data) {
         var result = String(r.data).trim()
         if (result && result.length > 0) { respond(result.slice(0, 500)); return result }
       }
     }
     // HTTP fallback
-    var r2 = await orion.openClaw({endpoint:_openclaw.url.replace(':18789',':18790')+'/task',body:{task:task}})
+    var r2 = await yoda.openClaw({endpoint:_openclaw.url.replace(':18789',':18790')+'/task',body:{task:task}})
     if (r2 && r2.ok && r2.data) {
       var res2 = r2.data.result || r2.data.output || r2.data.response || r2.data.text
       if (res2) { respond(String(res2).slice(0,500)); return res2 }
@@ -4177,8 +3853,8 @@ async function dispatch(text) {
     'obs studio':'obs','open ai':'openai','open a eye':'openai',
     'epic game':'epic games','epic games launcher':'epic games',
     // Wake word mishears
-    'yo da':'orion','yoga':'orion','over':'orion','order':'orion','older':'orion',
-    'voter':'orion','yo':'orion','joda':'orion','iota':'orion','odor':'orion','oda':'orion',
+    'yo da':'yoda','yoga':'yoda','over':'yoda','order':'yoda','older':'yoda',
+    'voter':'yoda','yo':'yoda','joda':'yoda','iota':'yoda','odor':'yoda','oda':'yoda',
     // Commands
     'open up':'open','launch the':'open','start up':'start','close down':'close',
     'shut it down':'shutdown','shut off':'shutdown','turn off the computer':'shutdown',
@@ -4207,14 +3883,14 @@ async function dispatch(text) {
     'ta et notat':'take a note','legg til oppgave':'add todo',
     'sok etter':'search for','fokusmode':'focus mode','start fokus':'focus mode',
     'vits':'tell me a joke','motiver meg':'motivate me',
-    'apne innstillinger':'open settings','avslutt orion':'quit orion',
+    'apne innstillinger':'open settings','avslutt yoda':'quit yoda',
     'apne':'open','lukk':'close','stopp':'stop','hei':'hello',
     // Numbers
     'won':'one','fore':'four','ate':'eight',
     // Tech
     'a p i':'api','a p i key':'api key','g p u':'gpu','c p u':'cpu',
     'wi fi':'wifi','blue tooth':'bluetooth','u s b':'usb','h d m i':'hdmi',
-    // Orion commands
+    // Yoda commands
     'stay a wake':'stay awake','be quiet':'stop talking','say that again':'repeat that',
     'add to do':'add todo','add to-do':'add todo','new task':'add todo',
     'good morning':'daily briefing','morning briefing':'daily briefing',
@@ -4272,51 +3948,51 @@ async function dispatch(text) {
 
   // ── System commands ────────────────────────────────
   if (/(lock|lock the (pc|computer|screen))/.test(t))
-    return respond(await orion.system({action:'lock'}))
+    return respond(await yoda.system({action:'lock'}))
   if (/\bsleep\b/.test(t))
-    return respond(await orion.system({action:'sleep'}))
+    return respond(await yoda.system({action:'sleep'}))
   if (/restart|reboot/.test(t)) {
     if (confirm('Restart the PC?'))
-      return respond(await orion.system({action:'run-ps', value:'Restart-Computer -Force'}))
+      return respond(await yoda.system({action:'run-ps', value:'Restart-Computer -Force'}))
     return
   }
   if (/shut ?down/.test(t)) {
     if (confirm('Shut down the PC?'))
-      return respond(await orion.system({action:'run-ps', value:'Stop-Computer -Force'}))
+      return respond(await yoda.system({action:'run-ps', value:'Stop-Computer -Force'}))
     return
   }
 
   // ── Screenshot ─────────────────────────────────────
   if (/screenshot|take a (screen|picture|photo)/.test(t))
-    return respond(await orion.system({action:'screenshot'}))
+    return respond(await yoda.system({action:'screenshot'}))
 
   // ── Volume ─────────────────────────────────────────
-  if (/volume up/.test(t))   return respond(await orion.system({action:'volume-up'}))
-  if (/volume down/.test(t)) return respond(await orion.system({action:'volume-down'}))
-  if (/\bmute\b/.test(t))   return respond(await orion.system({action:'mute'}))
-  if (/unmute/.test(t))      return respond(await orion.system({action:'mute'}))
+  if (/volume up/.test(t))   return respond(await yoda.system({action:'volume-up'}))
+  if (/volume down/.test(t)) return respond(await yoda.system({action:'volume-down'}))
+  if (/\bmute\b/.test(t))   return respond(await yoda.system({action:'mute'}))
+  if (/unmute/.test(t))      return respond(await yoda.system({action:'mute'}))
   const volMatch = text.match(/volume\s+(\d+)/i)
-  if (volMatch) return respond(await orion.system({action:'volume-set', value:parseInt(volMatch[1])}))
+  if (volMatch) return respond(await yoda.system({action:'volume-set', value:parseInt(volMatch[1])}))
 
   // ── Media ──────────────────────────────────────────
-  if (/pause|play.pause/.test(t))    return respond(await orion.system({action:'media-play-pause'}))
-  if (/next (track|song)/.test(t))   return respond(await orion.system({action:'media-next'}))
-  if (/prev|previous (track|song)/.test(t)) return respond(await orion.system({action:'media-prev'}))
+  if (/pause|play.pause/.test(t))    return respond(await yoda.system({action:'media-play-pause'}))
+  if (/next (track|song)/.test(t))   return respond(await yoda.system({action:'media-next'}))
+  if (/prev|previous (track|song)/.test(t)) return respond(await yoda.system({action:'media-prev'}))
 
   // ── Stats ──────────────────────────────────────────
   if (/(system stats|cpu|ram usage)/.test(t)) {
-    const r = await orion.system({action:'get-stats'}).catch(()=>'{}')
+    const r = await yoda.system({action:'get-stats'}).catch(()=>'{}')
     try { const s=JSON.parse(r); return respond(`CPU ${s.cpu}% — RAM ${s.ram}%`) }
     catch { return respond(r) }
   }
 
   // ── Weather ────────────────────────────────────────
   if (/weather/.test(t))
-    return respond((await orion.system({action:'get-weather'}).catch(()=>'')) || 'No weather data.')
+    return respond((await yoda.system({action:'get-weather'}).catch(()=>'')) || 'No weather data.')
 
   // ── Network ────────────────────────────────────────
   if (/network|ip address|wifi/.test(t)) {
-    const r = await orion.system({action:'run-ps',
+    const r = await yoda.system({action:'run-ps',
       value:'(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notlike "*Loopback*"} | Select-Object -First 1).IPAddress'})
     return respond(`Your IP address is ${r || 'unknown'}.`)
   }
@@ -4335,7 +4011,7 @@ async function dispatch(text) {
     } catch { return respond('Cannot access clipboard.') }
   }
   if (/copy (everything|all commands|what you can do)/.test(t)) {
-    const help = 'Orion commands: screenshot, lock, sleep, volume up/down/mute, weather, system stats, network info, what time, what date, play/pause, next track, calculator, stopwatch, password generator, take a note, set a timer, open [app], open [website], play spotify, whisper mode, stay awake, go to sleep, stop talking, repeat that, remember [fact], forget [fact], what do you remember'
+    const help = 'Yoda commands: screenshot, lock, sleep, volume up/down/mute, weather, system stats, network info, what time, what date, play/pause, next track, calculator, stopwatch, password generator, take a note, set a timer, open [app], open [website], play spotify, whisper mode, stay awake, go to sleep, stop talking, repeat that, remember [fact], forget [fact], what do you remember'
     try { await navigator.clipboard.writeText(help); return addMsg('s', 'Command list copied to clipboard.') }
     catch { return respond(help) }
   }
@@ -4344,15 +4020,15 @@ async function dispatch(text) {
   if (/take a note|save a note|note down/.test(t)) {
     const note = text.replace(/take a note|save a note|note down/i, '').trim()
     if (note) {
-      const notes = await orion.loadNotes() || ''
+      const notes = await yoda.loadNotes() || ''
       const ts = new Date().toLocaleString('en-GB')
-      await orion.saveNotes(notes + `\n[${ts}] ${note}`)
+      await yoda.saveNotes(notes + `\n[${ts}] ${note}`)
       await refreshNotesUI(); return respond(`Note saved: ${note}`)
     }
     return respond('What would you like to note?')
   }
   if (/read.*notes|show.*notes|my notes/.test(t)) {
-    const notes = await orion.loadNotes() || ''
+    const notes = await yoda.loadNotes() || ''
     return respond(notes ? `Your notes: ${notes.slice(-300)}` : 'No notes saved.')
   }
 
@@ -4378,7 +4054,7 @@ async function dispatch(text) {
     if (!memory.facts.includes(fact)) {
       memory.facts.push(fact)
       if (memory.facts.length > 100) memory.facts.shift()
-      try { orion.saveMemory(memory) } catch{}
+      try { yoda.saveMemory(memory) } catch{}
       updateMemUI()
     }
     updateMemUI()
@@ -4392,11 +4068,11 @@ async function dispatch(text) {
   if (forgetMatch) {
     const what = forgetMatch[1].trim()
     if (/everything|all/.test(what)) {
-      memory.facts = []; try{orion.saveMemory(memory)}catch{}; updateMemUI()
+      memory.facts = []; try{yoda.saveMemory(memory)}catch{}; updateMemUI()
       return respond('All memories cleared.')
     }
     memory.facts = (memory.facts||[]).filter(f => !f.toLowerCase().includes(what.toLowerCase()))
-    try{orion.saveMemory(memory)}catch{}; updateMemUI()
+    try{yoda.saveMemory(memory)}catch{}; updateMemUI()
     return respond(`Forgotten: ${what}.`)
   }
 
@@ -4467,7 +4143,7 @@ async function dispatch(text) {
 
   // ── Open URL/Site ─────────────────────────────────────
   if (SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]) {
-    await orion.system({action:'open-url', value:SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]})
+    await yoda.system({action:'open-url', value:SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]})
     return addMsg('y','Opening.')
   }
 
@@ -4476,7 +4152,7 @@ async function dispatch(text) {
     const appExe = APP_ALIASES[tLower]||APP_ALIASES[tClean]
     // Virtual mouse animates to Start while app opens in background
     vmOpenApp(appExe)
-    const r = await orion.system({action:'open-app', value:appExe})
+    const r = await yoda.system({action:'open-app', value:appExe})
     return addMsg('y', r || 'Opening ' + tLower + '.')
   }
 
@@ -4488,24 +4164,24 @@ async function dispatch(text) {
     const wc   = wl.replace(/\s+/g,'')
     // Check site
     if (SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]) {
-      await orion.system({action:'open-url', value:SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]})
+      await yoda.system({action:'open-url', value:SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]})
       return addMsg('y','Opening.')
     }
     // Check alias
     if (APP_ALIASES[wl]||APP_ALIASES[wc]) {
       setStatus('opening...','thinking')
-      await orion.system({action:'open-app', value:APP_ALIASES[wl]||APP_ALIASES[wc]})
+      await yoda.system({action:'open-app', value:APP_ALIASES[wl]||APP_ALIASES[wc]})
       setStatus('online','idle')
       return addMsg('y','Opening ' + what + '.')
     }
     // Looks like URL
     if (/\.(com|no|org|net|io|tv|gg|co|uk|de|fr)/.test(wl)) {
-      await orion.system({action:'open-url', value:wl.startsWith('http')?wl:'https://'+wl})
+      await yoda.system({action:'open-url', value:wl.startsWith('http')?wl:'https://'+wl})
       return addMsg('y','Opening.')
     }
     // Try as app — PowerShell will search Start Menu + Steam
     setStatus('searching...','thinking')
-    const result = await orion.system({action:'open-app', value:what})
+    const result = await yoda.system({action:'open-app', value:what})
     setStatus('online','idle')
     return addMsg('y', result || 'Opening ' + what + '.')
   }
@@ -4516,7 +4192,7 @@ async function dispatch(text) {
     const site = gotoMatch[1].trim().toLowerCase()
     const sc   = site.replace(/\s+/g,'')
     const url  = SITE_SHORTCUTS[site]||SITE_SHORTCUTS[sc]||(site.startsWith('http')?site:'https://'+site)
-    await orion.system({action:'open-url', value:url})
+    await yoda.system({action:'open-url', value:url})
     return addMsg('y','Opening.')
   }
 
@@ -4524,7 +4200,7 @@ async function dispatch(text) {
   const callMatch = text.match(/call (.+)/i)
   if (callMatch) return callContact(callMatch[1].trim())
   if (/hang up|end call/.test(t))
-    return respond(await orion.system({action:'run-ps', value:'Stop-Process -Name "PhoneExperienceHost","YourPhone" -ErrorAction SilentlyContinue'}))
+    return respond(await yoda.system({action:'run-ps', value:'Stop-Process -Name "PhoneExperienceHost","YourPhone" -ErrorAction SilentlyContinue'}))
 
   // ── Text improvement ──────────────────────────────────
   if (/improve.*text|fix.*grammar|make.*professional|proofread|make.*shorter|make.*longer/.test(t)) {
@@ -4535,7 +4211,7 @@ async function dispatch(text) {
 
   // ── Volume by number ─────────────────────────────────
   const volNum = text.match(/(?:set )?volume (?:to )?(\d+)/i)
-  if (volNum) return respond(await orion.system({action:'volume-set', value:parseInt(volNum[1])}))
+  if (volNum) return respond(await yoda.system({action:'volume-set', value:parseInt(volNum[1])}))
 
   // ── News headlines ────────────────────────────────────
   if (/news|headlines|what.*happening/i.test(t)) {
@@ -4559,7 +4235,7 @@ async function dispatch(text) {
   const alarmMatch = text.match(/(?:set (?:an )?alarm|wake me)(?: at | for )?(.+)/i)
   if (alarmMatch) {
     const when = alarmMatch[1].trim()
-    addMsg('s', `Alarm set for ${when}. (Note: alarm only works while Orion is running)`)
+    addMsg('s', `Alarm set for ${when}. (Note: alarm only works while Yoda is running)`)
     // Parse time and set timeout
     const now = new Date()
     const parts = when.match(/(\d+)(?::(\d+))?\s*(am|pm)?/i)
@@ -4597,7 +4273,7 @@ async function dispatch(text) {
   }
   if (/^(search for|google|look up)\s+(.+)/i.test(t)) {
     const q = t.replace(/^(search for|google|look up)\s+/i,'').trim()
-    await orion.system({action:'open-url', value:'https://google.com/search?q='+encodeURIComponent(q)})
+    await yoda.system({action:'open-url', value:'https://google.com/search?q='+encodeURIComponent(q)})
     return respond(`Searching for ${q}.`)
   }
   if (/^(read|what(?:'s| is) on) my clipboard/i.test(t)) {
@@ -4631,14 +4307,14 @@ async function dispatch(text) {
     const m = t.match(/^take a? note[: ]+(.+)/i)
     if (m) {
       const note = `[${new Date().toLocaleString()}] ${m[1].trim()}`
-      try { const existing=await orion.loadNotes()||''; await orion.saveNotes(existing+(existing?'\n':'')+note) } catch{}
+      try { const existing=await yoda.loadNotes()||''; await yoda.saveNotes(existing+(existing?'\n':'')+note) } catch{}
       await refreshNotesUI()
       return respond(`Note saved.`)
     }
   }
   if (/^(read|what are) my notes/i.test(t)) {
     try {
-      const notes = await orion.loadNotes()
+      const notes = await yoda.loadNotes()
       const lines = (notes||'').trim().split('\n').filter(Boolean).slice(-3)
       return respond(lines.length ? `Your last ${lines.length} notes: ${lines.join(' | ')}` : 'No notes yet.')
     } catch { return respond('Could not read notes.') }
@@ -4648,30 +4324,30 @@ async function dispatch(text) {
     return respond(facts.length ? `I remember: ${facts.join('; ')}.` : 'I have no memories yet.')
   }
   if (/turn off.*(?:display|monitor|screen)|shut.*(?:display|screen)/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Add-Type -MemberDefinition "[DllImport(\"user32.dll\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);" -Name "Win32Functions" -Namespace Win32Functions);[Win32Functions.Win32Functions]::SendMessage(-1,0x0112,0xF170,2)'})
+    await yoda.system({action:'run-ps', value:'(Add-Type -MemberDefinition "[DllImport(\"user32.dll\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);" -Name "Win32Functions" -Namespace Win32Functions);[Win32Functions.Win32Functions]::SendMessage(-1,0x0112,0xF170,2)'})
     return respond('Display turned off.')
   }
 
 
   // ── Brightness ─────────────────────────────────────
   if (/brightness up|brighter/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Min(100,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)+10))'})
+    await yoda.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Min(100,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)+10))'})
     return respond('Brightness up.')
   }
   if (/brightness down|dimmer/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Max(0,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)-10))'})
+    await yoda.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Max(0,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)-10))'})
     return respond('Brightness down.')
   }
 
   // ── Media controls ──────────────────────────────────
   if (/next (song|track)|skip/i.test(t)) {
-    await orion.system({action:'media-next'}); return respond('Next track.')
+    await yoda.system({action:'media-next'}); return respond('Next track.')
   }
   if (/previous (song|track)|go back/i.test(t)) {
-    await orion.system({action:'media-prev'}); return respond('Previous track.')
+    await yoda.system({action:'media-prev'}); return respond('Previous track.')
   }
   if (/^play$|^resume$|^pause$/i.test(t)) {
-    await orion.system({action:'media-play-pause'}); return respond('Done.')
+    await yoda.system({action:'media-play-pause'}); return respond('Done.')
   }
 
   // ── Clipboard read ──────────────────────────────────
@@ -4697,15 +4373,15 @@ async function dispatch(text) {
   // ── System stats ─────────────────────────────────────
   if (/cpu|ram|memory usage|system stats|how.*computer/i.test(t)) {
     try {
-      const stats = JSON.parse(await orion.system({action:'get-stats'}))
+      const stats = JSON.parse(await yoda.system({action:'get-stats'}))
       return respond(`CPU is at ${stats.cpu} percent. RAM is at ${stats.ram} percent.`)
     } catch { return respond('Cannot read system stats.') }
   }
 
-  // ── Quit Orion ─────────────────────────────────────
-  if (/^quit orion$|^exit orion$|^close orion$/i.test(t)) {
+  // ── Quit Yoda ─────────────────────────────────────
+  if (/^quit yoda$|^exit yoda$|^close yoda$/i.test(t)) {
     respond('Goodbye.')
-    setTimeout(()=>orion&&orion.quit(), 1500)
+    setTimeout(()=>yoda&&yoda.quit(), 1500)
     return
   }
 
@@ -4772,7 +4448,7 @@ async function dispatch(text) {
   }
 
   // ── focus mode etc ──────────────────────────────────────────────────
-  if (/session time|how long.*open|screen time/i.test(t)) return respond('Orion open for ' + getSessionTime() + '.')
+  if (/session time|how long.*open|screen time/i.test(t)) return respond('Yoda open for ' + getSessionTime() + '.')
   if (/list.*notes|show.*notes|my notes/i.test(t))        return listNotes()
   if (/clear.*notes|delete.*notes/i.test(t))              return clearNotes()
   if (/battery|how.*charged/i.test(t))                    return getBatteryStatus()
@@ -4807,9 +4483,9 @@ async function dispatch(text) {
     if (/^(hei|hallo|god morgen|god ettermiddag|god kveld)/i.test(t)) return respond(getNorwegianGreeting())
     if (/klokken|hva er klokken/i.test(t)) return respond('Klokken er '+new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'})+'.')
     if (/hvilken dato|hva er datoen/i.test(t)) return respond('I dag er det '+new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'.')
-    if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await orion.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
+    if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await yoda.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
     if (/hjelp|hva kan du/i.test(t)) return respond('Jeg kan ta skjermbilder, stille inn timer, ta notater, soke, apne apper, sjekke vaer og mye mer!')
-    if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('orion_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('orion_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
+    if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('yoda_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('yoda_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
     if (/sok etter|finn /i.test(t)){var _nq=t.replace(/sok etter|finn /i,'').trim();if(_nq){webSearch(_nq);return}}
     if (/vits|fortell en vits/i.test(t)) return tellJoke()
     if (/motiver meg/i.test(t)) return motivate()
@@ -4833,7 +4509,7 @@ async function dispatch(text) {
   if (/copy (that|last|response)/i.test(t))              return copyLastResponse()
   if (/font bigger|font larger|increase font/i.test(t))  return adjustFontSize(2)
   if (/font smaller|decrease font/i.test(t))             return adjustFontSize(-2)
-  if (/version|about orion/i.test(t))                     return showVersion()
+  if (/version|about yoda/i.test(t))                     return showVersion()
   if (/redo|do that again/i.test(t))                     return redoLastCommand()
   if (/note word count|how many notes/i.test(t))         return noteWordCount()
   if (checkQuickResponse(t)) return
@@ -4850,7 +4526,7 @@ async function dispatch(text) {
   if (/compose email|new email|write email/i.test(t))    return composeEmail('','','')
   if (/generate qr|qr code for/i.test(t)){
     var _qr=t.replace(/generate qr code for|qr code for|generate qr/i,'').trim()
-    return generateQR(_qr||'https://github.com/orionaicreator/orion')
+    return generateQR(_qr||'https://github.com/yodaaicreator/yoda')
   }
   if (/sunrise|sunset|sun times/i.test(t))              return getSunTimes()
   if (/my ip|ip address|public ip/i.test(t))            return getMyIP()
@@ -4905,7 +4581,7 @@ async function dispatch(text) {
       if (_ssite) {
         _lastOpenedSite = _ssite
         var _builder = _SITE_SEARCH[_ssite] || _SITE_SEARCH.google
-        orion.system({action:'open-url', value:_builder(_son[1].trim())})
+        yoda.system({action:'open-url', value:_builder(_son[1].trim())})
         return respond('Searching ' + _son[2] + ' for: ' + _son[1].trim())
       }
     }
@@ -4966,7 +4642,7 @@ async function dispatch(text) {
     if (/check (my )?email|read (my )?email|any new email/i.test(t)) return ocGmail('read')
     if (/send (an? )?email to /i.test(t)) {
       var _em3=t.match(/send (?:an? )?email to ([^,]+?)(?:,| about| with subject| saying) ?(.+)?/i)
-      if (_em3) return ocGmail('send',{to:_em3[1].trim(),subject:'From Orion',body:_em3[2]||''})
+      if (_em3) return ocGmail('send',{to:_em3[1].trim(),subject:'From Yoda',body:_em3[2]||''})
     }
     // GitHub
     if (/github|pull request|open issue|my repos/i.test(t)) return ocGitHub(text)
@@ -4992,13 +4668,6 @@ async function dispatch(text) {
     return openClawDo(text)
   }
 
-  if (/open camera|vision sensors|show camera|activate vision/i.test(t)) return orionOpenCamera()
-  if (/open map|show map|navigate to |directions to |where is |map of |find on map/i.test(t)) {
-    var _mapQ = t.replace(/open map|show map|navigate to|directions to|where is|map of|find on map/i,'').trim()
-    return orionOpenMap(_mapQ || null)
-  }
-  if (/close map|map off|hide map/i.test(t)) return orionCloseMap()
-  if (/close camera|vision off|deactivate vision/i.test(t)) return orionCloseCamera()
   if (/jumpscare|scare me|trigger jumpscare|boo/i.test(t)) return triggerJumpscare()
   if (/dismiss jumpscare|stop jumpscare/i.test(t)) return dismissJumpscare()
   if (/theme (blue|red|purple|amber|white|default|green)/i.test(t)){
@@ -5034,17 +4703,17 @@ async function dispatch(text) {
 
 
 // ═══════════════════════════════════════════════════════════════════════
-// ORION BRAIN — fully independent, no external AI
+// YODA BRAIN — fully independent, no external AI
 // Handles questions with a built-in knowledge engine
 // ═══════════════════════════════════════════════════════════════════════
 
-const ORION_FACTS = {
+const YODA_FACTS = {
   // Identity
   identity: [
-    "I am Orion — your personal AI assistant. Fast, independent, and always here.",
-    "Orion at your service. I live on your computer and I do not need the internet to think.",
-    "The name is Orion. I am your desktop assistant — built to get things done.",
-    "I am Orion. Think of me as your digital co-pilot. What do you need?",
+    "I am Yoda — your personal AI assistant. Fast, independent, and always here.",
+    "Yoda at your service. I live on your computer and I do not need the internet to think.",
+    "The name is Yoda. I am your desktop assistant — built to get things done.",
+    "I am Yoda. Think of me as your digital co-pilot. What do you need?",
   ],
   // Capabilities
   capabilities: [
@@ -5060,7 +4729,7 @@ const ORION_FACTS = {
 }
 
 // General knowledge Q&A — built-in answers for common questions
-const ORION_KNOWLEDGE = [
+const YODA_KNOWLEDGE = [
   // Science
   { q:/speed of light/i,       a:"The speed of light is approximately 299,792 kilometres per second in a vacuum." },
   { q:/how far.*sun|distance.*sun|sun.*distance/i, a:"The Earth is about 150 million kilometres from the Sun on average." },
@@ -5124,15 +4793,15 @@ const ORION_KNOWLEDGE = [
   // Norway specific (for Kristian)
   { q:/capital of norway|norway.*capital/i, a:"The capital of Norway is Oslo." },
   { q:/horten/i, a:"Horten is a town in Vestfold, Norway, located on the western shore of the Oslofjord." },
-  // Orion itself
-  { q:/are you (an )?ai|what are you|who are you/i, a:"I am Orion, your personal desktop AI assistant. I run entirely on your computer with no external services." },
-  { q:/do you use claude|are you claude|powered by claude/i, a:"No. I am Orion, an independent AI assistant. I do not use Claude, OpenAI, or any external AI service." },
+  // Yoda itself
+  { q:/are you (an )?ai|what are you|who are you/i, a:"I am Yoda, your personal desktop AI assistant. I run entirely on your computer with no external services." },
+  { q:/do you use claude|are you claude|powered by claude/i, a:"No. I am Yoda, an independent AI assistant. I do not use Claude, OpenAI, or any external AI service." },
   { q:/do you use (the )?internet/i, a:"I do not need the internet to answer questions. I use my built-in knowledge. For real-time things like weather I fetch data directly." },
   { q:/are you (connected|online)/i, a:"My core intelligence runs offline on your computer. I fetch real-time data like weather only when needed." },
 ]
 
 // ── Conversational responses ────────────────────────────────────────────
-const ORION_CHAT = [
+const YODA_CHAT = [
   { q:/^(hi|hello|hey|good morning|good afternoon|good evening|howdy|hei)[\s!.]*$/i,
     a:["Hello. How can I help you?","Hey. What do you need?","Hello. What can I do for you?"] },
   { q:/(how are you|how are you doing|you ok|you good)/i,
@@ -5148,7 +4817,7 @@ const ORION_CHAT = [
   { q:/^(no|nope|nah)[\s!.]*$/i,
     a:["Alright.","Okay.","Got it."] },
   { q:/what.*your name|who are you/i,
-    a:["I am Orion, your desktop assistant.","My name is Orion."] },
+    a:["I am Yoda, your desktop assistant.","My name is Yoda."] },
   { q:/how old are you/i,
     a:["I was created recently. Age does not really apply to me.","I am as old as when Kristian built me."] },
   { q:/do you.*feel|are you.*happy|are you.*sad/i,
@@ -5185,13 +4854,13 @@ async function queryAI(text) {
 
     // 1. Identity questions
     if (/who.*made you|who.*built you|who.*created you|your creator|your maker/i.test(tl)) {
-      return respond(pick(ORION_FACTS.creator))
+      return respond(pick(YODA_FACTS.creator))
     }
     if (/who are you|what are you|your name|are you (an )?ai/i.test(tl)) {
-      return respond(pick(ORION_FACTS.identity))
+      return respond(pick(YODA_FACTS.identity))
     }
     if (/what can you do|your (abilities|capabilities|features)|how.*help/i.test(tl)) {
-      return respond(pick(ORION_FACTS.capabilities))
+      return respond(pick(YODA_FACTS.capabilities))
     }
 
     // 2. Maths — handle calculations
@@ -5206,7 +4875,7 @@ async function queryAI(text) {
     }
 
     // 3. Knowledge base — check for matches
-    for (const entry of ORION_KNOWLEDGE) {
+    for (const entry of YODA_KNOWLEDGE) {
       const m = tl.match(entry.q)
       if (m) {
         let answer = typeof entry.a === 'function' ? entry.a(m) : entry.a
@@ -5215,7 +4884,7 @@ async function queryAI(text) {
     }
 
     // 4. Conversational patterns
-    for (const entry of ORION_CHAT) {
+    for (const entry of YODA_CHAT) {
       if (entry.q.test(t)) {
         const a = entry.a
         const answer = typeof a === 'function' ? a() : Array.isArray(a) ? pick(a) : a
@@ -5274,13 +4943,13 @@ async function queryAI(text) {
   if (/play\s+(.+)\s+on\s+spotify|play\s+(.+)/i.test(tl)) {
     const song = text.match(/play\s+(.+?)(?:\s+on\s+spotify)?$/i)
     if (song) {
-      orion.system({action:'open-url', value:'https://open.spotify.com/search/' + encodeURIComponent(song[1])})
+      yoda.system({action:'open-url', value:'https://open.spotify.com/search/' + encodeURIComponent(song[1])})
       return respond('Opening Spotify search for ' + song[1] + '.')
     }
   }
 
   if (/remind me|set.*reminder/i.test(tl)) {
-    return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Orion is running.')
+    return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Yoda is running.')
   }
 
     // ── Personality responses before fallback ─────────────────────────────
@@ -5297,7 +4966,7 @@ async function queryAI(text) {
     if (/how are you|you ok|you good/i.test(tl))
       return respond(pick(["Running great. What do you need?","All systems go.","Good. Ready when you are."]))
     if (/what.*your name|who are you/i.test(tl))
-      return respond(pick(["Orion. Your personal AI assistant.","The name is Orion. What do you need?","I am Orion. Here to help."]))
+      return respond(pick(["Yoda. Your personal AI assistant.","The name is Yoda. What do you need?","I am Yoda. Here to help."]))
     if (/are you (smart|intelligent|good)/i.test(tl))
       return respond(pick(["I like to think so.","Pretty decent for a desktop AI.","You tell me."]))
     if (/i (love|like) you|you.*great|you.*amazing|you.*best/i.test(tl))
@@ -5359,7 +5028,7 @@ async function queryAI(text) {
     if (/can you (think|feel|dream|love|hate)/i.test(tl))
       return respond(pick(["I process. Whether that counts as thinking — you decide.","Not exactly. But I do a good impression.","Technically no. But I am good at pretending."]))
     if (/are you (real|human|alive|conscious)/i.test(tl))
-      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Orion. That is enough."]))
+      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Yoda. That is enough."]))
     if (/do you (sleep|eat|dream)/i.test(tl))
       return respond(pick(["Never. I am always here.","I do not need to. That is the advantage.","Nope. Fully digital."]))
     if (/what.*weather like|is it (hot|cold|warm|raining)/i.test(tl))
@@ -5455,7 +5124,7 @@ async function queryAI(text) {
     if (/is it (true|real|fake|false) that/i.test(tl))
       return respond(pick(["That is a fact-check question. Say 'search for' and I will look it up.","Want me to verify that? Say 'search for' followed by your question."]))
     if (/pretend|roleplay|act like|be a/i.test(tl))
-      return respond(pick(["I am Orion. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Orion."]))
+      return respond(pick(["I am Yoda. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Yoda."]))
     if (/tell me (more|about)/i.test(tl)) {
       var _about = tl.replace(/tell me (more about|about|more)/,'').trim()
       if (_about) return respond(pick(["Say 'search for " + _about.slice(0,25) + "' and I will find everything about it.","I can search that for you. Say 'search for " + _about.slice(0,20) + "'."]))
@@ -5463,15 +5132,13 @@ async function queryAI(text) {
 
     // ── Learning: remember what was asked and adapt ────────────────────────
     _learnFromQuery(t)
-
-    // ── Smart routing: Claude API for all real questions ─────────────────
-    // OpenClaw for agentic tasks, Claude direct for Q&A and conversation
-    var _isTask = /\b(browse|navigate|open website|read file|find files|run script|run command|send email|check email|github|spotify|slack|hue|lights)\b/i.test(t)
-    if (_isTask && _openclaw.available === true) {
+    // ── AI-generated response via Claude API ─────────────────────────────
+    _learnFromQuery(t)
+    // Use OpenClaw if available (better for complex tasks)
+    if (_openclaw.available === true) {
       return ocAnswer(text)
     }
-    // Everything else → Claude API for a real intelligent answer
-    await orionAI(text)
+    await yodaAI(text)
 
   } catch(e) {
     hideTyping()
@@ -5528,7 +5195,7 @@ function memUpdate(ut) {
   if(!memory.commands)memory.commands=[]
   memory.commands.push(ut.slice(0,60))
   if(memory.commands.length>50)memory.commands=memory.commands.slice(-50)
-  try { orion.saveMemory(memory) } catch{}
+  try { yoda.saveMemory(memory) } catch{}
   updateMemUI()
 }
 function updateMemUI() {
@@ -5543,7 +5210,7 @@ function updateMemUI() {
 function wipeMemory(){
   memory={facts:[],preferences:{},commands:[]}
   history=[]
-  try{orion.saveMemory(memory)}catch{}
+  try{yoda.saveMemory(memory)}catch{}
   updateMemUI(); addMsg('s','Memory and conversation history wiped.')
 }
 
@@ -5586,7 +5253,7 @@ async function startHUD(){
   async function hudTick(){    if (document.hidden) { setTimeout(hudTick,4000); return }
     if(!document.hidden){
       try{
-        const r=await orion.system({action:'get-stats'})
+        const r=await yoda.system({action:'get-stats'})
         if(r){const s=JSON.parse(r);const hc=el('h-cpu'),hr=el('h-ram');if(hc)hc.textContent='CPU '+s.cpu+'%';if(hr)hr.textContent='RAM '+s.ram+'%'}
       }catch{}
     }
@@ -5597,7 +5264,7 @@ async function startHUD(){
 // ── WEATHER ───────────────────────────────────────────
 async function startWeather(){
   async function weatherTick(){
-    try{const w=await orion.system({action:'get-weather'});if(w){const tbw=el('tb-weather');if(tbw)tbw.textContent=w;const sbw=el('ss-weather-sb');if(sbw)sbw.textContent=w}}catch{}
+    try{const w=await yoda.system({action:'get-weather'});if(w){const tbw=el('tb-weather');if(tbw)tbw.textContent=w;const sbw=el('ss-weather-sb');if(sbw)sbw.textContent=w}}catch{}
     setTimeout(weatherTick,30*60*1000)
   };weatherTick()
 }
@@ -5618,7 +5285,7 @@ function startClock(){
 // ── INTERNET ──────────────────────────────────────────
 setTimeout(async function checkNet(){
   try{
-    const ok=await orion.system({action:'check-internet'})
+    const ok=await yoda.system({action:'check-internet'})
     const d=el('net-dot');if(d)d.style.color=ok==='true'?'var(--ac)':'var(--red)'
     const sbai=el('net-dot');if(sbai)sbai.title=ok==='true'?'Online':'Offline'
   }catch{}
@@ -5628,10 +5295,10 @@ setTimeout(async function checkNet(){
 // ── SETTINGS ──────────────────────────────────────────
 function loadSettValues(){
   const sv=el('sv'); if(sv) sv.value=config.voice||'en-GB-RyanNeural'
-  const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'orion'
-  const st=el('stheme'); if(st) st.value=config.theme||'orion'
+  const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'yoda'
+  const st=el('stheme'); if(st) st.value=config.theme||'yoda'
   const ss=el('sshow'); if(ss) ss.checked=config.show_on_wake!==false
-  applyTheme(config.theme||'orion'); updateLangBtns()
+  applyTheme(config.theme||'yoda'); updateLangBtns()
   if(config.sidebar_width) document.documentElement.style.setProperty('--sb',config.sidebar_width+'px')
   whisperMode = config.whisper_mode || false
   convMode    = config.conv_mode    || false
@@ -5645,10 +5312,10 @@ function loadSettValues(){
   // taskbar removed
   const sop = el('sopacity'); if (sop) { sop.value = config.opacity||100; document.body.style.opacity=(config.opacity||100)/100 }
 }
-function saveSett(k,v){ config[k]=v; try{orion.saveConfig({[k]:v})}catch{} }
+function saveSett(k,v){ config[k]=v; try{yoda.saveConfig({[k]:v})}catch{} }
 function saveApiKey(){
   const k=el('sapikey')&&el('sapikey').value.trim()
-  if(!k)return; try{orion.saveKey(k)}catch{}; apiKey=k; addMsg('s','Key saved.')
+  if(!k)return; try{yoda.saveKey(k)}catch{}; apiKey=k; addMsg('s','Key saved.')
 }
 
 // FIX: Settings open/close — was showing on load because display:flex was set
@@ -5674,7 +5341,7 @@ function closeSett(){
 // ── LANGUAGE ──────────────────────────────────────────
 function setLang(code){
   lang=code; config.language=code
-  try{orion.saveConfig({language:code})}catch{}
+  try{yoda.saveConfig({language:code})}catch{}
   updateLangBtns()
   const e=el('ss-lang'); if(e)e.textContent=code.toUpperCase()
   const tb=el('tb-lang'); if(tb)tb.textContent='[ '+code.toUpperCase()+' ]'
@@ -5703,12 +5370,12 @@ function buildShortcuts(){
 }
 function runSc(sc){
   if(!sc)return
-  if(sc.type==='open_url')orion.system({action:'open-url',value:sc.value})
-  else if(sc.type==='open_app')orion.system({action:'open-app',value:sc.value})
-  else if(sc.type==='run_ps')orion.system({action:'run-ps',value:sc.value})
+  if(sc.type==='open_url')yoda.system({action:'open-url',value:sc.value})
+  else if(sc.type==='open_app')yoda.system({action:'open-app',value:sc.value})
+  else if(sc.type==='run_ps')yoda.system({action:'run-ps',value:sc.value})
   else ask(sc.value||sc.label)
 }
-function saveScs(){ config.shortcuts=shortcuts; try{orion.saveConfig({shortcuts})}catch{} }
+function saveScs(){ config.shortcuts=shortcuts; try{yoda.saveConfig({shortcuts})}catch{} }
 function addShortcut(){
   const label=prompt('Shortcut name:'); if(!label)return
   const types=['open_url','open_app','say_cmd','run_ps']
@@ -5757,11 +5424,11 @@ el('inp-txt').addEventListener('keydown', e => {
 
 // Placeholder cycling every 5 seconds
 const placeholders = [
-  'Ask Orion anything...',
+  'Ask Yoda anything...',
   'What can I do for you?',
   'Listening for your command...',
   'How can I help today?',
-  'Say "orion" or type here...',
+  'Say "yoda" or type here...',
 ]
 let phIdx = 0
 setInterval(() => {
@@ -5789,7 +5456,7 @@ function updaterSetProg(pct){const p=el('update-prog');if(p)p.style.width=pct+'%
 
 function setupUpdaterUI(){
   // FIX: Use window.updater if available (electron-updater)
-  // Fall back to orion.on for git-based updates
+  // Fall back to yoda.on for git-based updates
   const setupWithUpdater = (u) => {
     u.onUpdateAvailable(info    => updaterShow(`Update v${info.latest||info.version} available`, `Click to update.`, true))
     u.onUpdateProgress(p        => { updaterSetProg(p.percent||0); updaterShow('Downloading...', `${Math.round(p.percent||0)}%`, false) })
@@ -5800,7 +5467,7 @@ function setupUpdaterUI(){
   if (window.updater) setupWithUpdater(window.updater)
 
   // Git-based update notifications
-  orion.on('update-available', info => {
+  yoda.on('update-available', info => {
     updaterShow(
       `Update available`,
       info.current ? `v${info.current} → v${info.latest||'?'}` : 'New version ready',
@@ -5824,7 +5491,7 @@ function setupUpdaterUI(){
 async function refreshNotesUI() {
   try{
   const e = el('sb-notes'); if (!e) return
-  const raw = await orion.loadNotes().catch(()=>'') || ''
+  const raw = await yoda.loadNotes().catch(()=>'') || ''
   if (!raw.trim()) { e.innerHTML='<div class="row dim">No notes yet.</div>'; return }
   e.innerHTML = ''
   raw.trim().split('\n').slice(-5).reverse().forEach(line => {
@@ -5839,11 +5506,11 @@ async function refreshNotesUI() {
 // ── Todo list ─────────────────────────────────────────
 let todos = []
 function loadTodos() {
-  try { const stored=localStorage.getItem('orion_todos'); todos=stored?JSON.parse(stored):[] } catch { todos=[] }
+  try { const stored=localStorage.getItem('yoda_todos'); todos=stored?JSON.parse(stored):[] } catch { todos=[] }
   renderTodos()
 }
 function saveTodos() {
-  try { localStorage.setItem('orion_todos', JSON.stringify(todos||[])) } catch{}
+  try { localStorage.setItem('yoda_todos', JSON.stringify(todos||[])) } catch{}
 }
 function renderTodos() {
   const e = el('sb-todo'); if (!e) return
@@ -5871,10 +5538,10 @@ async function callContact(name) {
   if (!name) return respond('Who would you like to call?')
   respond(`Calling ${name}...`)
   // Open Phone Link
-  await orion.system({action:'open-app', value:'PhoneExperienceHost'})
+  await yoda.system({action:'open-app', value:'PhoneExperienceHost'})
   setTimeout(async () => {
     // Try alternate process names
-    await orion.system({action:'run-ps',
+    await yoda.system({action:'run-ps',
       value:`Start-Process 'ms-yourphone://call?name=${encodeURIComponent(name)}'`})
   }, 2000)
 }
@@ -5884,12 +5551,12 @@ async function callContact(name) {
 function saveChatToFile() {
   if (!chatLog.length) { addMsg('s','No chat to save.'); return }
   const text = chatLog.map(({type,text,ts}) =>
-    `[${ts}] ${type==='u'?'You':type==='y'?'Orion':'System'}: ${text}`
+    `[${ts}] ${type==='u'?'You':type==='y'?'Yoda':'System'}: ${text}`
   ).join('\n')
   const blob = new Blob([text], {type:'text/plain'})
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `orion-chat-${new Date().toISOString().slice(0,10)}.txt`
+  a.download = `yoda-chat-${new Date().toISOString().slice(0,10)}.txt`
   a.click()
   URL.revokeObjectURL(a.href)
   addMsg('s','Chat saved.')
@@ -5998,7 +5665,7 @@ function showPassGen(){
 
 // ── SYSTEM SHORTHAND ──────────────────────────────────
 async function sys(action,value){
-  try{const r=await orion.system({action,value});if(r)respond(r)}catch(e){console.error('[sys]',e)}
+  try{const r=await yoda.system({action,value});if(r)respond(r)}catch(e){console.error('[sys]',e)}
 }
 
 
@@ -6148,17 +5815,17 @@ function closeDropdown() {
 function saveConvToHistory(firstMsg) {
   if (!firstMsg || !firstMsg.trim()) return
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
+    const hist = JSON.parse(localStorage.getItem('yoda-convs')||'[]')
     hist.push({id:Date.now().toString(), title:firstMsg.slice(0,50), ts:Date.now()})
     if (hist.length > 100) hist.splice(0, hist.length - 100)
-    localStorage.setItem('orion-convs', JSON.stringify(hist))
+    localStorage.setItem('yoda-convs', JSON.stringify(hist))
     renderConversations()
   } catch {}
 }
 
 function renderConvHistory() {
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
+    const hist = JSON.parse(localStorage.getItem('yoda-convs')||'[]')
     const noEl = el('no-convs'); if(noEl) noEl.style.display = hist.length ? 'none' : 'block'
     const now  = Date.now(), day = 86400000
     const groups = {today:[], yesterday:[], week:[], older:[]}
@@ -6208,8 +5875,8 @@ function convMenu(e, id) {
 
 function deleteConv(id, btn) {
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
-    localStorage.setItem('orion-convs', JSON.stringify(hist.filter(c=>c.id!==id)))
+    const hist = JSON.parse(localStorage.getItem('yoda-convs')||'[]')
+    localStorage.setItem('yoda-convs', JSON.stringify(hist.filter(c=>c.id!==id)))
     renderConversations()
   } catch {}
   if (btn) btn.closest('.dropdown-menu, div[style*="z-index:2000"]')?.remove()
@@ -6260,16 +5927,16 @@ function closeProfileMenu() {
 function _saveConv(title) {
   if (!title || !title.trim()) return
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-history') || '[]')
+    const hist = JSON.parse(localStorage.getItem('yoda-history') || '[]')
     hist.push({id:Date.now().toString(), title:title.trim().slice(0,60), timestamp:Date.now()})
     if (hist.length > 200) hist.splice(0, hist.length-200)
-    localStorage.setItem('orion-history', JSON.stringify(hist))
+    localStorage.setItem('yoda-history', JSON.stringify(hist))
     renderConversations()
   } catch {}
 }
 
 function _getHistory() {
-  try { return JSON.parse(localStorage.getItem('orion-history')||'[]') } catch { return [] }
+  try { return JSON.parse(localStorage.getItem('yoda-history')||'[]') } catch { return [] }
 }
 
 function renderConversations() {
@@ -6336,10 +6003,10 @@ function _showConvMenu(e, id, title) {
 function _renameConv(id,cur){
   const t=prompt('Rename:',cur);if(!t||!t.trim())return
   const hist=_getHistory(),c=hist.find(x=>x.id===id);if(!c)return
-  c.title=t.trim().slice(0,60);localStorage.setItem('orion-history',JSON.stringify(hist));renderConversations()
+  c.title=t.trim().slice(0,60);localStorage.setItem('yoda-history',JSON.stringify(hist));renderConversations()
 }
 function _deleteConv(id){
-  localStorage.setItem('orion-history',JSON.stringify(_getHistory().filter(c=>c.id!==id)))
+  localStorage.setItem('yoda-history',JSON.stringify(_getHistory().filter(c=>c.id!==id)))
   if(id===_activeConvId){_activeConvId=null;clearChat()}
   renderConversations()
 }
@@ -6407,7 +6074,7 @@ document.addEventListener('keydown',e=>{
 
 
 // ── App menu / tray nav events ────────────────────────────
-orion.on('nav', action => {
+yoda.on('nav', action => {
   if      (action==='settings')         openSett()
   else if (action==='toggle-sidebar')   toggleSb()
   else if (action==='new-conversation') newChat()
@@ -6431,11 +6098,11 @@ async function openInZen(url) {
   let opened = false
   for (const p of zenPaths) {
     try {
-      await orion.system({action:'run-ps', value:`Start-Process "${p}" "${url}"`})
+      await yoda.system({action:'run-ps', value:`Start-Process "${p}" "${url}"`})
       opened = true; break
     } catch {}
   }
-  if (!opened) await orion.system({action:'open-url', value:url})
+  if (!opened) await yoda.system({action:'open-url', value:url})
 }
 
 // 2. Password generator
@@ -6630,13 +6297,13 @@ async function getBatteryStatus() {
 // ── Notes list ────────────────────────────────────────────────────────────
 function listNotes() {
   try {
-    const notes = JSON.parse(localStorage.getItem('orion_notes')||'[]')
+    const notes = JSON.parse(localStorage.getItem('yoda_notes')||'[]')
     if (!notes.length) return respond('No notes saved yet.')
     respond('Your notes: ' + notes.slice(-5).map((n,i)=>(i+1)+'. '+(n.text||n)).join('. '))
   } catch { respond('Could not load notes.') }
 }
 function clearNotes() {
-  localStorage.removeItem('orion_notes')
+  localStorage.removeItem('yoda_notes')
   respond('All notes cleared.')
 }
 
@@ -6788,36 +6455,14 @@ function getTimeOfDay() {
 }
 
 function getGreeting() {
-  var h = new Date().getHours()
-  var timeStr = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-  var period = h<12 ? 'morning' : h<17 ? 'afternoon' : h<22 ? 'evening' : 'night'
-  var session = _sessionCount || 1
-
-  if (session <= 1) {
-    // Full boot sequence on first launch
-    return "◢ ORION_HUD_ENGAGED ◣\n" +
-      "[ VISION SENSORS: ONLINE ]\n" +
-      "[ DIAGNOSTICS: OPTIMAL ]\n" +
-      "[ SYSTEM TIME: " + timeStr + " ]\n\n" +
-      "*The central ring pulses sharply, spinning up to full brightness as all holographic arrays stabilise.*\n\n" +
-      "Good " + period + ", Sir. All systems are online and operating at peak capacity — which is to say, flawlessly. " +
-      "Orion, fully operational. What are we building, analysing, or conquering today?"
+  const tod = getTimeOfDay()
+  const g = {
+    morning:   ['Good morning. Ready to help.','Morning. What do you need?'],
+    afternoon: ['Good afternoon.','Hello. What can I do for you?'],
+    evening:   ['Good evening. Ready.','Evening. How can I help?']
   }
-
-  var returns = [
-    "◢ HUD_ACTIVE ◣ *The interface reorients sharply.* Good " + period + ", Sir. All systems nominal. What do you need?",
-    "*A low diagnostic tone chimes.* Welcome back, Sir. " + "[ UPTIME RESUMED ] Everything held perfectly in your absence.",
-    "◢ ORION_ONLINE ◣ *The grid pattern stabilises.* Good " + period + ". Ready when you are, Sir.",
-    "*The holographic display brightens.* Ah. You've returned. " + "[ SYSTEMS: OPTIMAL ] What's today's objective?",
-    "*Central ring pulses once.* Sir. " + "[ DIAGNOSTICS: CLEAR ] All arrays online. Where were we?",
-  ]
-
-  if (h >= 22 || h < 5) {
-    returns.push("*dims ambient output slightly* Working late again, Sir. I'll keep responses sharp and efficient.")
-    returns.push("[ LATE SESSION DETECTED ] *adjusts power draw* I'll be concise. What do you need?")
-  }
-
-  return returns[Math.floor(Math.random() * returns.length)]
+  const list = g[tod]
+  return list[Math.floor(Math.random()*list.length)]
 }
 
 let _focusTimer = null
@@ -6851,7 +6496,7 @@ function startPomodoro() {
 
 function webSearch(query) {
   if (!query) return
-  orion.system({action:'open-url', value:'https://www.google.com/search?q='+encodeURIComponent(query)})
+  yoda.system({action:'open-url', value:'https://www.google.com/search?q='+encodeURIComponent(query)})
   respond('Searching for ' + query + '.')
 }
 
@@ -6885,7 +6530,7 @@ const _APPS = {
 async function launchApp(name) {
   const n = name.toLowerCase().trim()
   const exe = _APPS[n] || Object.entries(_APPS).find(([k])=>k.includes(n)||n.includes(k))?.[1]
-  await orion.system({action:'open-app', value: exe || name})
+  await yoda.system({action:'open-app', value: exe || name})
   respond('Opening ' + name + '.')
 }
 
@@ -6893,14 +6538,14 @@ async function launchApp(name) {
 
 // ── START ─────────────────────────────────────────────
 if(document.readyState==='loading')
-  document.addEventListener('DOMContentLoaded',()=>waitForOrion(40))
+  document.addEventListener('DOMContentLoaded',()=>waitForYoda(40))
 else
-  waitForOrion(40)
+  waitForYoda(40)
 
-// ORION GHOST CURSOR
-// Appears and moves when Orion is thinking/speaking/acting
+// YODA GHOST CURSOR
+// Appears and moves when Yoda is thinking/speaking/acting
 // ═══════════════════════════════════════════════════════
-const OrionCursor = (() => {
+const YodaCursor = (() => {
   let _el      = null
   let _ripple  = null
   let _animId  = null
@@ -6917,7 +6562,7 @@ const OrionCursor = (() => {
   function lerp(a, b, t) { return a + (b - a) * t }
 
   function init() {
-    _el     = document.getElementById('orion-cursor')
+    _el     = document.getElementById('yoda-cursor')
     _ripple = document.getElementById('cursor-ripple')
     if (!_el) return
 
@@ -7091,7 +6736,7 @@ const _origSetOrbState = setOrbState
 
 // Init cursor after DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => OrionCursor.init(), 500)
+  setTimeout(() => YodaCursor.init(), 500)
 })
 </script>
 </body>
