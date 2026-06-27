@@ -13,13 +13,13 @@ class GitManager {
 
   // Always reload config fresh
   get cfg() {
-    try { return JSON.parse(fs.readFileSync(path.join(os.homedir(),'yoda_config.json'),'utf8')) }
+    try { return JSON.parse(fs.readFileSync(path.join(os.homedir(),'orbit_config.json'),'utf8')) }
     catch { return {} }
   }
 
   get token() { return (this.cfg.git_token || process.env.GH_TOKEN || '').trim() }
-  get owner()  { return (this.cfg.git_owner || 'yodaaicreator').trim() }
-  get repo()   { return (this.cfg.git_repo  || 'yoda').trim() }
+  get owner()  { return (this.cfg.git_owner || 'orbitaicreator').trim() }
+  get repo()   { return (this.cfg.git_repo  || 'orbit').trim() }
 
   send(type, data={}) {
     try {
@@ -66,7 +66,7 @@ class GitManager {
         method,
         headers: {
           'Authorization': `token ${this.token}`,
-          'User-Agent':    'Yoda-Assistant/1.0',
+          'User-Agent':    'Orbit-Assistant/1.0',
           'Accept':        'application/vnd.github.v3+json',
           'Content-Type':  'application/json',
           ...(data ? {'Content-Length': Buffer.byteLength(data)} : {})
@@ -166,9 +166,9 @@ class GitManager {
   }
 
   generateReleaseNotes(commits, version) {
-    if (!commits||!commits.length) return `## Yoda ${version}\n\nGeneral updates and improvements.`
+    if (!commits||!commits.length) return `## Orbit ${version}\n\nGeneral updates and improvements.`
     const lines = commits.map(c => `- ${c.replace(/^[a-f0-9]+\s+/,'').trim()}`).join('\n')
-    return `## Yoda ${version}\n\n### Changes\n${lines}`
+    return `## Orbit ${version}\n\n### Changes\n${lines}`
   }
 
   _friendlyError(msg) {
@@ -235,8 +235,8 @@ class GitManager {
       const release = await this.githubAPI("POST", "/releases", {
         tag_name:         tag,
         target_commitish: branch,
-        name:             "Yoda " + tag,
-        body:             "## Yoda " + tag + "\n\nDownload the installer below.",
+        name:             "Orbit " + tag,
+        body:             "## Orbit " + tag + "\n\nDownload the installer below.",
         draft:            false,
         prerelease:       false
       })
@@ -320,7 +320,7 @@ class GitManager {
       await new Promise((res,rej) =>
         exec('npm install', {cwd:this.repoPath, timeout:120000}, e => e ? rej(e) : res())
       )
-      this.send('success', {message:'Updated — restart Yoda to apply'})
+      this.send('success', {message:'Updated — restart Orbit to apply'})
       return {success:true}
     } catch(e) {
       this.send('error', {message:e.message})
@@ -334,7 +334,7 @@ class GitManager {
       await this.run('git branch -M main')
       const gitignore = [
         'node_modules/', 'dist/', 'backups/', '*.log',
-        'yoda_app_cache.json', '__pycache__/', '*.pyc',
+        'orbit_app_cache.json', '__pycache__/', '*.pyc',
         'vosk-model-small-en-us/', '*.bak*'
       ].join('\n')
       fs.writeFileSync(path.join(this.repoPath,'.gitignore'), gitignore)

@@ -1,8 +1,8 @@
 'use strict'
 const { contextBridge, ipcRenderer } = require('electron')
 
-// ── Orbit bridge ───────────────────────────────────────
-contextBridge.exposeInMainWorld('orbit', {
+// ── Yoda bridge ───────────────────────────────────────
+contextBridge.exposeInMainWorld('yoda', {
   loadKey:    ()       => ipcRenderer.invoke('load-key'),
   saveKey:    k        => ipcRenderer.invoke('save-key', k),
   loadConfig: ()       => ipcRenderer.invoke('load-config'),
@@ -19,15 +19,6 @@ contextBridge.exposeInMainWorld('orbit', {
   system:     cmd      => ipcRenderer.invoke('system', cmd),
   aiChat:     data     => ipcRenderer.invoke('ai-chat', data),
   openClaw:   req      => ipcRenderer.invoke('openclaw-request', req),
-  perceive: {
-    activeWindow:  ()  => ipcRenderer.invoke('perception-active-window'),
-    processes:     ()  => ipcRenderer.invoke('perception-processes'),
-    system:        ()  => ipcRenderer.invoke('perception-system'),
-    screenshot:    ()  => ipcRenderer.invoke('perception-screenshot'),
-    clipboard:     ()  => ipcRenderer.invoke('perception-clipboard'),
-    browserTabs:   ()  => ipcRenderer.invoke('perception-browser-tabs'),
-  },
-  openClawCli: cmd    => ipcRenderer.invoke('openclaw-cli', cmd),
   speak:      (t,v)    => ipcRenderer.invoke('speak', t, v),
   startMic:   (w,l)    => ipcRenderer.invoke('start-mic', w, l),
   stopMic:    ()       => ipcRenderer.invoke('stop-mic'),

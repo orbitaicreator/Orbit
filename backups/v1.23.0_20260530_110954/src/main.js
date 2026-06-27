@@ -33,13 +33,13 @@ app.commandLine.appendSwitch('enable-speech-dispatcher')
 // ── Paths ─────────────────────────────────────────────
 const HOME        = os.homedir()
 const KEY_FILES   = [
-  path.join(HOME, 'orbit_api_key.txt'),
+  path.join(HOME, 'yoda_api_key.txt'),
   path.join(HOME, 'jarvis_api_key.txt'),
 ]
-const CONFIG_FILE = path.join(HOME, 'orbit_config.json')
-const MEMORY_FILE = path.join(HOME, 'orbit_memory.json')
-const NOTES_FILE  = path.join(HOME, 'orbit_notes.txt')
-const CRASH_FILE  = path.join(HOME, 'orbit_crash.log')
+const CONFIG_FILE = path.join(HOME, 'yoda_config.json')
+const MEMORY_FILE = path.join(HOME, 'yoda_memory.json')
+const NOTES_FILE  = path.join(HOME, 'yoda_notes.txt')
+const CRASH_FILE  = path.join(HOME, 'yoda_crash.log')
 
 const readFile  = (p, fb='')  => { try { return fs.existsSync(p) ? fs.readFileSync(p,'utf8') : fb } catch { return fb } }
 const writeFile = (p, d)      => { try { fs.writeFileSync(p, d, 'utf8'); return true } catch { return false } }
@@ -95,8 +95,8 @@ function findPythonScript(name) {
     path.join(process.cwd(), name),
     path.join(__dirname, '..', 'Python packages', name),
     path.join(process.cwd(), 'Python packages', name),
-    'C:/Users/krist/Orbit/Python packages/' + name,
-    'C:/Users/krist/Orbit/' + name,
+    'C:/Users/krist/Yoda/Python packages/' + name,
+    'C:/Users/krist/Yoda/' + name,
     path.join(app.getPath('userData'), name),
     path.join(process.resourcesPath || '', name),
     path.join(path.dirname(process.execPath), name),
@@ -106,15 +106,15 @@ function findPythonScript(name) {
   return found || null
 }
 
-function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
+function startPythonMic(wakeWord = 'yoda', lang = 'en-US') {
   // Kill existing process first
   if (micProcess) {
     try { micProcess.kill() } catch {}
     micProcess = null
   }
 
-  const script = findPythonScript('orbit_mic.py')
-  if (!script) { console.log('[Mic] orbit_mic.py not found'); return }
+  const script = findPythonScript('yoda_mic.py')
+  if (!script) { console.log('[Mic] yoda_mic.py not found'); return }
 
   const pythons = ['python', 'py', 'python3']
   let tried = 0
@@ -171,13 +171,13 @@ function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
 }
 
 
-// ── Orbit Virtual Mouse ────────────────────────────────────────────────
+// ── Yoda Virtual Mouse ────────────────────────────────────────────────
 let mouseProcess = null
 let mouseReady   = false
 
 function startVirtualMouse() {
-  const script = findPythonScript('orbit_mouse.py')
-  if (!script) { console.log('[Mouse] orbit_mouse.py not found'); return }
+  const script = findPythonScript('yoda_mouse.py')
+  if (!script) { console.log('[Mouse] yoda_mouse.py not found'); return }
 
   const pythons = ['python', 'py', 'python3']
   let tried = 0
@@ -291,7 +291,7 @@ function createWindow() {
   win.webContents.on('did-finish-load', () => {
     if (!micStarted) {
       micStarted = true
-      setTimeout(() => startPythonMic('orbit', 'en-US'), 3000)  // Give renderer time to register IPC listeners
+      setTimeout(() => startPythonMic('yoda', 'en-US'), 3000)  // Give renderer time to register IPC listeners
       setTimeout(() => startVirtualMouse(), 2000)
     }
     // Git manager
@@ -309,8 +309,8 @@ function createWindow() {
 function checkVersionOnGitHub() {
   try {
     const cur = require('../package.json').version
-    https.get('https://raw.githubusercontent.com/orbitaicreator/orbit/main/package.json',
-      { headers: { 'User-Agent': 'OrbitApp' } }, res => {
+    https.get('https://raw.githubusercontent.com/yodaaicreator/yoda/main/package.json',
+      { headers: { 'User-Agent': 'YodaApp' } }, res => {
         let d = ''
         res.on('data', c => d += c)
         res.on('end', () => {
@@ -326,7 +326,7 @@ function checkVersionOnGitHub() {
 
 function buildAppMenu() {
   const template = [
-    { label:'Orbit', submenu:[
+    { label:'Yoda', submenu:[
       { label:'Settings', accelerator:'CmdOrCtrl+,', click:()=>win&&win.webContents.send('nav','settings') },
       { type:'separator' },
       { label:'Quit', accelerator:'CmdOrCtrl+Q', click:()=>app.exit(0) }
@@ -343,7 +343,7 @@ function buildAppMenu() {
       { label:'Publish Release', accelerator:'CmdOrCtrl+Shift+P', click:()=>win&&win.webContents.send('nav','git-publish') },
       { label:'Pull', click:()=>win&&win.webContents.send('nav','git-pull') },
       { type:'separator' },
-      { label:'View Releases', click:()=>shell.openExternal('https://github.com/orbitaicreator/orbit/releases') }
+      { label:'View Releases', click:()=>shell.openExternal('https://github.com/yodaaicreator/yoda/releases') }
     ]}
   ]
   Menu.setApplicationMenu(Menu.buildFromTemplate(template))
@@ -352,9 +352,9 @@ function buildAppMenu() {
 function createTray() {
   try {
     tray = new Tray(makeTrayIcon())
-    tray.setToolTip('Orbit')
+    tray.setToolTip('Yoda')
     tray.setContextMenu(Menu.buildFromTemplate([
-      { label:'Open Orbit', click: showWin },
+      { label:'Open Yoda', click: showWin },
       { label:'Settings',  click: () => { showWin(); win.webContents.send('nav','settings') } },
       { type:'separator' },
       { label:'Quit',      click: () => app.exit(0) },
@@ -433,7 +433,7 @@ ipcMain.handle('quit',        ()    => app.exit(0))
 
 // ── IPC: Mic ──────────────────────────────────────────
 ipcMain.handle('start-mic', (_, wakeWord, lang) => {
-  startPythonMic(wakeWord || 'orbit', lang || 'en-US')
+  startPythonMic(wakeWord || 'yoda', lang || 'en-US')
 })
 ipcMain.handle('stop-mic', () => {
   if (micProcess) { try { micProcess.kill('SIGTERM') } catch {} micProcess = null }
@@ -499,31 +499,30 @@ ipcMain.handle('ai-chat', async (_, { messages, system }) => {
 
 
 // ── OpenClaw IPC ─────────────────────────────────────────────────────────
-// OpenClaw gateway runs on ws://127.0.0.1:18789
-// We communicate via openclaw CLI or HTTP REST API
-
 ipcMain.handle('openclaw-request', async (_, { endpoint, body }) => {
   try {
-    const http = require('http')
-    const url  = new URL(endpoint.replace('ws://', 'http://').replace('wss://', 'https://'))
+    const http  = require('http')
+    const https = require('https')
+    const url   = new URL(endpoint)
+    const isHttps = url.protocol === 'https:'
+    const lib   = isHttps ? https : http
 
     const data = body ? JSON.stringify(body) : null
 
     return new Promise((resolve) => {
       const opts = {
         hostname: url.hostname,
-        port:     url.port || 18790,
+        port:     url.port || (isHttps ? 443 : 80),
         path:     url.pathname + url.search,
-        method:   data ? 'POST' : 'GET',
+        method:   body ? 'POST' : 'GET',
         headers: {
-          'Content-Type':  'application/json',
-          'Accept':        'application/json',
-          'User-Agent':    'Orbit/1.0',
+          'Content-Type': 'application/json',
+          'Accept':       'application/json',
           ...(data ? {'Content-Length': Buffer.byteLength(data)} : {})
         }
       }
 
-      const req = http.request(opts, res => {
+      const req = lib.request(opts, res => {
         let raw = ''
         res.on('data', c => raw += c)
         res.on('end', () => {
@@ -537,6 +536,7 @@ ipcMain.handle('openclaw-request', async (_, { endpoint, body }) => {
 
       req.on('error', e => resolve({ ok: false, error: e.message }))
       req.setTimeout(15000, () => { req.destroy(); resolve({ ok: false, error: 'timeout' }) })
+
       if (data) req.write(data)
       req.end()
     })
@@ -545,109 +545,6 @@ ipcMain.handle('openclaw-request', async (_, { endpoint, body }) => {
   }
 })
 
-// Run openclaw CLI command directly — most reliable way to interact
-ipcMain.handle('openclaw-cli', async (_, command) => {
-  try {
-    const result = await ps(command)
-    return { ok: true, data: result }
-  } catch(e) {
-    return { ok: false, error: e.message }
-  }
-})
-
-
-// ══ PERCEPTION ENGINE — Desktop awareness IPC handlers ════════════════════
-
-// Active window + foreground process
-ipcMain.handle('perception-active-window', async () => {
-  try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      '$w = Get-Process | Where-Object {$_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -ne \"\"} | ' +
-      'Sort-Object CPU -Descending | Select-Object -First 1; ' +
-      '[PSCustomObject]@{Name=$w.ProcessName;Title=$w.MainWindowTitle;CPU=[math]::Round($w.CPU,1);Id=$w.Id} | ConvertTo-Json"',
-      { encoding: 'utf8', timeout: 3000 }
-    ).trim()
-    return { ok: true, data: JSON.parse(result) }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// Full process list with window titles
-ipcMain.handle('perception-processes', async () => {
-  try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      'Get-Process | Where-Object {$_.MainWindowTitle -ne \"\"} | ' +
-      'Select-Object ProcessName,MainWindowTitle,@{N=\'CPU\';E={[math]::Round($_.CPU,1)}} | ' +
-      'ConvertTo-Json -Compress"',
-      { encoding: 'utf8', timeout: 5000 }
-    ).trim()
-    return { ok: true, data: JSON.parse(result) }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// System performance snapshot
-ipcMain.handle('perception-system', async () => {
-  try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      '$cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; ' +
-      '$ram = Get-CimInstance Win32_OperatingSystem; ' +
-      '$disk = Get-PSDrive C; ' +
-      '[PSCustomObject]@{' +
-      'CPU=[math]::Round($cpu,0);' +
-      'RAMUsed=[math]::Round(($ram.TotalVisibleMemorySize-$ram.FreePhysicalMemory)/1MB,1);' +
-      'RAMTotal=[math]::Round($ram.TotalVisibleMemorySize/1MB,1);' +
-      'DiskFree=[math]::Round($disk.Free/1GB,1);' +
-      'DiskTotal=[math]::Round(($disk.Free+$disk.Used)/1GB,1)' +
-      '} | ConvertTo-Json"',
-      { encoding: 'utf8', timeout: 5000 }
-    ).trim()
-    return { ok: true, data: JSON.parse(result) }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// Screenshot for visual AI analysis
-ipcMain.handle('perception-screenshot', async () => {
-  try {
-    const { screen, desktopCapturer } = require('electron')
-    const sources = await desktopCapturer.getSources({
-      types: ['screen'],
-      thumbnailSize: { width: 1280, height: 720 }
-    })
-    if (!sources.length) return { ok: false, error: 'no screen source' }
-    const img = sources[0].thumbnail.toDataURL()
-    return { ok: true, data: img }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// Clipboard content
-ipcMain.handle('perception-clipboard', async () => {
-  try {
-    const { clipboard } = require('electron')
-    return { ok: true, data: { text: clipboard.readText(), hasImage: !clipboard.readImage().isEmpty() } }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// Browser tabs via PowerShell window titles
-ipcMain.handle('perception-browser-tabs', async () => {
-  try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      'Get-Process | Where-Object {$_.ProcessName -match \'chrome|firefox|edge|zen|brave\' -and $_.MainWindowTitle -ne \"\"} | ' +
-      'Select-Object -ExpandProperty MainWindowTitle | ConvertTo-Json -Compress"',
-      { encoding: 'utf8', timeout: 3000 }
-    ).trim()
-    const tabs = JSON.parse(result)
-    return { ok: true, data: Array.isArray(tabs) ? tabs : [tabs] }
-  } catch(e) { return { ok: false, error: e.message } }
-})
-
-// ══ END PERCEPTION ENGINE ══════════════════════════════════════════════════
 ipcMain.handle('system', async (_, cmd) => {
   try {
     switch (cmd.action) {
@@ -683,7 +580,7 @@ ipcMain.handle('system', async (_, cmd) => {
           .then(r => r.toLowerCase().includes('true') ? 'true' : 'false').catch(() => 'false')
       case 'get-weather':
         return await new Promise(resolve => {
-          https.get('https://wttr.in/?format=%t+%C', { headers:{ 'User-Agent':'OrbitApp' } },
+          https.get('https://wttr.in/?format=%t+%C', { headers:{ 'User-Agent':'YodaApp' } },
             res => { let b=''; res.on('data',d=>b+=d); res.on('end',()=>resolve(b.trim())) })
           .on('error', () => resolve(''))
         })
@@ -772,7 +669,7 @@ if($r.Count -gt 0){Start-Process $r[0];Write-Output "FOUND:$($r[0])"}else{Start-
 // ── IPC: TTS ──────────────────────────────────────────
 ipcMain.handle('speak', (_, text, voice) => {
   return new Promise(resolve => {
-    const script = findPythonScript('orbit_tts.py')
+    const script = findPythonScript('yoda_tts.py')
     if (!script) { resolve('error:missing'); return }
     const clean = text.replace(/"/g, "'").replace(/\n/g, ' ').slice(0, 500)
     const v     = voice || 'en-GB-RyanNeural'

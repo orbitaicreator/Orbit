@@ -1,14 +1,14 @@
 @echo off
 setlocal enabledelayedexpansion
 
-:: Always run from Yoda root regardless of where you double-click from
-cd /d "C:\Users\krist\Yoda"
+:: Always run from Orbit root regardless of where you double-click from
+cd /d "C:\Users\krist\Orbit"
 
-title Yoda Update
+title Orbit Update
 
 echo.
 echo  ====================================
-echo    Yoda Update + Release
+echo    Orbit Update + Release
 echo  ====================================
 echo.
 
@@ -40,13 +40,13 @@ echo  Done
 :: GitHub token
 echo  [3/5] GitHub token...
 set GH_TOKEN=
-if exist "%USERPROFILE%\.yoda_gh_token" (
-    set /p GH_TOKEN=<"%USERPROFILE%\.yoda_gh_token"
+if exist "%USERPROFILE%\.orbit_gh_token" (
+    set /p GH_TOKEN=<"%USERPROFILE%\.orbit_gh_token"
 )
 if "!GH_TOKEN!"=="" (
     set /p GH_TOKEN="  Enter GitHub token (ghp_...): "
     if "!GH_TOKEN!"=="" (echo  No token - skipping release & goto :done)
-    echo !GH_TOKEN!>"%USERPROFILE%\.yoda_gh_token"
+    echo !GH_TOKEN!>"%USERPROFILE%\.orbit_gh_token"
 )
 echo  OK
 
@@ -54,16 +54,16 @@ echo  OK
 echo  [4/5] Releasing...
 
 :: Bump MINOR version: 1.0.0 → 1.1.0 → 1.2.0 ... 1.10.0 → 1.11.0
-echo const fs=require('fs'); > "%TEMP%\yoda_bump.js"
-echo const p=JSON.parse(fs.readFileSync('C:\\Users\\krist\\Yoda\\package.json','utf8')); >> "%TEMP%\yoda_bump.js"
-echo const a=p.version.split('.'); >> "%TEMP%\yoda_bump.js"
-echo a[1]=String(parseInt(a[1])+1); >> "%TEMP%\yoda_bump.js"
-echo a[2]='0'; >> "%TEMP%\yoda_bump.js"
-echo p.version=a.join('.'); >> "%TEMP%\yoda_bump.js"
-echo fs.writeFileSync('C:\\Users\\krist\\Yoda\\package.json',JSON.stringify(p,null,2)); >> "%TEMP%\yoda_bump.js"
-echo process.stdout.write(p.version); >> "%TEMP%\yoda_bump.js"
+echo const fs=require('fs'); > "%TEMP%\orbit_bump.js"
+echo const p=JSON.parse(fs.readFileSync('C:\\Users\\krist\\Orbit\\package.json','utf8')); >> "%TEMP%\orbit_bump.js"
+echo const a=p.version.split('.'); >> "%TEMP%\orbit_bump.js"
+echo a[1]=String(parseInt(a[1])+1); >> "%TEMP%\orbit_bump.js"
+echo a[2]='0'; >> "%TEMP%\orbit_bump.js"
+echo p.version=a.join('.'); >> "%TEMP%\orbit_bump.js"
+echo fs.writeFileSync('C:\\Users\\krist\\Orbit\\package.json',JSON.stringify(p,null,2)); >> "%TEMP%\orbit_bump.js"
+echo process.stdout.write(p.version); >> "%TEMP%\orbit_bump.js"
 
-for /f %%v in ('node "%TEMP%\yoda_bump.js"') do set NEW_VER=%%v
+for /f %%v in ('node "%TEMP%\orbit_bump.js"') do set NEW_VER=%%v
 echo  Version: !NEW_VER!
 
 :: Remove large/generated files from git tracking
@@ -74,7 +74,7 @@ git rm -r --cached vosk-model-small-en-us/ >nul 2>&1
 git rm -r --cached vosk-model-small-en-us-0.15/ >nul 2>&1
 
 :: Git push
-git remote set-url origin "https://!GH_TOKEN!@github.com/yodaaicreator/yoda.git" >nul 2>&1
+git remote set-url origin "https://!GH_TOKEN!@github.com/orbitaicreator/orbit.git" >nul 2>&1
 git add -A
 git commit -m "v!NEW_VER!" >nul 2>&1
 git push -u origin main
@@ -85,11 +85,11 @@ if errorlevel 1 (
 
 :: Delete any existing draft release on GitHub with same tag
 echo  Cleaning up any draft releases...
-echo const https=require('https'); > "%TEMP%\yoda_del_draft.js"
-echo const tok=process.argv[1]; >> "%TEMP%\yoda_del_draft.js"
-echo function req(m,p,cb){const o={hostname:'api.github.com',path:p,method:m,headers:{'Authorization':'token '+tok,'User-Agent':'Yoda','Content-Type':'application/json'}};const r=https.request(o,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>cb(null,d))});r.on('error',cb);r.end()} >> "%TEMP%\yoda_del_draft.js"
-echo req('GET','/repos/yodaaicreator/yoda/releases',(e,d)=>{try{const rs=JSON.parse(d);const drafts=rs.filter(r=>r.draft||r.tag_name==='v'+process.argv[2]);drafts.forEach(r=>req('DELETE','/repos/yodaaicreator/yoda/releases/'+r.id,()=>{}))}catch{}}) >> "%TEMP%\yoda_del_draft.js"
-node "%TEMP%\yoda_del_draft.js" "!GH_TOKEN!" "!NEW_VER!" >nul 2>&1
+echo const https=require('https'); > "%TEMP%\orbit_del_draft.js"
+echo const tok=process.argv[1]; >> "%TEMP%\orbit_del_draft.js"
+echo function req(m,p,cb){const o={hostname:'api.github.com',path:p,method:m,headers:{'Authorization':'token '+tok,'User-Agent':'Orbit','Content-Type':'application/json'}};const r=https.request(o,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>cb(null,d))});r.on('error',cb);r.end()} >> "%TEMP%\orbit_del_draft.js"
+echo req('GET','/repos/orbitaicreator/orbit/releases',(e,d)=>{try{const rs=JSON.parse(d);const drafts=rs.filter(r=>r.draft||r.tag_name==='v'+process.argv[2]);drafts.forEach(r=>req('DELETE','/repos/orbitaicreator/orbit/releases/'+r.id,()=>{}))}catch{}}) >> "%TEMP%\orbit_del_draft.js"
+node "%TEMP%\orbit_del_draft.js" "!GH_TOKEN!" "!NEW_VER!" >nul 2>&1
 timeout /t 2 /nobreak >nul
 
 :: Tag
@@ -108,16 +108,16 @@ for /f "tokens=*" %%c in ('git log -10 --oneline --no-merges 2^>nul') do (
 )
 
 :: Write node script to call Claude API
-echo const https=require('https'); > "%TEMP%\yoda_notes.js"
-echo const commits=process.argv[1]||'general updates'; >> "%TEMP%\yoda_notes.js"
-echo const apiKey=process.env.ANTHROPIC_API_KEY||''; >> "%TEMP%\yoda_notes.js"
-echo if(!apiKey){process.stdout.write('General updates and improvements.');process.exit(0)} >> "%TEMP%\yoda_notes.js"
-echo const body=JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:'Write 2-3 bullet points summarizing these git commits as user-friendly release notes. Be brief and focus on what changed for the user. Commits: '+commits}]}); >> "%TEMP%\yoda_notes.js"
-echo const req=https.request({hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey,'Content-Length':Buffer.byteLength(body)}},res=^>{let d='';res.on('data',c=^>d+=c);res.on('end',()=^>{try{const p=JSON.parse(d);process.stdout.write(p.content[0].text||'General updates.')}catch{process.stdout.write('General updates and improvements.')}})}); >> "%TEMP%\yoda_notes.js"
-echo req.on('error',()=^>process.stdout.write('General updates and improvements.')); >> "%TEMP%\yoda_notes.js"
-echo req.write(body);req.end(); >> "%TEMP%\yoda_notes.js"
+echo const https=require('https'); > "%TEMP%\orbit_notes.js"
+echo const commits=process.argv[1]||'general updates'; >> "%TEMP%\orbit_notes.js"
+echo const apiKey=process.env.ANTHROPIC_API_KEY||''; >> "%TEMP%\orbit_notes.js"
+echo if(!apiKey){process.stdout.write('General updates and improvements.');process.exit(0)} >> "%TEMP%\orbit_notes.js"
+echo const body=JSON.stringify({model:'claude-haiku-4-5-20251001',max_tokens:200,messages:[{role:'user',content:'Write 2-3 bullet points summarizing these git commits as user-friendly release notes. Be brief and focus on what changed for the user. Commits: '+commits}]}); >> "%TEMP%\orbit_notes.js"
+echo const req=https.request({hostname:'api.anthropic.com',path:'/v1/messages',method:'POST',headers:{'Content-Type':'application/json','anthropic-version':'2023-06-01','x-api-key':apiKey,'Content-Length':Buffer.byteLength(body)}},res=^>{let d='';res.on('data',c=^>d+=c);res.on('end',()=^>{try{const p=JSON.parse(d);process.stdout.write(p.content[0].text||'General updates.')}catch{process.stdout.write('General updates and improvements.')}})}); >> "%TEMP%\orbit_notes.js"
+echo req.on('error',()=^>process.stdout.write('General updates and improvements.')); >> "%TEMP%\orbit_notes.js"
+echo req.write(body);req.end(); >> "%TEMP%\orbit_notes.js"
 
-for /f "tokens=*" %%n in ('node "%TEMP%\yoda_notes.js" "!COMMITS!" 2^>nul') do set RELEASE_NOTES=%%n
+for /f "tokens=*" %%n in ('node "%TEMP%\orbit_notes.js" "!COMMITS!" 2^>nul') do set RELEASE_NOTES=%%n
 if "!RELEASE_NOTES!"=="" set RELEASE_NOTES=General updates and improvements.
 echo  Notes: !RELEASE_NOTES!
 
@@ -137,10 +137,10 @@ if exist installer rd /s /q installer >nul 2>&1
 echo.
 echo  ====================================
 echo  Released v!NEW_VER! successfully
-echo  github.com/yodaaicreator/yoda/releases
+echo  github.com/orbitaicreator/orbit/releases
 echo  ====================================
 echo.
 
-echo  Done. Run Yoda with run.bat
+echo  Done. Run Orbit with run.bat
 
 :done

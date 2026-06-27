@@ -1,7 +1,7 @@
 {
-  "name": "orbit",
-  "version": "1.0.0",
-  "description": "Orbit AI Assistant",
+  "name": "yoda",
+  "version": "1.23.0",
+  "description": "Yoda AI Assistant",
   "main": "src/main.js",
   "scripts": {
     "start": "electron .",
@@ -9,8 +9,8 @@
     "dist": "electron-builder --win --x64 --publish always"
   },
   "build": {
-    "appId": "com.orbit.assistant",
-    "productName": "Orbit",
+    "appId": "com.yoda.assistant",
+    "productName": "Yoda",
     "copyright": "Copyright 2025 Kristian",
     "directories": {
       "output": "installer",
@@ -32,7 +32,7 @@
       "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
-      "shortcutName": "Orbit",
+      "shortcutName": "Yoda",
       "runAfterFinish": false
     },
     "files": [
@@ -50,22 +50,22 @@
     ],
     "extraResources": [
       {
-        "from": "orbit_mic.py",
-        "to": "orbit_mic.py"
+        "from": "yoda_mic.py",
+        "to": "yoda_mic.py"
       },
       {
-        "from": "orbit_tts.py",
-        "to": "orbit_tts.py"
+        "from": "yoda_tts.py",
+        "to": "yoda_tts.py"
       },
       {
-        "from": "orbit_mouse.py",
-        "to": "orbit_mouse.py"
+        "from": "yoda_mouse.py",
+        "to": "yoda_mouse.py"
       }
     ],
     "publish": {
       "provider": "github",
-      "owner": "orbitaicreator",
-      "repo": "orbit",
+      "owner": "yodaaicreator",
+      "repo": "yoda",
       "releaseType": "release"
     },
     "compression": "maximum",

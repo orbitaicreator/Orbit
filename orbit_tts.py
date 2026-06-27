@@ -1,7 +1,7 @@
 """
-Yoda Neural TTS
+Orbit Neural TTS
 Uses Microsoft edge-tts for natural sounding voice
-Usage: python yoda_tts.py "text" "voice-name"
+Usage: python orbit_tts.py "text" "voice-name"
 """
 import sys
 import os
@@ -101,7 +101,7 @@ async def generate_and_play(text, voice):
         except: pass
 
 if __name__ == '__main__':
-    text  = sys.argv[1] if len(sys.argv) > 1 else 'Yoda online.'
+    text  = sys.argv[1] if len(sys.argv) > 1 else 'Orbit online.'
     voice = sys.argv[2] if len(sys.argv) > 2 else 'en-GB-RyanNeural'
 
     # Use known voice or default

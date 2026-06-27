@@ -1,4 +1,4 @@
-"""Yoda Microphone - Vosk offline speech recognition"""
+"""Orbit Microphone - Vosk offline speech recognition"""
 import sys, os, subprocess, time, json, queue, re
 
 def ensure(pkg, pip_name=None):
@@ -10,14 +10,14 @@ def ensure(pkg, pip_name=None):
 
 ensure("vosk"); ensure("sounddevice"); ensure("numpy")
 
-WAKE_WORD  = (sys.argv[1] if len(sys.argv)>1 else "yoda").lower().strip()
+WAKE_WORD  = (sys.argv[1] if len(sys.argv)>1 else "orbit").lower().strip()
 SCRIPT_DIR = sys.argv[2] if len(sys.argv)>2 else os.path.dirname(os.path.abspath(__file__))
 
-# All the ways Vosk mishears "yoda" — checked BEFORE normalization
+# All the ways Vosk mishears "orbit" — checked BEFORE normalization
 WAKE_VARIANTS = {
-    "yoda","yo da","yo-da","yoga","euler","order","loader",
-    "yo dog","yo dawg","yodah","iota","joda","yotta","yoder",
-    "yo duh","toda","coda","older","euler","iota","yoda yoda",
+    "orbit","yo da","yo-da","yoga","euler","order","loader",
+    "yo dog","yo dawg","orbith","iota","joda","yotta","yoder",
+    "yo duh","toda","coda","older","euler","iota","orbit orbit",
     "yo","yolda","joder","yona","yoba","yoka","yopa","yora",
 }
 
@@ -75,9 +75,9 @@ def is_wake(text):
 def find_model():
     candidates = [
         os.path.join(SCRIPT_DIR, "vosk-model-small-en-us"),
-        os.path.join(os.path.expanduser("~"), "Yoda", "vosk-model-small-en-us"),
+        os.path.join(os.path.expanduser("~"), "Orbit", "vosk-model-small-en-us"),
         os.path.join(os.getcwd(), "vosk-model-small-en-us"),
-        r"C:\Users\krist\Yoda\vosk-model-small-en-us",
+        r"C:\Users\krist\Orbit\vosk-model-small-en-us",
     ]
     for p in candidates:
         if os.path.exists(p): return p

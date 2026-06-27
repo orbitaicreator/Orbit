@@ -1,13 +1,13 @@
 """
-Yoda Virtual Mouse v2
+Orbit Virtual Mouse v2
 =====================
 Uses the real Windows cursor but:
 1. Saves your cursor position before acting
-2. Draws a green glowing arrow overlay so you can see Yoda's cursor
-3. Restores YOUR cursor position after Yoda is done
-4. Shows a small "YODA CTRL" pill in the corner while active
+2. Draws a green glowing arrow overlay so you can see Orbit's cursor
+3. Restores YOUR cursor position after Orbit is done
+4. Shows a small "ORBIT CTRL" pill in the corner while active
 
-This means you can see exactly what Yoda is doing AND get your
+This means you can see exactly what Orbit is doing AND get your
 cursor back in the same spot when he's finished.
 
 Commands (stdin, one per line):
@@ -164,10 +164,10 @@ class Overlay:
                       ("hIcon",wt.HICON),("hCursor",wt.HANDLE),("hbrBackground",wt.HBRUSH),
                       ("lpszMenuName",wt.LPCWSTR),("lpszClassName",wt.LPCWSTR),("hIconSm",wt.HICON)]
         wc=WC(); wc.cbSize=ctypes.sizeof(WC); wc.lpfnWndProc=self._wcp
-        wc.hInstance=kernel32.GetModuleHandleW(None); wc.lpszClassName="YodaMouseV2"
+        wc.hInstance=kernel32.GetModuleHandleW(None); wc.lpszClassName="OrbitMouseV2"
         user32.RegisterClassExW(ctypes.byref(wc))
         ex=WS_EX_LAYERED|WS_EX_TRANSPARENT|WS_EX_TOPMOST|WS_EX_TOOLWINDOW|WS_EX_NOACTIVATE
-        self.hwnd=user32.CreateWindowExW(ex,"YodaMouseV2","",WS_POPUP,0,0,CW,CH,
+        self.hwnd=user32.CreateWindowExW(ex,"OrbitMouseV2","",WS_POPUP,0,0,CW,CH,
                                          None,None,kernel32.GetModuleHandleW(None),None)
 
     def _draw(self):
@@ -218,16 +218,16 @@ class Overlay:
 ov=Overlay()
 
 # ── Save/restore user cursor position ────────────────────────────────────
-_user_pos   = None   # saved position before Yoda takes over
-_yoda_active = False  # True while Yoda is controlling the mouse
+_user_pos   = None   # saved position before Orbit takes over
+_orbit_active = False  # True while Orbit is controlling the mouse
 
 def save_user_pos():
     global _user_pos
     _user_pos = pyautogui.position()
 
 def restore_user_pos():
-    global _yoda_active
-    _yoda_active = False
+    global _orbit_active
+    _orbit_active = False
     if _user_pos is not None:
         # Move back smoothly to where user's cursor was
         pyautogui.moveTo(_user_pos[0], _user_pos[1], duration=0.25, _pause=False)
@@ -235,10 +235,10 @@ def restore_user_pos():
 
 def begin_control():
     """Call before any mouse action"""
-    global _yoda_active
-    if not _yoda_active:
+    global _orbit_active
+    if not _orbit_active:
         save_user_pos()
-        _yoda_active = True
+        _orbit_active = True
     ov.show()
 
 def end_control(delay=1.2):
@@ -305,7 +305,7 @@ def do_scroll(x,y,n):
 def do_screenshot():
     import datetime
     p=os.path.join(os.path.expanduser("~"),"Desktop",
-                   f"Yoda_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
+                   f"Orbit_{datetime.datetime.now().strftime('%Y-%m-%d_%H-%M-%S')}.png")
     pyautogui.screenshot(p); out({"type":"done","action":"screenshot","path":p})
 
 
