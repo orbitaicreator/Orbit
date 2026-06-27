@@ -121,15 +121,33 @@ for /f "tokens=*" %%n in ('node "%TEMP%\orbit_notes.js" "!COMMITS!" 2^>nul') do 
 if "!RELEASE_NOTES!"=="" set RELEASE_NOTES=General updates and improvements.
 echo  Notes: !RELEASE_NOTES!
 
+:: Generate manual upload script (fallback)
+echo const https=require('https'),fs=require('fs'),path=require('path'); > "%TEMP%\orbit_upload.js"
+echo const [tok,ver,notes]=process.argv.slice(1); >> "%TEMP%\orbit_upload.js"
+echo const owner='orbitaicreator',repo='orbit'; >> "%TEMP%\orbit_upload.js"
+echo function req(m,p,b,cb){const o={hostname:'api.github.com',path:p,method:m,headers:{'Authorization':'token '+tok,'User-Agent':'Orbit','Content-Type':'application/json','Accept':'application/vnd.github.v3+json'}};if(b)o.headers['Content-Length']=Buffer.byteLength(b);const r=https.request(o,res=>{let d='';res.on('data',c=>d+=c);res.on('end',()=>cb(null,res.statusCode,d))});r.on('error',e=>cb(e));if(b)r.write(b);r.end()} >> "%TEMP%\orbit_upload.js"
+echo req('POST','/repos/'+owner+'/'+repo+'/releases',JSON.stringify({tag_name:'v'+ver,name:'v'+ver,body:notes||'General updates.',draft:false,prerelease:false}),(e,s,d)=>{if(e||s>=400){console.error('Release create failed:',s,d);process.exit(1)}const rel=JSON.parse(d);const up=rel.upload_url.replace('{?name,label}','');const ins=fs.readdirSync('installer').find(f=>f.endsWith('.exe')&&!f.includes('uninstall')&&!f.includes('blockmap'));if(!ins){console.log('No installer found');process.exit(0)}const data=fs.readFileSync('installer/'+ins);const uo=new URL(up+'?name='+ins);const ur=https.request({hostname:uo.hostname,path:uo.pathname+uo.search,method:'POST',headers:{'Authorization':'token '+tok,'User-Agent':'Orbit','Content-Type':'application/octet-stream','Content-Length':data.length,'Accept':'application/vnd.github.v3+json'}},res=>{let d2='';res.on('data',c=>d2+=c);res.on('end',()=>console.log('Uploaded:',res.statusCode))});ur.on('error',e=>console.error(e));ur.write(data);ur.end()}) >> "%TEMP%\orbit_upload.js"
+
 :: Build
 echo  [5/5] Building installer...
 echo  (2-5 minutes)
 echo.
+:: Pass token directly to electron-builder via env
 set GH_TOKEN=!GH_TOKEN!
+set GITHUB_TOKEN=!GH_TOKEN!
 set RELEASE_NOTES=!RELEASE_NOTES!
 set ELECTRON_BUILDER_CACHE=C:\Users\krist\AppData\Local\electron-builder\Cache
 set ELECTRON_CACHE=C:\Users\krist\AppData\Local\electron\Cache
-call npm run dist
+:: Run with token explicitly in environment
+cmd /c "set GH_TOKEN=!GH_TOKEN!&& set GITHUB_TOKEN=!GH_TOKEN!&& call npm run dist"
+if errorlevel 1 (
+    :: Fallback: build without publish, then upload manually
+    echo  Build with publish failed, trying without publish...
+    cmd /c "set GH_TOKEN=!GH_TOKEN!&& call npx electron-builder --win --x64 --publish never"
+    if errorlevel 1 (echo  [ERROR] Build failed & pause & exit /b 1)
+    echo  Built successfully. Uploading release manually...
+    node "%TEMP%\orbit_upload.js" "!GH_TOKEN!" "!NEW_VER!" "!RELEASE_NOTES!"
+)
 if errorlevel 1 (echo  [ERROR] Build failed & pause & exit /b 1)
 
 if exist installer rd /s /q installer >nul 2>&1
