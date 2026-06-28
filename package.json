@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "description": "Orbit AI Assistant",
   "main": "src/main.js",
   "scripts": {
@@ -74,11 +74,11 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
-    "electron-updater": "^6.3.0",
-    "electron-log": "^5.1.0"
+    "electron-log": "^5.1.0",
+    "electron-updater": "^6.3.0"
   },
   "devDependencies": {
-    "electron": "42.0.1",
+    "electron": "^42.0.1",
     "electron-builder": "^26.8.1"
   },
   "author": "Kristian Relbe-Moe"
