@@ -66,7 +66,6 @@ It combines:
 - Ambient presence — orb breathes, reacts, changes color with time of day
 - 9 energy states with distinct animations
 - Night mode, themes (Green/Blue/Red/Purple/Amber/White/Custom)
-- Jumpstart overlay and Jumpscare feature
 
 ### 🔒 Privacy
 - Runs entirely locally on your PC
@@ -107,7 +106,6 @@ run.bat
 | `add goal finish the feature` | Adds to goal tracker |
 | `navigate to Oslo` | Opens tactical map |
 | `open camera` | Live camera with HUD overlay |
-| `jumpscare` | You know what this does |
 | `developer mode` | Full system diagnostic |
 | `digital twin` | Live unified state summary |
 
@@ -136,7 +134,7 @@ Proactive Engine     → Battery, git, schedule suggestions
 
 ## Built by
 
-**Kristian** — Holmestrand, Norway
+**Kristian Relbe-Moe** — Holmestrand, Norway
 
 ---
 
