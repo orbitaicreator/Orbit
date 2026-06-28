@@ -1325,6 +1325,17 @@ body, html          { margin:0; padding:0; background:#070B14; overflow:hidden; 
 #orb-wrap           { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
 #inp-row            { position:relative; z-index:20; flex-shrink:0; }
 
+
+/* LAYOUT */
+html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:hidden}
+#app{width:100%;height:100vh;background:#070B14;display:none;flex-direction:column}
+#tbar{flex-shrink:0;position:relative;z-index:500}
+#main{flex:1;position:relative;display:flex;overflow:hidden;min-height:0;background:#070B14}
+#sb{flex-shrink:0;position:relative;z-index:200}
+#chat{flex:1;position:relative;z-index:10;overflow-y:auto;padding:12px 14px 4px;min-height:0;display:flex;flex-direction:column}
+#inp-row{flex-shrink:0;position:relative;z-index:20}
+#orb-wrap{position:absolute;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:1}
+
 </style>
 </head>
 <body>
@@ -1348,7 +1359,7 @@ body, html          { margin:0; padding:0; background:#070B14; overflow:hidden; 
 </div>
 
 <!-- Main app -->
-<div id="app" style="display:none;flex-direction:column;height:100vh;">
+<div id="app" style="display:none">
 
   <div id="tbar">
     <!-- Left: sidebar toggle + nav -->
@@ -2078,7 +2089,7 @@ function _healthCheck(sys,testFn,healFn){
   }
 }
 function _runDiagnostics(){
-  _healthCheck('IPC',function(){return!!(window.orion&&orion.system)},null)
+  _healthCheck('IPC',function(){return!!(window.orbit&&orbit.system)},null)
   _healthCheck('BUSY',function(){return!busy||(Date.now()-(_busyAt||Date.now()))<12000},function(){busy=false;hideTyping&&hideTyping();window._setOrb&&_setOrb('idle')})
   _healthCheck('TTS',function(){return!!(window.ttsMgr&&ttsMgr.synth)},function(){ttsMgr&&ttsMgr._loadVoices&&ttsMgr._loadVoices()})
   _healthCheck('MEMORY',function(){return Object.keys(_memGraph.nodes).length<2000},function(){_memGraph.decay();_memGraph.save()})
@@ -2232,7 +2243,7 @@ var _projectContext = {
   history: [],
 
   detect: async function() {
-    if (!window.orion || !orion.system) return
+    if (!window.orbit || !orbit.system) return
     try {
       // Check git status for project context
       if (window.git) {
@@ -2702,8 +2713,8 @@ function initVision2() {
 // ── 1. SAFE IPC WRAPPER — guard all system calls ──────────────────────────
 async function _safeSystem(action, value) {
   try {
-    if (!window.orion || !orion.system) return null
-    var result = await orion.system({ action: action, value: value })
+    if (!window.orbit || !orbit.system) return null
+    var result = await orbit.system({ action: action, value: value })
     _execLog.add(action, true)
     _initiative.increase(2)
     return result
@@ -3298,9 +3309,9 @@ var _proactive = {
     {
       id: 'battery_low',
       check: async function() {
-        if (!window.orion || !orion.system) return null
+        if (!window.orbit || !orbit.system) return null
         try {
-          var r = await orion.system({ action: 'run-ps', value: '(Get-WmiObject Win32_Battery).EstimatedChargeRemaining' })
+          var r = await orbit.system({ action: 'run-ps', value: '(Get-WmiObject Win32_Battery).EstimatedChargeRemaining' })
           var pct = parseInt(r)
           if (!isNaN(pct) && pct < 20 && pct > 0) return 'Battery at ' + pct + '%. Plug in to avoid interruption.'
         } catch(e) {}
@@ -3989,8 +4000,8 @@ var _appWatcher = {
 
 async function _watchApps() {
   try {
-    if (!window.orion || !orion.system) return
-    var result = await orion.system({ action: 'run-ps', value: 'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -ExpandProperty ProcessName | Sort-Object -Unique | ConvertTo-Json' })
+    if (!window.orbit || !orbit.system) return
+    var result = await orbit.system({ action: 'run-ps', value: 'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -ExpandProperty ProcessName | Sort-Object -Unique | ConvertTo-Json' })
     if (!result) return
     var procs = []
     try { procs = JSON.parse(result) } catch(e) { return }
@@ -4064,24 +4075,24 @@ var _perception = {
 }
 
 async function _perceptionTick() {
-  if (!window.orion || !orion.perceive) return
+  if (!window.orbit || !orbit.perceive) return
   try {
-    var aw = await orion.perceive.activeWindow()
+    var aw = await orbit.perceive.activeWindow()
     if (aw && aw.ok && aw.data) { _perception.activeWindow = aw.data; _perceptionUpdateContext(aw.data) }
   } catch(e) {}
 }
 
 async function _perceptionDeepScan() {
-  if (!window.orion || !orion.perceive) return
+  if (!window.orbit || !orbit.perceive) return
   try {
-    var sys = await orion.perceive.system()
+    var sys = await orbit.perceive.system()
     if (sys && sys.ok) { _perception.system = sys.data; _perceptionUpdateHUD(sys.data) }
-    var procs = await orion.perceive.processes()
+    var procs = await orbit.perceive.processes()
     if (procs && procs.ok) {
       var pa = Array.isArray(procs.data) ? procs.data : [procs.data]
       _appWatcher.running = pa.map(function(p){ return (p.ProcessName||'').toLowerCase() })
     }
-    var clip = await orion.perceive.clipboard()
+    var clip = await orbit.perceive.clipboard()
     if (clip && clip.ok) _perception.clipboard = clip.data
     _perceptionInfer()
   } catch(e) {}
@@ -4159,13 +4170,13 @@ var _workspaceTemplates = {
   coding: { name:'Coding', prepare: async function() {
     addMsg('s','*Coding workspace activated.*')
     var hasCode = _appWatcher.running.some(function(p){ return /code|cursor/.test(p) })
-    if (!hasCode && window.orion) await orion.system({action:'open',value:'code'})
+    if (!hasCode && window.orbit) await orbit.system({action:'open',value:'code'})
     respond('Coding session ready.')
   }},
   streaming: { name:'Streaming', prepare: async function() {
     addMsg('s','*Streaming workspace activated.*')
     var hasOBS = _appWatcher.running.some(function(p){ return /obs/.test(p) })
-    if (!hasOBS && window.orion) { addMsg('s','Launching OBS...'); await orion.system({action:'open',value:'obs64'}) }
+    if (!hasOBS && window.orbit) { addMsg('s','Launching OBS...'); await orbit.system({action:'open',value:'obs64'}) }
     var df = _perception.system.DiskFree
     if (df && df < 20) addMsg('s','Warning: only ' + df + 'GB free disk.')
     respond('Streaming workspace ready.')
@@ -4184,12 +4195,12 @@ async function activateWorkspace(name) {
 }
 
 async function analyzeScreen(question) {
-  if (!window.orion || !orion.perceive) return respond('Vision system unavailable.')
+  if (!window.orbit || !orbit.perceive) return respond('Vision system unavailable.')
   addMsg('s','*Capturing desktop...*')
   try {
-    var shot = await orion.perceive.screenshot()
+    var shot = await orbit.perceive.screenshot()
     if (!shot || !shot.ok) return respond('Screen capture failed.')
-    var k = apiKey || (await orion.loadKey())
+    var k = apiKey || (await orbit.loadKey())
     if (!k) return respond('API key required for visual analysis.')
     addMsg('s','*Analyzing...*')
     var resp = await fetch('https://api.anthropic.com/v1/messages', {
@@ -4582,7 +4593,7 @@ class MicrophoneManager {
     const bm = document.getElementById('btn-mic')
     if (bm) bm.classList.add('on')
     try { updateMicStatus('active') } catch(e) {}
-    try { orion.show() } catch(e) {}
+    try { orbit.show() } catch(e) {}
     try { showInp() } catch(e) {}
     try { if (ttsMgr) ttsMgr.speak('Yeah?') } catch(e) {}
   }
@@ -4649,7 +4660,7 @@ let useOllama = false
 
 // ── Boot ─────────────────────────────────────────────
 function waitForOrion(n) {
-  if (typeof window.orion !== 'undefined') { boot() }
+  if (typeof window.orbit !== 'undefined') { boot() }
   else if (n > 0) setTimeout(() => waitForOrion(n-1), 50)
   else {
     document.body.innerHTML = '<div style="color:#ff4444;font-family:Consolas;padding:40px;font-size:13px">' +
@@ -4659,9 +4670,9 @@ function waitForOrion(n) {
 
 async function boot() {
   try {
-    config    = await orion.loadConfig() || {}
-    memory    = await orion.loadMemory() || {facts:[],preferences:{},commands:[]}
-    apiKey    = await orion.loadKey()
+    config    = await orbit.loadConfig() || {}
+    memory    = await orbit.loadMemory() || {facts:[],preferences:{},commands:[]}
+    apiKey    = await orbit.loadKey()
     lang      = config.language || 'en'
     shortcuts = config.shortcuts || defShortcuts()
 
@@ -4696,7 +4707,7 @@ async function submitKey() {
   try {
     const k = el('sk-key').value.trim()
     if (!k) { el('sk-err').textContent='Enter a key.'; return }
-    await orion.saveKey(k); apiKey=k
+    await orbit.saveKey(k); apiKey=k
     el('setup').style.display='none'; startApp()
   } catch(e) {
     const err = el('sk-err'); if(err) err.textContent='Error: '+e.message
@@ -4714,7 +4725,7 @@ function applyScreenWatch(mode) {
   const ms = mode==='30s' ? 30000 : mode==='60s' ? 60000 : 300000
   screenWatchTimer = setInterval(async () => {
     // Take screenshot and analyze
-    const r = await orion.system({action:'screenshot'})
+    const r = await orbit.system({action:'screenshot'})
     if (r && !r.includes('Error')) {
       addMsg('s', 'Screen captured for analysis.')
     }
@@ -4761,7 +4772,7 @@ function updateFollowUI() {
 }
 
 function startApp() {
-  el('app').style.display='block'
+  el('app').style.display='flex'
   initSidebar()
   _updateProfileSub()
   // Sidebar always visible — set main margin
@@ -4802,7 +4813,7 @@ function startApp() {
   // Load version into sidebar badge
   try {
     const vb = el('sb-version')
-    if (vb) orion.loadConfig().then(c=>{if(c&&c.version)vb.textContent='v'+c.version}).catch(()=>{})
+    if (vb) orbit.loadConfig().then(c=>{if(c&&c.version)vb.textContent='v'+c.version}).catch(()=>{})
   } catch{}
   // Load saved git settings into fields
   if (config.git_url)   { const gu=el('setting-git-url');   if(gu) gu.value=config.git_url }
@@ -4915,25 +4926,25 @@ function calculate(expr) {
 }
 
 async function showDesktop() {
-  await orion.system({action:'run-ps', value:'(New-Object -ComObject Shell.Application).MinimizeAll()'}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'(New-Object -ComObject Shell.Application).MinimizeAll()'}).catch(function(){})
   respond('Showing desktop.')
 }
 
 async function emptyRecycleBin() {
-  await orion.system({action:'run-ps', value:'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'Clear-RecycleBin -Force -ErrorAction SilentlyContinue'}).catch(function(){})
   respond('Recycle bin emptied.')
 }
 
 async function checkDiskSpace() {
   try {
-    var r = await orion.system({action:'run-ps', value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free of "+[math]::Round(($d.Used+$d.Free)/1GB,1).ToString()+"GB"'})
+    var r = await orbit.system({action:'run-ps', value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free of "+[math]::Round(($d.Used+$d.Free)/1GB,1).ToString()+"GB"'})
     respond('Disk C: '+(r||'unknown')+'.')
   } catch(e){ respond('Could not check disk space.') }
 }
 
 async function toggleWifi(on) {
   var cmd = on ? 'Enable-NetAdapter -Name Wi-Fi -Confirm:$false' : 'Disable-NetAdapter -Name Wi-Fi -Confirm:$false'
-  await orion.system({action:'run-ps', value:cmd}).catch(function(){})
+  await orbit.system({action:'run-ps', value:cmd}).catch(function(){})
   respond('Wi-Fi '+(on?'on.':'off.'))
 }
 
@@ -5070,21 +5081,21 @@ function playOn(service, query) {
     soundcloud:'https://soundcloud.com/search?q=' + encodeURIComponent(query),
   }
   var url = urls[service] || urls.youtube
-  orion.system({action:'open-url', value:url})
+  orbit.system({action:'open-url', value:url})
   respond('Opening ' + service + ' for: ' + query)
 }
 
 // 2. Email composer — opens mailto link
 function composeEmail(to, subject, body) {
   var mailto = 'mailto:' + (to||'') + '?subject=' + encodeURIComponent(subject||'') + '&body=' + encodeURIComponent(body||'')
-  orion.system({action:'open-url', value:mailto})
+  orbit.system({action:'open-url', value:mailto})
   respond('Opening email composer.')
 }
 
 // 3. QR code generator — opens online QR tool
 function generateQR(text) {
   var url = 'https://qr.io/?text=' + encodeURIComponent(text)
-  orion.system({action:'open-url', value:url})
+  orbit.system({action:'open-url', value:url})
   respond('Opening QR code generator for: ' + text)
 }
 
@@ -5114,7 +5125,7 @@ function getSunTimes() {
 // 5. IP address lookup
 async function getMyIP() {
   try {
-    var r = await orion.system({action:'run-ps', value:'(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content'})
+    var r = await orbit.system({action:'run-ps', value:'(Invoke-WebRequest -Uri "https://api.ipify.org" -UseBasicParsing).Content'})
     respond('Your public IP: ' + (r||'unknown').trim())
   } catch(e) { respond('Could not get IP address.') }
 }
@@ -5122,20 +5133,20 @@ async function getMyIP() {
 // 6. Ping a website
 async function pingHost(host) {
   try {
-    var r = await orion.system({action:'run-ps', value:'$p=Test-Connection -ComputerName ' + host + ' -Count 1 -ErrorAction SilentlyContinue; if($p){"OK "+[math]::Round($p.ResponseTime)+"ms"}else{"No response"}'})
+    var r = await orbit.system({action:'run-ps', value:'$p=Test-Connection -ComputerName ' + host + ' -Count 1 -ErrorAction SilentlyContinue; if($p){"OK "+[math]::Round($p.ResponseTime)+"ms"}else{"No response"}'})
     respond('Ping ' + host + ': ' + (r||'failed').trim())
   } catch(e) { respond('Could not ping ' + host) }
 }
 
 // 7. Restart explorer (fixes frozen taskbar)
 async function restartExplorer() {
-  await orion.system({action:'run-ps', value:'Stop-Process -Name explorer -Force; Start-Process explorer'}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'Stop-Process -Name explorer -Force; Start-Process explorer'}).catch(function(){})
   respond('Explorer restarted. Taskbar should be back in a moment.')
 }
 
 // 8. Night mode — reduce brightness for evening
 async function nightMode() {
-  await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,30)'}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,30)'}).catch(function(){})
   document.body.style.filter = 'brightness(0.8) sepia(0.2)'
   respond('Night mode on. Screen dimmed.')
 }
@@ -5265,16 +5276,16 @@ function convertCurrency(amount, from, to) {
 
 async function scheduleShutdown(minutes) {
   var mins = parseInt(minutes)||0
-  await orion.system({action:'run-ps', value:'shutdown /s /t '+(mins*60)}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'shutdown /s /t '+(mins*60)}).catch(function(){})
   respond(mins>0 ? 'Shutting down in '+mins+' minutes.' : 'Shutting down now.')
 }
 async function cancelShutdown() {
-  await orion.system({action:'run-ps', value:'shutdown /a'}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'shutdown /a'}).catch(function(){})
   respond('Shutdown cancelled.')
 }
 async function scheduleRestart(minutes) {
   var mins = parseInt(minutes)||0
-  await orion.system({action:'run-ps', value:'shutdown /r /t '+(mins*60)}).catch(function(){})
+  await orbit.system({action:'run-ps', value:'shutdown /r /t '+(mins*60)}).catch(function(){})
   respond(mins>0 ? 'Restarting in '+mins+' minutes.' : 'Restarting now.')
 }
 
@@ -5303,7 +5314,7 @@ function showExpenses() {
 
 async function listOpenWindows() {
   try {
-    var r = await orion.system({action:'run-ps', value:'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -First 6 -ExpandProperty MainWindowTitle'})
+    var r = await orbit.system({action:'run-ps', value:'Get-Process | Where-Object {$_.MainWindowTitle -ne ""} | Select-Object -First 6 -ExpandProperty MainWindowTitle'})
     if (!r||!r.trim()) return respond('Could not list windows.')
     var wins=r.trim().split('\n').filter(function(l){return l.trim()}).slice(0,6)
     respond('Open: '+wins.join(', '))
@@ -5312,14 +5323,14 @@ async function listOpenWindows() {
 
 function openTranslate(text, to) {
   var url='https://translate.google.com/?sl=auto&tl='+(to||'en')+'&text='+encodeURIComponent(text)+'&op=translate'
-  orion.system({action:'open-url',value:url})
+  orbit.system({action:'open-url',value:url})
   respond('Opening Google Translate.')
 }
 
 async function typeText(text) {
   try {
     await navigator.clipboard.writeText(text)
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Milliseconds 400; [System.Windows.Forms.SendKeys]::SendWait("^v")'})
+    await orbit.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; Start-Sleep -Milliseconds 400; [System.Windows.Forms.SendKeys]::SendWait("^v")'})
     respond('Typed: '+text.slice(0,40)+(text.length>40?'...':''))
   } catch(e) { respond('Could not type text.') }
 }
@@ -5390,7 +5401,7 @@ function contextSearch(query) {
   var site = _lastOpenedSite || 'google'
   var builder = _SITE_SEARCH[site] || _SITE_SEARCH.google
   var url = builder(query)
-  orion.system({action:'open-url', value:url})
+  orbit.system({action:'open-url', value:url})
   respond('Searching ' + site + ' for: ' + query)
 }
 
@@ -5453,7 +5464,7 @@ async function browserClick(label) {
   try {
     // Use PowerShell to find and click UI element
     var ps = 'Add-Type -AssemblyName UIAutomationClient,UIAutomationTypes; $root=[System.Windows.Automation.AutomationElement]::RootElement; $cond=New-Object System.Windows.Automation.PropertyCondition([System.Windows.Automation.AutomationElement]::NameProperty,"' + label + '"); $el=$root.FindFirst([System.Windows.Automation.TreeScope]::Descendants,$cond); if($el){$inv=$el.GetCurrentPattern([System.Windows.Automation.InvokePattern]::Pattern);$inv.Invoke();"clicked"}else{"not found"}'
-    var r = await orion.system({action:'run-ps', value:ps})
+    var r = await orbit.system({action:'run-ps', value:ps})
     return r && r.includes('clicked')
   } catch(e) { return false }
 }
@@ -5473,7 +5484,7 @@ async function youtubeAction(action) {
   // Use keyboard shortcut where possible
   var shortcuts = { like:'l', dislike:'d' }
   if (shortcuts[action.toLowerCase()]) {
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("' + shortcuts[action.toLowerCase()] + '")'})
+    await orbit.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("' + shortcuts[action.toLowerCase()] + '")'})
     return respond('YouTube: ' + action + '.')
   }
 
@@ -5486,14 +5497,14 @@ async function youtubeAction(action) {
 async function shareToWhatsApp(contact, message) {
   var msg = message || ''
   var url = 'https://wa.me/?text=' + encodeURIComponent((contact ? 'For ' + contact + ': ' : '') + msg)
-  await orion.system({action:'open-url', value:url})
+  await orbit.system({action:'open-url', value:url})
   respond('Opening WhatsApp to share' + (contact ? ' with ' + contact : '') + '.')
 }
 
 // Copy current URL from browser
 async function copyCurrentURL() {
   try {
-    await orion.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("^l"); Start-Sleep -Milliseconds 300; [System.Windows.Forms.SendKeys]::SendWait("^c")'})
+    await orbit.system({action:'run-ps', value:'Add-Type -AssemblyName System.Windows.Forms; [System.Windows.Forms.SendKeys]::SendWait("^l"); Start-Sleep -Milliseconds 300; [System.Windows.Forms.SendKeys]::SendWait("^c")'})
     await new Promise(function(res){setTimeout(res, 500)})
     var url = await navigator.clipboard.readText()
     return url
@@ -5667,9 +5678,9 @@ async function _orionAICore(text) {
   }
 
   try {
-    if (!window.orion || !orion.aiChat) throw new Error('no bridge')
+    if (!window.orbit || !orbit.aiChat) throw new Error('no bridge')
 
-    var result = await orion.aiChat({
+    var result = await orbit.aiChat({
       messages: _convHistory,
       system: sys,
       max_tokens: _PERF_MODES[_perfMode] ? _PERF_MODES[_perfMode].tokens : 250
@@ -5786,10 +5797,10 @@ var _openclaw = {
 // Check if OpenClaw is running
 async function _checkOpenClaw() {
   try {
-    if (!window.orion) { _openclaw.available = false; return false }
+    if (!window.orbit) { _openclaw.available = false; return false }
     // Try openclaw status via CLI — most reliable
-    if (orion.openClawCli) {
-      var r = await orion.openClawCli('openclaw status --json 2>nul')
+    if (orbit.openClawCli) {
+      var r = await orbit.openClawCli('openclaw status --json 2>nul')
       if (r && r.ok && r.data) {
         _openclaw.available = true
         console.log('[OpenClaw] Connected via CLI')
@@ -5797,9 +5808,9 @@ async function _checkOpenClaw() {
       }
     }
     // Fallback: try HTTP health check on REST port (18790)
-    if (orion.openClaw) {
+    if (orbit.openClaw) {
       var url2 = _openclaw.url.replace(':18789', ':18790')
-      var r2 = await orion.openClaw({ endpoint: url2 + '/health' })
+      var r2 = await orbit.openClaw({ endpoint: url2 + '/health' })
       _openclaw.available = !!(r2 && r2.ok)
       return _openclaw.available
     }
@@ -5814,8 +5825,8 @@ async function _checkOpenClaw() {
 // Send a message to OpenClaw and get a response
 async function _queryOpenClaw(text, context) {
   try {
-    if (!window.orion || !orion.openClaw) return null
-    var r = await orion.openClaw({
+    if (!window.orbit || !orbit.openClaw) return null
+    var r = await orbit.openClaw({
       endpoint: _openclaw.url + '/chat',
       body: { message:text, context:context||'', system:_getPersonalityPrompt(), history:_convHistory.slice(-8) }
     })
@@ -5827,9 +5838,9 @@ async function _queryOpenClaw(text, context) {
 
 async function _openClawTask(task) {
   try {
-    if (!window.orion || !orion.openClaw) return null
+    if (!window.orbit || !orbit.openClaw) return null
     addMsg('s', 'Working on it...')
-    var r = await orion.openClaw({
+    var r = await orbit.openClaw({
       endpoint: _openclaw.url + '/task',
       body: { task:task, tools:['shell','files','browser','code','spotify','gmail','github','hue','slack','discord'] }
     })
@@ -5878,11 +5889,11 @@ function setOpenClawURL(url) {
 }
 
 async function checkOpenClawStatus() {
-  if (!window.orion || !orion.openClawCli) {
+  if (!window.orbit || !orbit.openClawCli) {
     return respond('OpenClaw bridge not available. Restart Orion.')
   }
   try {
-    var r = await orion.openClawCli('openclaw status')
+    var r = await orbit.openClawCli('openclaw status')
     if (r && r.ok) {
       _openclaw.available = true
       respond('OpenClaw is running and connected. Ready for tasks.')
@@ -5909,7 +5920,7 @@ async function startRemoteControl(channel) {
   _remoteChannel = channel || 'whatsapp'
   _remoteEnabled = true
   saveSett('remote_channel', _remoteChannel)
-  var r = await orion.openClaw({
+  var r = await orbit.openClaw({
     endpoint: _openclaw.url + '/skills/register',
     body: {name:'orion', description:'Control Orion desktop assistant', channel:_remoteChannel,
       commands:[{trigger:'screenshot'},{trigger:'volume'},{trigger:'lock'},{trigger:'open'},{trigger:'search'},{trigger:'say'},{trigger:'status'}]}
@@ -5933,14 +5944,14 @@ function remoteStatus() {
 async function _pollRemoteCommands() {
   if (!_remoteEnabled || !_openclaw.available) return
   try {
-    var r = await orion.openClaw({endpoint: _openclaw.url+'/skills/orion/pending'})
+    var r = await orbit.openClaw({endpoint: _openclaw.url+'/skills/orion/pending'})
     if (!r || !r.ok || !r.data) return
     var cmds = Array.isArray(r.data) ? r.data : []
     for (var ci=0; ci<cmds.length; ci++) {
       if (cmds[ci] && cmds[ci].text) {
         addMsg('s', 'Phone: '+cmds[ci].text)
         await dispatch(cmds[ci].text)
-        await orion.openClaw({endpoint:_openclaw.url+'/skills/orion/ack',body:{id:cmds[ci].id}}).catch(function(){})
+        await orbit.openClaw({endpoint:_openclaw.url+'/skills/orion/ack',body:{id:cmds[ci].id}}).catch(function(){})
       }
     }
   } catch(e) {}
@@ -5952,7 +5963,7 @@ async function getPCStatus() {
   var date = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})
   var status = 'Orion online. '+time+' '+date+'.'
   try {
-    var disk = await orion.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
+    var disk = await orbit.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
     if (disk) status += ' Disk: '+disk.trim()+'.'
   } catch(e) {}
   respond(status)
@@ -5962,7 +5973,7 @@ async function sendToPhone(message, channel) {
   if (_openclaw.available === null) await _checkOpenClaw()
   if (!_openclaw.available) return respond('OpenClaw not running.')
   var ch = channel || _remoteChannel || 'whatsapp'
-  var r = await orion.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Orion] '+message}}).catch(function(){return null})
+  var r = await orbit.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Orion] '+message}}).catch(function(){return null})
   respond(r && r.ok ? 'Sent to your '+ch+'.' : 'Could not send.')
 }
 // == END REMOTE CONTROL ==
@@ -6125,16 +6136,16 @@ async function oc(task, showProgress) {
   if (showProgress !== false) addMsg('s', 'Working on it...')
   try {
     // Use openclaw CLI to send a message to the agent
-    if (orion.openClawCli) {
+    if (orbit.openClawCli) {
       var escaped = task.replace(/"/g, '\\"')
-      var r = await orion.openClawCli('openclaw agent --message "' + escaped + '" --deliver')
+      var r = await orbit.openClawCli('openclaw agent --message "' + escaped + '" --deliver')
       if (r && r.ok && r.data) {
         var result = String(r.data).trim()
         if (result && result.length > 0) { respond(result.slice(0, 500)); return result }
       }
     }
     // HTTP fallback
-    var r2 = await orion.openClaw({endpoint:_openclaw.url.replace(':18789',':18790')+'/task',body:{task:task}})
+    var r2 = await orbit.openClaw({endpoint:_openclaw.url.replace(':18789',':18790')+'/task',body:{task:task}})
     if (r2 && r2.ok && r2.data) {
       var res2 = r2.data.result || r2.data.output || r2.data.response || r2.data.text
       if (res2) { respond(String(res2).slice(0,500)); return res2 }
@@ -6288,51 +6299,51 @@ async function dispatch(text) {
 
   // ── System commands ────────────────────────────────
   if (/(lock|lock the (pc|computer|screen))/.test(t))
-    return respond(await orion.system({action:'lock'}))
+    return respond(await orbit.system({action:'lock'}))
   if (/\bsleep\b/.test(t))
-    return respond(await orion.system({action:'sleep'}))
+    return respond(await orbit.system({action:'sleep'}))
   if (/restart|reboot/.test(t)) {
     if (confirm('Restart the PC?'))
-      return respond(await orion.system({action:'run-ps', value:'Restart-Computer -Force'}))
+      return respond(await orbit.system({action:'run-ps', value:'Restart-Computer -Force'}))
     return
   }
   if (/shut ?down/.test(t)) {
     if (confirm('Shut down the PC?'))
-      return respond(await orion.system({action:'run-ps', value:'Stop-Computer -Force'}))
+      return respond(await orbit.system({action:'run-ps', value:'Stop-Computer -Force'}))
     return
   }
 
   // ── Screenshot ─────────────────────────────────────
   if (/screenshot|take a (screen|picture|photo)/.test(t))
-    return respond(await orion.system({action:'screenshot'}))
+    return respond(await orbit.system({action:'screenshot'}))
 
   // ── Volume ─────────────────────────────────────────
-  if (/volume up/.test(t))   return respond(await orion.system({action:'volume-up'}))
-  if (/volume down/.test(t)) return respond(await orion.system({action:'volume-down'}))
-  if (/\bmute\b/.test(t))   return respond(await orion.system({action:'mute'}))
-  if (/unmute/.test(t))      return respond(await orion.system({action:'mute'}))
+  if (/volume up/.test(t))   return respond(await orbit.system({action:'volume-up'}))
+  if (/volume down/.test(t)) return respond(await orbit.system({action:'volume-down'}))
+  if (/\bmute\b/.test(t))   return respond(await orbit.system({action:'mute'}))
+  if (/unmute/.test(t))      return respond(await orbit.system({action:'mute'}))
   const volMatch = text.match(/volume\s+(\d+)/i)
-  if (volMatch) return respond(await orion.system({action:'volume-set', value:parseInt(volMatch[1])}))
+  if (volMatch) return respond(await orbit.system({action:'volume-set', value:parseInt(volMatch[1])}))
 
   // ── Media ──────────────────────────────────────────
-  if (/pause|play.pause/.test(t))    return respond(await orion.system({action:'media-play-pause'}))
-  if (/next (track|song)/.test(t))   return respond(await orion.system({action:'media-next'}))
-  if (/prev|previous (track|song)/.test(t)) return respond(await orion.system({action:'media-prev'}))
+  if (/pause|play.pause/.test(t))    return respond(await orbit.system({action:'media-play-pause'}))
+  if (/next (track|song)/.test(t))   return respond(await orbit.system({action:'media-next'}))
+  if (/prev|previous (track|song)/.test(t)) return respond(await orbit.system({action:'media-prev'}))
 
   // ── Stats ──────────────────────────────────────────
   if (/(system stats|cpu|ram usage)/.test(t)) {
-    const r = await orion.system({action:'get-stats'}).catch(()=>'{}')
+    const r = await orbit.system({action:'get-stats'}).catch(()=>'{}')
     try { const s=JSON.parse(r); return respond(`CPU ${s.cpu}% — RAM ${s.ram}%`) }
     catch { return respond(r) }
   }
 
   // ── Weather ────────────────────────────────────────
   if (/weather/.test(t))
-    return respond((await orion.system({action:'get-weather'}).catch(()=>'')) || 'No weather data.')
+    return respond((await orbit.system({action:'get-weather'}).catch(()=>'')) || 'No weather data.')
 
   // ── Network ────────────────────────────────────────
   if (/network|ip address|wifi/.test(t)) {
-    const r = await orion.system({action:'run-ps',
+    const r = await orbit.system({action:'run-ps',
       value:'(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.InterfaceAlias -notlike "*Loopback*"} | Select-Object -First 1).IPAddress'})
     return respond(`Your IP address is ${r || 'unknown'}.`)
   }
@@ -6360,15 +6371,15 @@ async function dispatch(text) {
   if (/take a note|save a note|note down/.test(t)) {
     const note = text.replace(/take a note|save a note|note down/i, '').trim()
     if (note) {
-      const notes = await orion.loadNotes() || ''
+      const notes = await orbit.loadNotes() || ''
       const ts = new Date().toLocaleString('en-GB')
-      await orion.saveNotes(notes + `\n[${ts}] ${note}`)
+      await orbit.saveNotes(notes + `\n[${ts}] ${note}`)
       await refreshNotesUI(); return respond(`Note saved: ${note}`)
     }
     return respond('What would you like to note?')
   }
   if (/read.*notes|show.*notes|my notes/.test(t)) {
-    const notes = await orion.loadNotes() || ''
+    const notes = await orbit.loadNotes() || ''
     return respond(notes ? `Your notes: ${notes.slice(-300)}` : 'No notes saved.')
   }
 
@@ -6394,7 +6405,7 @@ async function dispatch(text) {
     if (!memory.facts.includes(fact)) {
       memory.facts.push(fact)
       if (memory.facts.length > 100) memory.facts.shift()
-      try { orion.saveMemory(memory) } catch{}
+      try { orbit.saveMemory(memory) } catch{}
       updateMemUI()
     }
     updateMemUI()
@@ -6408,11 +6419,11 @@ async function dispatch(text) {
   if (forgetMatch) {
     const what = forgetMatch[1].trim()
     if (/everything|all/.test(what)) {
-      memory.facts = []; try{orion.saveMemory(memory)}catch{}; updateMemUI()
+      memory.facts = []; try{orbit.saveMemory(memory)}catch{}; updateMemUI()
       return respond('All memories cleared.')
     }
     memory.facts = (memory.facts||[]).filter(f => !f.toLowerCase().includes(what.toLowerCase()))
-    try{orion.saveMemory(memory)}catch{}; updateMemUI()
+    try{orbit.saveMemory(memory)}catch{}; updateMemUI()
     return respond(`Forgotten: ${what}.`)
   }
 
@@ -6483,7 +6494,7 @@ async function dispatch(text) {
 
   // ── Open URL/Site ─────────────────────────────────────
   if (SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]) {
-    await orion.system({action:'open-url', value:SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]})
+    await orbit.system({action:'open-url', value:SITE_SHORTCUTS[tLower]||SITE_SHORTCUTS[tClean]})
     return addMsg('y','Opening.')
   }
 
@@ -6492,7 +6503,7 @@ async function dispatch(text) {
     const appExe = APP_ALIASES[tLower]||APP_ALIASES[tClean]
     // Virtual mouse animates to Start while app opens in background
     vmOpenApp(appExe)
-    const r = await orion.system({action:'open-app', value:appExe})
+    const r = await orbit.system({action:'open-app', value:appExe})
     return addMsg('y', r || 'Opening ' + tLower + '.')
   }
 
@@ -6504,24 +6515,24 @@ async function dispatch(text) {
     const wc   = wl.replace(/\s+/g,'')
     // Check site
     if (SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]) {
-      await orion.system({action:'open-url', value:SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]})
+      await orbit.system({action:'open-url', value:SITE_SHORTCUTS[wl]||SITE_SHORTCUTS[wc]})
       return addMsg('y','Opening.')
     }
     // Check alias
     if (APP_ALIASES[wl]||APP_ALIASES[wc]) {
       setStatus('opening...','thinking')
-      await orion.system({action:'open-app', value:APP_ALIASES[wl]||APP_ALIASES[wc]})
+      await orbit.system({action:'open-app', value:APP_ALIASES[wl]||APP_ALIASES[wc]})
       setStatus('online','idle')
       return addMsg('y','Opening ' + what + '.')
     }
     // Looks like URL
     if (/\.(com|no|org|net|io|tv|gg|co|uk|de|fr)/.test(wl)) {
-      await orion.system({action:'open-url', value:wl.startsWith('http')?wl:'https://'+wl})
+      await orbit.system({action:'open-url', value:wl.startsWith('http')?wl:'https://'+wl})
       return addMsg('y','Opening.')
     }
     // Try as app — PowerShell will search Start Menu + Steam
     setStatus('searching...','thinking')
-    const result = await orion.system({action:'open-app', value:what})
+    const result = await orbit.system({action:'open-app', value:what})
     setStatus('online','idle')
     return addMsg('y', result || 'Opening ' + what + '.')
   }
@@ -6532,7 +6543,7 @@ async function dispatch(text) {
     const site = gotoMatch[1].trim().toLowerCase()
     const sc   = site.replace(/\s+/g,'')
     const url  = SITE_SHORTCUTS[site]||SITE_SHORTCUTS[sc]||(site.startsWith('http')?site:'https://'+site)
-    await orion.system({action:'open-url', value:url})
+    await orbit.system({action:'open-url', value:url})
     return addMsg('y','Opening.')
   }
 
@@ -6540,7 +6551,7 @@ async function dispatch(text) {
   const callMatch = text.match(/call (.+)/i)
   if (callMatch) return callContact(callMatch[1].trim())
   if (/hang up|end call/.test(t))
-    return respond(await orion.system({action:'run-ps', value:'Stop-Process -Name "PhoneExperienceHost","YourPhone" -ErrorAction SilentlyContinue'}))
+    return respond(await orbit.system({action:'run-ps', value:'Stop-Process -Name "PhoneExperienceHost","YourPhone" -ErrorAction SilentlyContinue'}))
 
   // ── Text improvement ──────────────────────────────────
   if (/improve.*text|fix.*grammar|make.*professional|proofread|make.*shorter|make.*longer/.test(t)) {
@@ -6551,7 +6562,7 @@ async function dispatch(text) {
 
   // ── Volume by number ─────────────────────────────────
   const volNum = text.match(/(?:set )?volume (?:to )?(\d+)/i)
-  if (volNum) return respond(await orion.system({action:'volume-set', value:parseInt(volNum[1])}))
+  if (volNum) return respond(await orbit.system({action:'volume-set', value:parseInt(volNum[1])}))
 
   // ── News headlines ────────────────────────────────────
   if (/news|headlines|what.*happening/i.test(t)) {
@@ -6613,7 +6624,7 @@ async function dispatch(text) {
   }
   if (/^(search for|google|look up)\s+(.+)/i.test(t)) {
     const q = t.replace(/^(search for|google|look up)\s+/i,'').trim()
-    await orion.system({action:'open-url', value:'https://google.com/search?q='+encodeURIComponent(q)})
+    await orbit.system({action:'open-url', value:'https://google.com/search?q='+encodeURIComponent(q)})
     return respond(`Searching for ${q}.`)
   }
   if (/^(read|what(?:'s| is) on) my clipboard/i.test(t)) {
@@ -6647,14 +6658,14 @@ async function dispatch(text) {
     const m = t.match(/^take a? note[: ]+(.+)/i)
     if (m) {
       const note = `[${new Date().toLocaleString()}] ${m[1].trim()}`
-      try { const existing=await orion.loadNotes()||''; await orion.saveNotes(existing+(existing?'\n':'')+note) } catch{}
+      try { const existing=await orbit.loadNotes()||''; await orbit.saveNotes(existing+(existing?'\n':'')+note) } catch{}
       await refreshNotesUI()
       return respond(`Note saved.`)
     }
   }
   if (/^(read|what are) my notes/i.test(t)) {
     try {
-      const notes = await orion.loadNotes()
+      const notes = await orbit.loadNotes()
       const lines = (notes||'').trim().split('\n').filter(Boolean).slice(-3)
       return respond(lines.length ? `Your last ${lines.length} notes: ${lines.join(' | ')}` : 'No notes yet.')
     } catch { return respond('Could not read notes.') }
@@ -6664,30 +6675,30 @@ async function dispatch(text) {
     return respond(facts.length ? `I remember: ${facts.join('; ')}.` : 'I have no memories yet.')
   }
   if (/turn off.*(?:display|monitor|screen)|shut.*(?:display|screen)/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Add-Type -MemberDefinition "[DllImport(\"user32.dll\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);" -Name "Win32Functions" -Namespace Win32Functions);[Win32Functions.Win32Functions]::SendMessage(-1,0x0112,0xF170,2)'})
+    await orbit.system({action:'run-ps', value:'(Add-Type -MemberDefinition "[DllImport(\"user32.dll\")]public static extern int SendMessage(int hWnd,int hMsg,int wParam,int lParam);" -Name "Win32Functions" -Namespace Win32Functions);[Win32Functions.Win32Functions]::SendMessage(-1,0x0112,0xF170,2)'})
     return respond('Display turned off.')
   }
 
 
   // ── Brightness ─────────────────────────────────────
   if (/brightness up|brighter/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Min(100,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)+10))'})
+    await orbit.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Min(100,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)+10))'})
     return respond('Brightness up.')
   }
   if (/brightness down|dimmer/i.test(t)) {
-    await orion.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Max(0,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)-10))'})
+    await orbit.system({action:'run-ps', value:'(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,[Math]::Max(0,((Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightness).CurrentBrightness)-10))'})
     return respond('Brightness down.')
   }
 
   // ── Media controls ──────────────────────────────────
   if (/next (song|track)|skip/i.test(t)) {
-    await orion.system({action:'media-next'}); return respond('Next track.')
+    await orbit.system({action:'media-next'}); return respond('Next track.')
   }
   if (/previous (song|track)|go back/i.test(t)) {
-    await orion.system({action:'media-prev'}); return respond('Previous track.')
+    await orbit.system({action:'media-prev'}); return respond('Previous track.')
   }
   if (/^play$|^resume$|^pause$/i.test(t)) {
-    await orion.system({action:'media-play-pause'}); return respond('Done.')
+    await orbit.system({action:'media-play-pause'}); return respond('Done.')
   }
 
   // ── Clipboard read ──────────────────────────────────
@@ -6713,7 +6724,7 @@ async function dispatch(text) {
   // ── System stats ─────────────────────────────────────
   if (/cpu|ram|memory usage|system stats|how.*computer/i.test(t)) {
     try {
-      const stats = JSON.parse(await orion.system({action:'get-stats'}))
+      const stats = JSON.parse(await orbit.system({action:'get-stats'}))
       return respond(`CPU is at ${stats.cpu} percent. RAM is at ${stats.ram} percent.`)
     } catch { return respond('Cannot read system stats.') }
   }
@@ -6721,7 +6732,7 @@ async function dispatch(text) {
   // ── Quit Orion ─────────────────────────────────────
   if (/^quit orion$|^exit orion$|^close orion$/i.test(t)) {
     respond('Goodbye.')
-    setTimeout(()=>orion&&orion.quit(), 1500)
+    setTimeout(()=>orion&&orbit.quit(), 1500)
     return
   }
 
@@ -6823,7 +6834,7 @@ async function dispatch(text) {
     if (/^(hei|hallo|god morgen|god ettermiddag|god kveld)/i.test(t)) return respond(getNorwegianGreeting())
     if (/klokken|hva er klokken/i.test(t)) return respond('Klokken er '+new Date().toLocaleTimeString('nb-NO',{hour:'2-digit',minute:'2-digit'})+'.')
     if (/hvilken dato|hva er datoen/i.test(t)) return respond('I dag er det '+new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'.')
-    if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await orion.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
+    if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await orbit.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
     if (/hjelp|hva kan du/i.test(t)) return respond('Jeg kan ta skjermbilder, stille inn timer, ta notater, soke, apne apper, sjekke vaer og mye mer!')
     if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('orion_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('orion_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
     if (/sok etter|finn /i.test(t)){var _nq=t.replace(/sok etter|finn /i,'').trim();if(_nq){webSearch(_nq);return}}
@@ -6921,7 +6932,7 @@ async function dispatch(text) {
       if (_ssite) {
         _lastOpenedSite = _ssite
         var _builder = _SITE_SEARCH[_ssite] || _SITE_SEARCH.google
-        orion.system({action:'open-url', value:_builder(_son[1].trim())})
+        orbit.system({action:'open-url', value:_builder(_son[1].trim())})
         return respond('Searching ' + _son[2] + ' for: ' + _son[1].trim())
       }
     }
@@ -7288,7 +7299,7 @@ async function queryAI(text) {
   if (/play\s+(.+)\s+on\s+spotify|play\s+(.+)/i.test(tl)) {
     const song = text.match(/play\s+(.+?)(?:\s+on\s+spotify)?$/i)
     if (song) {
-      orion.system({action:'open-url', value:'https://open.spotify.com/search/' + encodeURIComponent(song[1])})
+      orbit.system({action:'open-url', value:'https://open.spotify.com/search/' + encodeURIComponent(song[1])})
       return respond('Opening Spotify search for ' + song[1] + '.')
     }
   }
@@ -7567,7 +7578,7 @@ function memUpdate(ut) {
   if(!memory.commands)memory.commands=[]
   memory.commands.push(ut.slice(0,60))
   if(memory.commands.length>50)memory.commands=memory.commands.slice(-50)
-  try { orion.saveMemory(memory) } catch{}
+  try { orbit.saveMemory(memory) } catch{}
   updateMemUI()
 }
 function updateMemUI() {
@@ -7582,7 +7593,7 @@ function updateMemUI() {
 function wipeMemory(){
   memory={facts:[],preferences:{},commands:[]}
   history=[]
-  try{orion.saveMemory(memory)}catch{}
+  try{orbit.saveMemory(memory)}catch{}
   updateMemUI(); addMsg('s','Memory and conversation history wiped.')
 }
 
@@ -7625,7 +7636,7 @@ async function startHUD(){
   async function hudTick(){    if (document.hidden) { setTimeout(hudTick,4000); return }
     if(!document.hidden){
       try{
-        const r=await orion.system({action:'get-stats'})
+        const r=await orbit.system({action:'get-stats'})
         if(r){const s=JSON.parse(r);const hc=el('h-cpu'),hr=el('h-ram');if(hc)hc.textContent='CPU '+s.cpu+'%';if(hr)hr.textContent='RAM '+s.ram+'%'}
       }catch{}
     }
@@ -7636,7 +7647,7 @@ async function startHUD(){
 // ── WEATHER ───────────────────────────────────────────
 async function startWeather(){
   async function weatherTick(){
-    try{const w=await orion.system({action:'get-weather'});if(w){const tbw=el('tb-weather');if(tbw)tbw.textContent=w;const sbw=el('ss-weather-sb');if(sbw)sbw.textContent=w}}catch{}
+    try{const w=await orbit.system({action:'get-weather'});if(w){const tbw=el('tb-weather');if(tbw)tbw.textContent=w;const sbw=el('ss-weather-sb');if(sbw)sbw.textContent=w}}catch{}
     setTimeout(weatherTick,30*60*1000)
   };weatherTick()
 }
@@ -7657,7 +7668,7 @@ function startClock(){
 // ── INTERNET ──────────────────────────────────────────
 setTimeout(async function checkNet(){
   try{
-    const ok=await orion.system({action:'check-internet'})
+    const ok=await orbit.system({action:'check-internet'})
     const d=el('net-dot');if(d)d.style.color=ok==='true'?'var(--ac)':'var(--red)'
     const sbai=el('net-dot');if(sbai)sbai.title=ok==='true'?'Online':'Offline'
   }catch{}
@@ -7684,10 +7695,10 @@ function loadSettValues(){
   // taskbar removed
   const sop = el('sopacity'); if (sop) { sop.value = config.opacity||100; document.body.style.opacity=(config.opacity||100)/100 }
 }
-function saveSett(k,v){ config[k]=v; try{orion.saveConfig({[k]:v})}catch{} }
+function saveSett(k,v){ config[k]=v; try{orbit.saveConfig({[k]:v})}catch{} }
 function saveApiKey(){
   const k=el('sapikey')&&el('sapikey').value.trim()
-  if(!k)return; try{orion.saveKey(k)}catch{}; apiKey=k; addMsg('s','Key saved.')
+  if(!k)return; try{orbit.saveKey(k)}catch{}; apiKey=k; addMsg('s','Key saved.')
 }
 
 // FIX: Settings open/close — was showing on load because display:flex was set
@@ -7713,7 +7724,7 @@ function closeSett(){
 // ── LANGUAGE ──────────────────────────────────────────
 function setLang(code){
   lang=code; config.language=code
-  try{orion.saveConfig({language:code})}catch{}
+  try{orbit.saveConfig({language:code})}catch{}
   updateLangBtns()
   const e=el('ss-lang'); if(e)e.textContent=code.toUpperCase()
   const tb=el('tb-lang'); if(tb)tb.textContent='[ '+code.toUpperCase()+' ]'
@@ -7742,12 +7753,12 @@ function buildShortcuts(){
 }
 function runSc(sc){
   if(!sc)return
-  if(sc.type==='open_url')orion.system({action:'open-url',value:sc.value})
-  else if(sc.type==='open_app')orion.system({action:'open-app',value:sc.value})
-  else if(sc.type==='run_ps')orion.system({action:'run-ps',value:sc.value})
+  if(sc.type==='open_url')orbit.system({action:'open-url',value:sc.value})
+  else if(sc.type==='open_app')orbit.system({action:'open-app',value:sc.value})
+  else if(sc.type==='run_ps')orbit.system({action:'run-ps',value:sc.value})
   else ask(sc.value||sc.label)
 }
-function saveScs(){ config.shortcuts=shortcuts; try{orion.saveConfig({shortcuts})}catch{} }
+function saveScs(){ config.shortcuts=shortcuts; try{orbit.saveConfig({shortcuts})}catch{} }
 function addShortcut(){
   const label=prompt('Shortcut name:'); if(!label)return
   const types=['open_url','open_app','say_cmd','run_ps']
@@ -7863,7 +7874,7 @@ function setupUpdaterUI(){
 async function refreshNotesUI() {
   try{
   const e = el('sb-notes'); if (!e) return
-  const raw = await orion.loadNotes().catch(()=>'') || ''
+  const raw = await orbit.loadNotes().catch(()=>'') || ''
   if (!raw.trim()) { e.innerHTML='<div class="row dim">No notes yet.</div>'; return }
   e.innerHTML = ''
   raw.trim().split('\n').slice(-5).reverse().forEach(line => {
@@ -7910,10 +7921,10 @@ async function callContact(name) {
   if (!name) return respond('Who would you like to call?')
   respond(`Calling ${name}...`)
   // Open Phone Link
-  await orion.system({action:'open-app', value:'PhoneExperienceHost'})
+  await orbit.system({action:'open-app', value:'PhoneExperienceHost'})
   setTimeout(async () => {
     // Try alternate process names
-    await orion.system({action:'run-ps',
+    await orbit.system({action:'run-ps',
       value:`Start-Process 'ms-yourphone://call?name=${encodeURIComponent(name)}'`})
   }, 2000)
 }
@@ -8037,7 +8048,7 @@ function showPassGen(){
 
 // ── SYSTEM SHORTHAND ──────────────────────────────────
 async function sys(action,value){
-  try{const r=await orion.system({action,value});if(r)respond(r)}catch(e){console.error('[sys]',e)}
+  try{const r=await orbit.system({action,value});if(r)respond(r)}catch(e){console.error('[sys]',e)}
 }
 
 
@@ -8470,11 +8481,11 @@ async function openInZen(url) {
   let opened = false
   for (const p of zenPaths) {
     try {
-      await orion.system({action:'run-ps', value:`Start-Process "${p}" "${url}"`})
+      await orbit.system({action:'run-ps', value:`Start-Process "${p}" "${url}"`})
       opened = true; break
     } catch {}
   }
-  if (!opened) await orion.system({action:'open-url', value:url})
+  if (!opened) await orbit.system({action:'open-url', value:url})
 }
 
 // 2. Password generator
@@ -8888,7 +8899,7 @@ function startPomodoro() {
 
 function webSearch(query) {
   if (!query) return
-  orion.system({action:'open-url', value:'https://www.google.com/search?q='+encodeURIComponent(query)})
+  orbit.system({action:'open-url', value:'https://www.google.com/search?q='+encodeURIComponent(query)})
   respond('Searching for ' + query + '.')
 }
 
@@ -8922,7 +8933,7 @@ const _APPS = {
 async function launchApp(name) {
   const n = name.toLowerCase().trim()
   const exe = _APPS[n] || Object.entries(_APPS).find(([k])=>k.includes(n)||n.includes(k))?.[1]
-  await orion.system({action:'open-app', value: exe || name})
+  await orbit.system({action:'open-app', value: exe || name})
   respond('Opening ' + name + '.')
 }
 
