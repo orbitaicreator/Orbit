@@ -847,7 +847,6 @@ input,select,textarea{font-family:inherit}
   --orion-font:    'Fira Code','JetBrains Mono','Courier New',monospace;
 }
 
-body, html, #app, #main { background: var(--orion-bg) !important; }
 
 /* ── Orb-wrap: full viewport ─────────────────────────────────────────── */
 #orb-wrap {
@@ -1304,19 +1303,27 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
 
 /* Camera/map show through chat bg */
 /* chat bg handled by theme */
-#main { background: var(--orion-bg) !important; }
 /* Keep input bar readable */
 #inp-row { background: rgba(7,11,20,0.75) !important; backdrop-filter: blur(4px); }
 /* Tbar stays readable */
 #tbar { background: rgba(7,11,20,0.8) !important; backdrop-filter: blur(6px); }
 /* App bg transparent so orb-wrap shows */
-#app { background: var(--orion-bg) !important; }
 
 
 /* Ensure chat UI sits above all HUD overlays */
 #tbar  { position: relative; z-index: 10; }
 #main  { position: relative; z-index: 5;  }
 #sb    { position: relative; z-index: 10; }
+
+
+/* ── CORE LAYOUT FIX ─────────────────────────────────────────────────── */
+body, html          { margin:0; padding:0; background:#070B14; overflow:hidden; height:100%; }
+#app                { display:none; width:100%; height:100vh; background:#070B14; }
+#tbar               { position:relative; z-index:500; flex-shrink:0; }
+#main               { position:relative; display:flex; flex:1; overflow:hidden; background:#070B14; }
+#chat               { position:relative; z-index:10; flex:1; overflow-y:auto; padding:12px 14px 0; min-height:0; }
+#orb-wrap           { position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none; z-index:1; }
+#inp-row            { position:relative; z-index:20; flex-shrink:0; }
 
 </style>
 </head>
@@ -1341,7 +1348,7 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
 </div>
 
 <!-- Main app -->
-<div id="app" style="display:none">
+<div id="app" style="display:none;flex-direction:column;height:100vh;">
 
   <div id="tbar">
     <!-- Left: sidebar toggle + nav -->
