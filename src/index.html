@@ -1764,34 +1764,6 @@ body, html, #app, #main { background: var(--orion-bg) !important; }
       <div id="openclaw-status" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
     </div>
     <div class="sg">
-      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">JUMPSCARE</label>
-      <div style="display:flex;align-items:center;gap:8px;margin-top:8px">
-        <button class="sbt" id="js-enable-toggle" onclick="setJumpscareEnabled(!_jumpscareEnabled)">Enabled</button>
-        <button class="sbt" id="js-flash-toggle" onclick="setJumpscareFlash(!_jumpscareFlash)">Flash: ON</button>
-      </div>
-      <label class="sl" style="margin-top:10px">Scare Photo</label>
-      <div style="display:flex;align-items:center;gap:10px;margin-top:6px">
-        <img id="jumpscare-photo-preview" style="width:48px;height:48px;object-fit:cover;border:1px solid #2a4a2a;display:none;border-radius:4px">
-        <div style="display:flex;flex-direction:column;gap:4px">
-          <input type="file" id="jumpscare-photo-input" accept="image/*" style="display:none" onchange="loadJumpscarePhoto(this)">
-          <button class="sbt" onclick="document.getElementById('jumpscare-photo-input').click()">Choose Photo</button>
-          <button class="sbt" onclick="clearJumpscarePhoto()">Clear</button>
-        </div>
-      </div>
-      <label class="sl" style="margin-top:10px">Scare Sound</label>
-      <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
-        <button class="sbt" id="js-sound-scream" onclick="setJumpscareSound('scream')">Scream</button>
-        <button class="sbt" id="js-sound-horror" onclick="setJumpscareSound('horror')">Horror</button>
-        <button class="sbt" id="js-sound-beep"   onclick="setJumpscareSound('beep')"  >Beep</button>
-        <button class="sbt" id="js-sound-custom" onclick="document.getElementById('js-sound-input').click()">Custom</button>
-        <input type="file" id="js-sound-input" accept="audio/*" style="display:none" onchange="loadJumpscareSound(this)">
-      </div>
-      <div style="display:flex;gap:6px;margin-top:8px">
-        <button class="sbt" onclick="testJumpscare()">TEST</button>
-      </div>
-      <div id="jumpscare-status" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
-    </div>
-    <div class="sg">
       <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">THEME</label>
       <label class="sl" style="margin-top:8px">Color Scheme</label>
       <div style="display:flex;gap:6px;margin-top:6px;flex-wrap:wrap">
@@ -6090,172 +6062,16 @@ function _initJumpstart() {
 // == END JUMPSTART ==
 
 
-// == JUMPSCARE ==
-var _jumpscarePhoto  = localStorage.getItem('jumpscare_photo') || null
-var _jumpscareSound  = localStorage.getItem('jumpscare_sound') || 'scream'
-var _jumpscareFlash  = localStorage.getItem('jumpscare_flash') !== 'false'
-var _jumpscareCustomSound = localStorage.getItem('jumpscare_custom_sound') || null
-var _jumpscareEnabled = localStorage.getItem('jumpscare_enabled') !== 'false'
-
-function loadJumpscarePhoto(input) {
-  var file = input.files[0]; if (!file) return
-  var reader = new FileReader()
-  reader.onload = function(e) {
-    _jumpscarePhoto = e.target.result
-    localStorage.setItem('jumpscare_photo', _jumpscarePhoto)
-    var img = document.getElementById('jumpscare-photo-preview')
-    if (img) { img.src = _jumpscarePhoto; img.style.display = 'block' }
-    var s = document.getElementById('jumpscare-status'); if (s) s.textContent = 'Photo saved!'
-  }
-  reader.readAsDataURL(file)
-}
-
-function clearJumpscarePhoto() {
-  _jumpscarePhoto = null
-  localStorage.removeItem('jumpscare_photo')
-  var img = document.getElementById('jumpscare-photo-preview')
-  if (img) { img.src = ''; img.style.display = 'none' }
-}
-
-function loadJumpscareSound(input) {
-  var file = input.files[0]; if (!file) return
-  var reader = new FileReader()
-  reader.onload = function(e) {
-    _jumpscareCustomSound = e.target.result
-    localStorage.setItem('jumpscare_custom_sound', _jumpscareCustomSound)
-    setJumpscareSound('custom')
-  }
-  reader.readAsDataURL(file)
-}
-
-function setJumpscareSound(name) {
-  _jumpscareSound = name
-  localStorage.setItem('jumpscare_sound', name)
-  ;['scream','horror','beep','custom'].forEach(function(s) {
-    var b = document.getElementById('js-sound-' + s); if (b) b.style.background = s===name?'var(--ac)':''
-  })
-}
-
-function setJumpscareFlash(on) {
-  _jumpscareFlash = on
-  localStorage.setItem('jumpscare_flash', on)
-  var btn = document.getElementById('js-flash-toggle')
-  if (btn) btn.textContent = on ? 'Flash: ON' : 'Flash: OFF'
-  if (btn) btn.style.background = on ? 'var(--ac)' : ''
-}
-
-function setJumpscareEnabled(on) {
-  _jumpscareEnabled = on
-  localStorage.setItem('jumpscare_enabled', on)
-  var btn = document.getElementById('js-enable-toggle')
-  if (btn) { btn.textContent = on ? 'Enabled' : 'Disabled'; btn.style.background = on?'var(--ac)':'' }
-}
-
-function _playJumpscareSound() {
-  try {
-    if (_jumpscareSound === 'custom' && _jumpscareCustomSound) {
-      var a = new Audio(_jumpscareCustomSound); a.volume = 1.0; a.play().catch(function(){})
-      return
-    }
-    var actx = new (window.AudioContext || window.webkitAudioContext)()
-    if (_jumpscareSound === 'scream') {
-      // Harsh scream sound — rising noise burst
-      var buf = actx.createBuffer(1, actx.sampleRate * 2, actx.sampleRate)
-      var data = buf.getChannelData(0)
-      for (var i = 0; i < data.length; i++) {
-        var env = i < actx.sampleRate * 0.1 ? i / (actx.sampleRate * 0.1) : 1
-        data[i] = (Math.random() * 2 - 1) * env
-      }
-      var src2 = actx.createBufferSource()
-      var dist = actx.createWaveShaper()
-      var curve = new Float32Array(256)
-      for (var j = 0; j < 256; j++) { var x = j * 2 / 256 - 1; curve[j] = (Math.PI + 400) * x / (Math.PI + 400 * Math.abs(x)) }
-      dist.curve = curve
-      var gain = actx.createGain(); gain.gain.value = 1.5
-      src2.buffer = buf; src2.connect(dist); dist.connect(gain); gain.connect(actx.destination)
-      src2.start(); src2.stop(actx.currentTime + 2)
-    } else if (_jumpscareSound === 'horror') {
-      // Low horror sting
-      var osc = actx.createOscillator()
-      var gain2 = actx.createGain()
-      osc.connect(gain2); gain2.connect(actx.destination)
-      osc.type = 'sawtooth'
-      osc.frequency.setValueAtTime(80, actx.currentTime)
-      osc.frequency.exponentialRampToValueAtTime(40, actx.currentTime + 1.5)
-      gain2.gain.setValueAtTime(1, actx.currentTime)
-      gain2.gain.exponentialRampToValueAtTime(0.001, actx.currentTime + 1.5)
-      osc.start(); osc.stop(actx.currentTime + 1.5)
-    } else if (_jumpscareSound === 'beep') {
-      var osc2 = actx.createOscillator(), g2 = actx.createGain()
-      osc2.connect(g2); g2.connect(actx.destination)
-      osc2.frequency.value = 1200; g2.gain.value = 1
-      osc2.start(); osc2.stop(actx.currentTime + 0.5)
-    }
-  } catch(e) {}
-}
-
-function triggerJumpscare() {
-  if (!_jumpscareEnabled) return respond('Jumpscare is disabled. Enable it in Settings.')
-  if (!_jumpscarePhoto) return respond('No jumpscare photo set. Go to Settings to upload one.')
-
-  // Create fullscreen overlay
-  var ol = document.createElement('div')
-  ol.id = 'jumpscare-overlay'
-  ol.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;z-index:99999;background:#000;display:flex;align-items:center;justify-content:center;cursor:pointer'
-  ol.onclick = function() { dismissJumpscare() }
-
-  var img = document.createElement('img')
-  img.src = _jumpscarePhoto
-  img.style.cssText = 'max-width:100%;max-height:100%;object-fit:contain;animation:js-shake .1s infinite'
-  ol.appendChild(img)
-
-  // Add shake + flash CSS
-  if (!document.getElementById('js-style')) {
-    var style = document.createElement('style')
-    style.id = 'js-style'
-    style.textContent = '@keyframes js-shake{0%{transform:translate(-5px,-5px) scale(1.02)}25%{transform:translate(5px,-5px) scale(1.05)}50%{transform:translate(-5px,5px) scale(1.02)}75%{transform:translate(5px,5px) scale(1.05)}100%{transform:translate(-5px,-5px) scale(1.02)}}@keyframes js-flash{0%,100%{opacity:1}50%{opacity:0}}'
-    document.head.appendChild(style)
-  }
-
-  document.body.appendChild(ol)
-
-  // Flash effect
-  if (_jumpscareFlash) {
-    ol.style.animation = 'js-flash 0.1s infinite'
-    var flashInterval = setInterval(function() {
-      ol.style.background = ol.style.background === '#fff' ? '#000' : '#fff'
-    }, 80)
-    setTimeout(function() { clearInterval(flashInterval); ol.style.background = '#000' }, 3000)
-  }
-
-  // Play sound
-  _playJumpscareSound()
-
-  // Auto-dismiss after 4 seconds
-  setTimeout(function() { dismissJumpscare() }, 4000)
-
-  addMsg('y', 'BOO!')
-}
-
-function dismissJumpscare() {
-  var ol = document.getElementById('jumpscare-overlay')
-  if (ol && ol.parentNode) ol.parentNode.removeChild(ol)
-}
-
-function testJumpscare() { triggerJumpscare() }
-// == END JUMPSCARE ==
 
 
-// == THEMES ==
-var _themes = {
-  default: {bg:'#010d01', ac:'#00ff41', sb:'#090e09', dim:'#336633', text:'#ccffcc'},
-  blue:    {bg:'#01050d', ac:'#00aaff', sb:'#050810', dim:'#334466', text:'#ccddff'},
-  red:     {bg:'#0d0101', ac:'#ff3333', sb:'#0e0909', dim:'#663333', text:'#ffcccc'},
-  purple:  {bg:'#06010d', ac:'#cc44ff', sb:'#0a0510', dim:'#553366', text:'#ddccff'},
-  amber:   {bg:'#0d0800', ac:'#ffaa00', sb:'#100a00', dim:'#664400', text:'#ffeebb'},
-  white:   {bg:'#0a0a0a', ac:'#ffffff', sb:'#111111', dim:'#666666', text:'#ffffff'},
-  custom:  null
-}
+
+
+
+
+
+
+
+
 var _currentTheme = localStorage.getItem('orion_theme') || 'default'
 var _customColor  = localStorage.getItem('orion_custom_color') || '#00ff41'
 
@@ -7192,8 +7008,6 @@ async function dispatch(text) {
   }
   if (/close map|map off|hide map/i.test(t)) return orionCloseMap()
   if (/close camera|vision off|deactivate vision/i.test(t)) return orionCloseCamera()
-  if (/jumpscare|scare me|trigger jumpscare|boo/i.test(t)) return triggerJumpscare()
-  if (/dismiss jumpscare|stop jumpscare/i.test(t)) return dismissJumpscare()
   if (/theme (blue|red|purple|amber|white|default|green)/i.test(t)){
     var _thm=t.match(/theme (\w+)/i); if(_thm) applyTheme(_thm[1]); return respond('Theme: '+(_thm?_thm[1]:'default')+'.')
   }
