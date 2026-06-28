@@ -1432,6 +1432,14 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 #chat { z-index:5!important; }              /* below HUD panels     */
 .ae-grid { z-index:20!important; }          /* HUD panels on top    */
 #inp-bar,#inp-trigger { z-index:30!important; }
+
+/* Standby orb canvas — subtle glow backdrop */
+#orbit-sby-orb {
+  filter: drop-shadow(0 0 18px rgba(0,186,255,0.5)) drop-shadow(0 0 40px rgba(0,186,255,0.25));
+}
+#orbit-act-canvas {
+  filter: drop-shadow(0 0 24px rgba(0,186,255,0.4)) drop-shadow(0 0 60px rgba(0,186,255,0.2));
+}
 </style>
 </head>
 <body>
@@ -4199,10 +4207,10 @@ function initOrb() {
       var z1 = -x0*Math.sin(ry)+z0*Math.cos(ry)
       var sc = (z1+1.6)/2.6 * pls
       var alpha2 = Math.max(0.1, sc*0.8+0.05)
-      ctx.globalAlpha = alpha2
+      ctx.globalAlpha = Math.min(1, alpha2 * 1.6)  // brighter
       ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : baseCol
-      var r = Math.max(1, d.r*sc)
-      ctx.fillRect(cx+x1*R*sc-r/2, cy+y0*R*sc-r/2, r, r)
+      var r = Math.max(1.5, d.r * sc * 1.8)  // larger dots
+      ctx.beginPath(); ctx.arc(cx+x1*R*sc, cy+y0*R*sc, r/2, 0, Math.PI*2); ctx.fill()
     }
     ctx.globalAlpha = 1
   }
@@ -5140,6 +5148,20 @@ function startApp() {
   micMgr = new MicrophoneManager()
   buildShortcuts(); updateMemUI()
   startHUD(); startWeather(); startClock(); initSbDrag()
+  // Standby clock — start immediately, independent of aether
+  ;(function _sbyClock(){
+    var clk=document.getElementById('orbit-clock-big')
+    var dat=document.getElementById('orbit-date-big')
+    var DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
+    var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+    function tick(){
+      var n=new Date()
+      var h=String(n.getHours()).padStart(2,'0'), m=String(n.getMinutes()).padStart(2,'0')
+      if(clk) clk.textContent=h+':'+m
+      if(dat) dat.textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONS[n.getMonth()]
+    }
+    tick(); setInterval(tick,10000)
+  })()
   setupUpdaterUI()
 
   // Start mic after short delay
@@ -6425,12 +6447,12 @@ function _initJumpstart() {
 
 
 
-var _currentTheme = localStorage.getItem('orbit_theme') || 'blue'
+var _currentTheme = 'blue'  // always start blue; user can change in Settings
 var _customColor  = localStorage.getItem('orbit_custom_color') || '#1B8FFF'
 
 // Theme definitions — dark blue default to match HUD
 var _themes = {
-  default: { bg:'#070B14', ac:'#00BAFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
+  default: { bg:'#070B14', ac:'#1B8FFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
   blue:    { bg:'#070B14', ac:'#1B8FFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
   red:     { bg:'#140707', ac:'#FF4444', sb:'#1A0A0A', dim:'#422a2a', text:'#E8C8C8' },
   purple:  { bg:'#0D0714', ac:'#A855F7', sb:'#140A20', dim:'#2e1a42', text:'#D8C8E8' },
@@ -6445,6 +6467,7 @@ function applyTheme(name) {
   name = _themes[name] ? name : 'default'
   _currentTheme = name
   localStorage.setItem('orbit_theme', name)
+  _currentTheme = name
   // Update sidebar variables to match theme
   var sbPalette = {
     default:{sbBg:'#08101e',sbBorder:'#1a2e42',sbText:'#8ab0cc',sbAccent:'#00BAFF'},
@@ -9611,7 +9634,7 @@ var _custDefaults = {
   orb_color:   '#00BAFF',
   orb_size:    1.4,
   orb_speed:   1.0,
-  orb_count:   180,
+  orb_count:   220,
   orb_glow:    1.0,
   orb_shape:   'sphere',   // sphere | cube (future)
   // Grid
