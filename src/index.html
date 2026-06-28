@@ -1421,6 +1421,17 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 }
 #inp-trigger{position:absolute!important;bottom:0;left:0;right:0;height:8px;z-index:19}
 #inp-disclaimer{position:absolute!important;bottom:0;left:50%;transform:translateX(-50%);z-index:18}
+
+/* ══ FORCE-HIDE orb decorations — particles only ══════════════════ */
+#orbit-sby-ring,#orbit-sby-label,
+#orbit-act-ring-outer,#orbit-act-ring-inner,
+#orbit-act-label,#orbit-bracket,#orbit-act-state,
+.orbit-bracket-corner { display:none!important; visibility:hidden!important; }
+
+/* ══ Chat / HUD layering fix ════════════════════════════════════════ */
+#chat { z-index:5!important; }              /* below HUD panels     */
+.ae-grid { z-index:20!important; }          /* HUD panels on top    */
+#inp-bar,#inp-trigger { z-index:30!important; }
 </style>
 </head>
 <body>
@@ -1956,8 +1967,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     </div>
 
     <div class="sg">
-      <label class="sl">Standby orb size <span id="cu-sby-orbsz-v">130</span>px</label>
-      <input type="range" class="sr" id="cu-sby-orbsz" min="60" max="240" step="5" value="130"
+      <label class="sl">Standby orb size <span id="cu-sby-orbsz-v">260</span>px</label>
+      <input type="range" class="sr" id="cu-sby-orbsz" min="60" max="400" step="5" value="260"
         oninput="document.getElementById('cu-sby-orbsz-v').textContent=this.value;saveCust('sby_orb_size',parseInt(this.value));applyAllCustom()">
     </div>
 
@@ -4199,8 +4210,14 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 130, 130, true)
-      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 260, 260, false)
+      if (sbyCx && _orbitMode === 'standby') {
+        var _sz = sbyCv ? sbyCv.width : 260
+        drawSphere(sbyCx, _sz, _sz, true)
+      }
+      if (actCtx && _orbitMode === 'active') {
+        var _asz = actCv ? actCv.width : 260
+        drawSphere(actCtx, _asz, _asz, false)
+      }
     }
     requestAnimationFrame(draw)
   }
@@ -9591,7 +9608,7 @@ var _custDefaults = {
   sby_clock:   true,
   sby_date:    true,
   sby_clock_size: 72,
-  sby_orb_size: 130,
+  sby_orb_size: 260,
   // Titlebar
   tb_clock:    true,
   tb_weather:  true,
@@ -9622,6 +9639,16 @@ function saveCust(key, val) {
 }
 
 function applyAllCustom() {
+  // ── Force-hide orb decorations (CSS backup) ────────
+  var _hideIds = ['orbit-sby-ring','orbit-sby-label','orbit-act-ring-outer',
+                  'orbit-act-ring-inner','orbit-act-label','orbit-bracket','orbit-act-state']
+  _hideIds.forEach(function(id){
+    var e=document.getElementById(id); if(e){e.style.display='none';e.style.visibility='hidden'}
+  })
+  document.querySelectorAll('.orbit-bracket-corner').forEach(function(e){
+    e.style.display='none'
+  })
+
   // ── Orb globals ────────────────────────────────────
   window._orbColor = _custGet('orb_color')
   window._orbSpeed = _custGet('orb_speed')
