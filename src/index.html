@@ -1445,6 +1445,57 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   background: radial-gradient(circle, rgba(27,143,255,0.22) 0%, rgba(27,143,255,0.08) 55%, transparent 80%);
   box-shadow: 0 0 40px rgba(27,143,255,0.35), 0 0 80px rgba(27,143,255,0.15);
 }
+
+/* ══ GLOBAL BLUE THEME OVERRIDE — replaces all hardcoded green values ══════ */
+.sb-group-label,.sb-feat-dim,.sb-topbar-title,
+.sh,.sl,.sg label { color: #8ab0cc !important; }
+.sb-feat-btn { color: #C8D8E8 !important; }
+.sb-feat-btn:hover { background: rgba(27,143,255,0.1) !important; }
+.sb-group-label { color: #4a6888 !important; letter-spacing:.08em }
+#sidebar, #sb-content, #sb-topbar, .sb-section { 
+  background: #08101e !important; 
+  border-color: #1a2e42 !important; 
+}
+#sb-content::-webkit-scrollbar-thumb,
+#sett::-webkit-scrollbar-thumb,
+.sb-list::-webkit-scrollbar-thumb { background: #1B8FFF !important; }
+#sb-content::-webkit-scrollbar-track,
+#sett::-webkit-scrollbar-track { background: #08101e !important; }
+#sb-strip, .sb-strip-inner { 
+  background: #08101e !important; 
+  border-color: #1a2e42 !important; 
+}
+.sb-strip-btn, .sb-icon-btn { color: #4a6888 !important; }
+.sb-strip-btn:hover { color: #1B8FFF !important; }
+#sb-topbar { border-bottom: 1px solid #1a2e42 !important; }
+#sb-profile-btn .sb-profile-avatar { 
+  border-color: #1B8FFF !important; color: #1B8FFF !important; 
+}
+#sb-update-pill { border-color: #1B8FFF !important; }
+#sb-note-inp, #todo-inp, .si2, .ss, .sr {
+  background: #0d1825 !important;
+  color: #C8D8E8 !important;
+  border-color: #1a2e42 !important;
+}
+.sbt { border-color: #1a2e42 !important; color: #8ab0cc !important; }
+.sbt:hover, .sbt.active { border-color: #1B8FFF !important; color: #1B8FFF !important; }
+#sett { background: #08101e !important; border-color: #1a2e42 !important; }
+.sh { border-bottom-color: #1a2e42 !important; color: #C8D8E8 !important; }
+.sg { border-bottom-color: #1a2e42 !important; }
+.lb { background:#0d1825!important; border-color:#1a2e42!important; color:#8ab0cc!important; }
+.lb.on, .lb:hover { border-color:#1B8FFF!important; color:#1B8FFF!important; }
+#profile-dropdown, .sb-dropdown { 
+  background:#0d1825!important; border-color:#1a2e42!important; 
+}
+.sb-dropdown-item { color:#C8D8E8!important; }
+.sb-dropdown-item:hover { background:rgba(27,143,255,0.1)!important; }
+/* Sidebar top strip */
+#sb-strip { border-right-color:#1a2e42!important; }
+/* Conversations */
+.sb-conv-item { color:#C8D8E8!important; border-bottom-color:#1a2e42!important; }
+.sb-conv-item:hover { background:rgba(27,143,255,0.08)!important; }
+.sb-conv-item.active { background:rgba(27,143,255,0.16)!important; }
+/* Green status dot → keep green for Orbit (it's a status indicator) */
 </style>
 </head>
 <body>
@@ -4212,10 +4263,10 @@ function initOrb() {
       var z1 = -x0*Math.sin(ry)+z0*Math.cos(ry)
       var sc = (z1+1.6)/2.6 * pls
       var alpha2 = Math.max(0.1, sc*0.8+0.05)
-      ctx.globalAlpha = Math.min(1, alpha2 * 1.6)  // brighter
+      ctx.globalAlpha = Math.min(1, alpha2 * 1.8)
       ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : baseCol
-      var r = Math.max(1.5, d.r * sc * 1.8)  // larger dots
-      ctx.beginPath(); ctx.arc(cx+x1*R*sc, cy+y0*R*sc, r/2, 0, Math.PI*2); ctx.fill()
+      var r = Math.max(2, d.r * sc * 2.2)
+      ctx.fillRect(cx+x1*R*sc-r/2, cy+y0*R*sc-r/2, r, r)
     }
     ctx.globalAlpha = 1
   }
@@ -4224,12 +4275,10 @@ function initOrb() {
     if (!paused) {
       frame++
       if (sbyCx && _orbitMode === 'standby') {
-        var _sz = sbyCv ? sbyCv.width : 260
-        drawSphere(sbyCx, _sz, _sz, true)
+        drawSphere(sbyCx, sbyCv.width, sbyCv.height, true)
       }
       if (actCtx && _orbitMode === 'active') {
-        var _asz = actCv ? actCv.width : 260
-        drawSphere(actCtx, _asz, _asz, false)
+        drawSphere(actCtx, actCv.width, actCv.height, false)
       }
     }
     requestAnimationFrame(draw)
@@ -5160,11 +5209,13 @@ function startApp() {
     var dat=document.getElementById('orbit-date-big')
     var DAYS=['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
     var MONS=['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
+    function fmt(n){return n<10?'0'+n:''+n}
     function tick(){
-      var n=new Date()
-      var h=String(n.getHours()).padStart(2,'0'), m=String(n.getMinutes()).padStart(2,'0')
-      if(clk) clk.textContent=h+':'+m
-      if(dat) dat.textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONS[n.getMonth()]
+      try{
+        var n=new Date()
+        if(clk) clk.textContent=fmt(n.getHours())+':'+fmt(n.getMinutes())
+        if(dat) dat.textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONS[n.getMonth()]
+      }catch(e){}
     }
     tick(); setInterval(tick,1000)
   })()
@@ -9709,13 +9760,10 @@ function applyAllCustom() {
   var sz = _custGet('orb_size')
   var sbySz  = Math.round(_custGet('sby_orb_size'))
   var actSz  = Math.round(260 * sz)
-  var sbyCv  = document.getElementById('orbit-sby-canvas')
-  var actCv  = document.getElementById('orbit-act-canvas')
   var sbyOrb = document.getElementById('orbit-sby-orb')
   var actOrb = document.getElementById('orbit-active-orb')
-  if (sbyCv)  { sbyCv.width = sbySz;  sbyCv.height = sbySz  }
+  // Use CSS scaling only — never touch canvas.width/height (invalidates 2D context)
   if (sbyOrb) { sbyOrb.style.width = sbySz+'px'; sbyOrb.style.height = sbySz+'px' }
-  if (actCv)  { actCv.width = actSz;  actCv.height = actSz  }
   if (actOrb) {
     actOrb.style.width  = actSz+'px'
     actOrb.style.height = actSz+'px'
