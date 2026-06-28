@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.0.13",
+  "version": "1.0.14",
   "description": "Orbit AI Assistant",
   "main": "src/main.js",
   "scripts": {

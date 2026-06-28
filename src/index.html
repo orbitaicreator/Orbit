@@ -1375,6 +1375,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   position:absolute!important;
   top:0!important;left:0!important;
   width:100%!important;height:100%!important;
+  transform:none!important;
   pointer-events:none;
   z-index:1;
 }
@@ -1653,47 +1654,50 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <div class="sb-group" id="sb-group-week"      style="display:none"><div class="sb-group-label">Previous 7 days</div><div id="sb-list-week"      class="sb-list"></div></div>
         <div class="sb-group" id="sb-group-older"     style="display:none"><div class="sb-group-label">Older</div>           <div id="sb-list-older"    class="sb-list"></div></div>
 
+        <!-- Clock widget -->
+        <div id="sb-clock-widget" style="display:none;padding:8px 10px 4px;font-family:Consolas,monospace;color:#5aaa5a;font-size:22px;text-align:center;letter-spacing:0.1em;border-bottom:1px solid #1a2e1a"></div>
+
         <!-- Quick actions -->
-        <div class="sb-group-label">Quick actions</div>
-        <div class="sb-list">
-          <button class="sb-feat-btn" onclick="orbit&&orbit.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
-          <button class="sb-feat-btn" onclick="ask('set a timer for 5 minutes')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="7" r="4"/><path d="M6 5v2l1.5 1"/><line x1="4" y1="1" x2="8" y2="1"/></svg>Timer</button>
-          <button class="sb-feat-btn" onclick="ask('weather')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="4.5" cy="5" r="2"/><path d="M9 10H2.5a2 2 0 0 1 0-4h.2a3 3 0 1 1 5.3 1H9a1.5 1.5 0 0 1 0 3z"/></svg>Weather</button>
-          <button class="sb-feat-btn" onclick="ask('what time is it')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5"/></svg>Time</button>
-          <button class="sb-feat-btn" onclick="ask('daily briefing')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="2" width="10" height="8" rx="1"/><line x1="3" y1="5" x2="9" y2="5"/><line x1="3" y1="7" x2="7" y2="7"/></svg>Daily briefing</button>
+        <div class="sb-group-label" id="sb-sec-qa-label">Quick actions</div>
+        <div class="sb-list" id="sb-sec-qa">
+          <button class="sb-feat-btn" id="sb-qa-screenshot" onclick="orbit&&orbit.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
+          <button class="sb-feat-btn" id="sb-qa-timer" onclick="ask('set a timer for 5 minutes')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="7" r="4"/><path d="M6 5v2l1.5 1"/><line x1="4" y1="1" x2="8" y2="1"/></svg>Timer</button>
+          <button class="sb-feat-btn" id="sb-qa-weather" onclick="ask('weather')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="4.5" cy="5" r="2"/><path d="M9 10H2.5a2 2 0 0 1 0-4h.2a3 3 0 1 1 5.3 1H9a1.5 1.5 0 0 1 0 3z"/></svg>Weather</button>
+          <button class="sb-feat-btn" id="sb-qa-time" onclick="ask('what time is it')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5"/></svg>Time</button>
+          <button class="sb-feat-btn" id="sb-qa-briefing" onclick="ask('daily briefing')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="2" width="10" height="8" rx="1"/><line x1="3" y1="5" x2="9" y2="5"/><line x1="3" y1="7" x2="7" y2="7"/></svg>Daily briefing</button>
         </div>
 
         <!-- Notes -->
-        <div class="sb-group-label">Notes</div>
+        <div class="sb-group-label" id="sb-sec-notes-label">Notes</div>
         <div id="sb-notes" class="sb-list"><div class="sb-feat-dim">No notes yet</div></div>
-        <div style="display:flex;gap:3px;padding:2px 4px 6px">
+        <div id="sb-sec-notes-inp" style="display:flex;gap:3px;padding:2px 4px 6px">
           <input id="sb-note-inp" placeholder="Quick note..." style="flex:1;background:#0a1a0a;color:#88cc88;border:1px solid #1a2e1a;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter'&&this.value.trim()){ask('take a note: '+this.value.trim());this.value=''}">
           <button style="background:#0a1a0a;color:#5aaa5a;border:1px solid #1a2e1a;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="const v=document.getElementById('sb-note-inp').value.trim();if(v){ask('take a note: '+v);document.getElementById('sb-note-inp').value=''}">+</button>
         </div>
 
         <!-- To-do -->
-        <div class="sb-group-label">To-do</div>
+        <div class="sb-group-label" id="sb-sec-todo-label">To-do</div>
         <div id="sb-todo" class="sb-list"><div class="sb-feat-dim">No tasks yet</div></div>
-        <div style="display:flex;gap:3px;padding:2px 4px 6px">
+        <div id="sb-sec-todo-inp" style="display:flex;gap:3px;padding:2px 4px 6px">
           <input id="todo-inp" placeholder="Add task..." style="flex:1;background:#0a1a0a;color:#88cc88;border:1px solid #1a2e1a;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')addTodo()">
           <button style="background:#0a1a0a;color:#5aaa5a;border:1px solid #1a2e1a;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="addTodo()">+</button>
         </div>
 
         <!-- Status -->
-        <div class="sb-group-label">Status</div>
+        <div class="sb-group-label" id="sb-sec-status-label">Status</div>
         <div class="sb-list">
-          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#5aaa5a">Microphone</span></div>
+          <div id="sb-sec-status" class="sb-list"><div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#5aaa5a">Microphone</span></div>
           <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Orbit</span></div>
           <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#5aaa5a"></span></div>
         </div>
 
         <!-- Shortcuts -->
-        <div class="sb-group-label">Shortcuts</div>
+        <div class="sb-group-label" id="sb-sec-sc-label">Shortcuts</div>
         <div id="sb-sc" class="sb-list"></div>
         <button class="sb-feat-btn" onclick="typeof openScAdd==='function'&&openScAdd()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><line x1="6" y1="1" x2="6" y2="11"/><line x1="1" y1="6" x2="11" y2="6"/></svg>Add shortcut</button>
 
         <!-- Memory -->
-        <div class="sb-group-label">Memory</div>
+        <div class="sb-group-label" id="sb-sec-mem-label">Memory</div>
         <div id="sb-mem" class="sb-list"><div class="sb-feat-dim">No memories yet</div></div>
         <button class="sb-feat-btn" style="color:#884444" onclick="typeof wipeMemory==='function'&&wipeMemory()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="1,3 11,3"/><path d="M3.5 3V2h5v1"/><rect x="2" y="3" width="8" height="7" rx="1"/></svg>Wipe memory</button>
         <div style="height:12px"></div>
@@ -1884,6 +1888,198 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <button class="sbt" id="theme-custom" onclick="setCustomColor(document.getElementById('custom-color-picker').value)">Apply Custom</button>
       </div>
     </div>
+
+    <!-- ── HOME SCREEN ── -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Home Screen</div>
+
+    <div class="sg">
+      <label class="sl">Widgets</label>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="hm-clock" onchange="saveHomeSetting('show_clock',this.checked);applyHomeSettings()"> Clock in sidebar</label>
+      </div>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Quick Actions</label>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="hm-qa-screenshot" onchange="saveHomeSetting('qa_screenshot',this.checked);applyHomeSettings()"> Screenshot</label>
+        <label class="stog"><input type="checkbox" id="hm-qa-timer"      onchange="saveHomeSetting('qa_timer',this.checked);applyHomeSettings()"> Timer</label>
+        <label class="stog"><input type="checkbox" id="hm-qa-weather"    onchange="saveHomeSetting('qa_weather',this.checked);applyHomeSettings()"> Weather</label>
+        <label class="stog"><input type="checkbox" id="hm-qa-time"       onchange="saveHomeSetting('qa_time',this.checked);applyHomeSettings()"> Time</label>
+        <label class="stog"><input type="checkbox" id="hm-qa-briefing"   onchange="saveHomeSetting('qa_briefing',this.checked);applyHomeSettings()"> Daily briefing</label>
+      </div>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Sidebar sections</label>
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="hm-notes"     onchange="saveHomeSetting('show_notes',this.checked);applyHomeSettings()"> Notes</label>
+        <label class="stog"><input type="checkbox" id="hm-todo"      onchange="saveHomeSetting('show_todo',this.checked);applyHomeSettings()"> To-Do</label>
+        <label class="stog"><input type="checkbox" id="hm-status"    onchange="saveHomeSetting('show_status',this.checked);applyHomeSettings()"> Status</label>
+        <label class="stog"><input type="checkbox" id="hm-shortcuts" onchange="saveHomeSetting('show_shortcuts',this.checked);applyHomeSettings()"> Shortcuts</label>
+        <label class="stog"><input type="checkbox" id="hm-memory"    onchange="saveHomeSetting('show_memory',this.checked);applyHomeSettings()"> Memory</label>
+      </div>
+    </div>
+
+    <!-- ════ ORB ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Orb</div>
+
+    <div class="sg">
+      <label class="sl">Particle colour</label>
+      <input type="color" id="cu-orb-color" value="#00BAFF"
+        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        oninput="saveCust('orb_color',this.value);applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Size <span id="cu-orb-size-v">1.0</span>×</label>
+      <input type="range" class="sr" id="cu-orb-size" min="0.4" max="2.0" step="0.05" value="1.0"
+        oninput="document.getElementById('cu-orb-size-v').textContent=parseFloat(this.value).toFixed(2);saveCust('orb_size',parseFloat(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Speed <span id="cu-orb-speed-v">1.0</span>×</label>
+      <input type="range" class="sr" id="cu-orb-speed" min="0.1" max="3.0" step="0.1" value="1.0"
+        oninput="document.getElementById('cu-orb-speed-v').textContent=parseFloat(this.value).toFixed(1);saveCust('orb_speed',parseFloat(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Particle count <span id="cu-orb-count-v">180</span></label>
+      <input type="range" class="sr" id="cu-orb-count" min="20" max="400" step="10" value="180"
+        oninput="document.getElementById('cu-orb-count-v').textContent=this.value;saveCust('orb_count',parseInt(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Glow intensity <span id="cu-orb-glow-v">1.0</span></label>
+      <input type="range" class="sr" id="cu-orb-glow" min="0" max="1" step="0.05" value="1.0"
+        oninput="document.getElementById('cu-orb-glow-v').textContent=parseFloat(this.value).toFixed(2);saveCust('orb_glow',parseFloat(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Standby orb size <span id="cu-sby-orbsz-v">130</span>px</label>
+      <input type="range" class="sr" id="cu-sby-orbsz" min="60" max="240" step="5" value="130"
+        oninput="document.getElementById('cu-sby-orbsz-v').textContent=this.value;saveCust('sby_orb_size',parseInt(this.value));applyAllCustom()">
+    </div>
+
+    <!-- ════ GRID ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Grid</div>
+
+    <div class="sg">
+      <label class="stog"><input type="checkbox" id="cu-grid-show" checked onchange="saveCust('grid_show',this.checked);applyAllCustom()"> Show grid</label>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Grid opacity <span id="cu-grid-opacity-v">0.4</span></label>
+      <input type="range" class="sr" id="cu-grid-opacity" min="0.05" max="1" step="0.05" value="0.4"
+        oninput="document.getElementById('cu-grid-opacity-v').textContent=parseFloat(this.value).toFixed(2);saveCust('grid_opacity',parseFloat(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Grid colour</label>
+      <input type="color" id="cu-grid-color" value="#0a1f3a"
+        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        oninput="saveCust('grid_color',this.value);applyAllCustom()">
+    </div>
+
+    <!-- ════ HUD PANELS ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">HUD Panels</div>
+
+    <div class="sg">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="cu-hud-env"   checked onchange="saveCust('hud_env',this.checked);applyAllCustom()"> Environment</label>
+        <label class="stog"><input type="checkbox" id="cu-hud-diag"  checked onchange="saveCust('hud_diag',this.checked);applyAllCustom()"> Diagnostics</label>
+        <label class="stog"><input type="checkbox" id="cu-hud-cog"   checked onchange="saveCust('hud_cog',this.checked);applyAllCustom()"> Cognitive Net</label>
+        <label class="stog"><input type="checkbox" id="cu-hud-audio" checked onchange="saveCust('hud_audio',this.checked);applyAllCustom()"> Audio I/O</label>
+      </div>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Panel opacity <span id="cu-hud-opacity-v">1.0</span></label>
+      <input type="range" class="sr" id="cu-hud-opacity" min="0.1" max="1" step="0.05" value="1.0"
+        oninput="document.getElementById('cu-hud-opacity-v').textContent=parseFloat(this.value).toFixed(2);saveCust('hud_opacity',parseFloat(this.value));applyAllCustom()">
+    </div>
+
+    <!-- ════ STANDBY ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Standby Screen</div>
+
+    <div class="sg">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="cu-sby-clock" checked onchange="saveCust('sby_clock',this.checked);applyAllCustom()"> Show clock</label>
+        <label class="stog"><input type="checkbox" id="cu-sby-date"  checked onchange="saveCust('sby_date',this.checked);applyAllCustom()"> Show date</label>
+      </div>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Clock size <span id="cu-sby-clksz-v">72</span>px</label>
+      <input type="range" class="sr" id="cu-sby-clksz" min="24" max="120" step="2" value="72"
+        oninput="document.getElementById('cu-sby-clksz-v').textContent=this.value;saveCust('sby_clock_size',parseInt(this.value));applyAllCustom()">
+    </div>
+
+    <!-- ════ TITLEBAR ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Titlebar</div>
+
+    <div class="sg">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="cu-tb-clock"   checked onchange="saveCust('tb_clock',this.checked);applyAllCustom()"> Show clock</label>
+        <label class="stog"><input type="checkbox" id="cu-tb-weather" checked onchange="saveCust('tb_weather',this.checked);applyAllCustom()"> Show weather</label>
+      </div>
+    </div>
+
+    <div class="sg">
+      <label class="sl">Window title</label>
+      <input class="si2" id="cu-tb-title" value="Orbit" placeholder="Orbit"
+        oninput="saveCust('tb_title',this.value);applyAllCustom()">
+    </div>
+
+    <!-- ════ CHAT ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Chat</div>
+
+    <div class="sg">
+      <label class="sl">Font size <span id="cu-chat-font-v">13</span>px</label>
+      <input type="range" class="sr" id="cu-chat-font" min="9" max="20" step="1" value="13"
+        oninput="document.getElementById('cu-chat-font-v').textContent=this.value;saveCust('chat_font',parseInt(this.value));applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <label class="stog"><input type="checkbox" id="cu-chat-compact" onchange="saveCust('chat_compact',this.checked);applyAllCustom()"> Compact mode</label>
+        <label class="stog"><input type="checkbox" id="cu-chat-bubbles" onchange="saveCust('chat_bubbles',this.checked);applyAllCustom()"> Message bubbles</label>
+      </div>
+    </div>
+
+    <!-- ════ SIDEBAR ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Sidebar</div>
+
+    <div class="sg">
+      <label class="sl">Profile name</label>
+      <input class="si2" id="cu-sb-name" value="Orbit" placeholder="Orbit"
+        oninput="saveCust('sb_name',this.value);applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Avatar letter</label>
+      <input class="si2" id="cu-sb-avatar" value="Y" maxlength="1" placeholder="Y"
+        style="text-transform:uppercase"
+        oninput="saveCust('sb_avatar',this.value.toUpperCase());applyAllCustom()">
+    </div>
+
+    <div class="sg">
+      <label class="sl">Sidebar width <span id="cu-sb-width-v">260</span>px</label>
+      <input type="range" class="sr" id="cu-sb-width" min="180" max="400" step="10" value="260"
+        oninput="document.getElementById('cu-sb-width-v').textContent=this.value;saveCust('sb_width',parseInt(this.value));applyAllCustom()">
+    </div>
+
+    <!-- ════ BACKGROUND ════ -->
+    <div class="sh" style="font-size:11px;margin-top:6px">Background</div>
+
+    <div class="sg">
+      <label class="sl">Background colour</label>
+      <input type="color" id="cu-bg-color" value="#070B14"
+        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        oninput="saveCust('bg_color',this.value);applyAllCustom()">
+    </div>
+
+    <div style="height:40px"></div>
     <div class="sg">
       <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">GITHUB</label>
       <label class="sl" style="margin-top:8px">Repository URL</label>
@@ -3963,23 +4159,28 @@ function initOrb() {
     ctx.clearRect(0, 0, W, H)
     var cx = W/2, cy = H/2
     var R  = small ? W*0.44 : W*0.46
-    var spinSpeed = state==='thinking' ? 0.016 : state==='speaking' ? 0.011 : state==='listening' ? 0.007 : 0.004
+    var spMul = window._orbSpeed || 1
+    var spinSpeed = (state==='thinking' ? 0.016 : state==='speaking' ? 0.011 : state==='listening' ? 0.007 : 0.004) * spMul
     var ry = frame * spinSpeed
     var pulseD = state==='thinking' ? 0.2 : state==='speaking' ? 0.15 : 0.07
     var pls = Math.sin(frame * (state==='thinking'?0.16:0.025)) * pulseD + (1 - pulseD*0.4)
+    var baseCol = window._orbColor || '#00BAFF'
+    var glowAmt = window._orbGlow !== undefined ? window._orbGlow : 1
+    var nDraw   = Math.min(N, window._orbN || N)
 
-    // Glow
-    var g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1)
-    var alpha = state==='thinking' ? 0.22 : state==='speaking' ? 0.18 : 0.12
-    g.addColorStop(0, 'rgba(0,186,255,'+alpha+')')
-    g.addColorStop(0.5, 'rgba(0,186,255,'+(alpha*0.4)+')')
-    g.addColorStop(1, 'rgba(0,186,255,0)')
-    ctx.fillStyle = g
-    ctx.beginPath(); ctx.arc(cx,cy,R*1.1,0,Math.PI*2); ctx.fill()
+    // Glow (respects glow setting)
+    if (glowAmt > 0) {
+      var g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1)
+      var alpha = (state==='thinking' ? 0.22 : state==='speaking' ? 0.18 : 0.12) * glowAmt
+      g.addColorStop(0, baseCol.replace('#','rgba(').replace(/([0-9a-f]{2})([0-9a-f]{2})([0-9a-f]{2})/i, function(_,r,g2,b){ return parseInt(r,16)+','+parseInt(g2,16)+','+parseInt(b,16)+','+alpha+')' }))
+      g.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = g
+      ctx.beginPath(); ctx.arc(cx,cy,R*1.1,0,Math.PI*2); ctx.fill()
+    }
 
-    for (var i = 0; i < N; i++) {
+    for (var i = 0; i < nDraw; i++) {
       var d  = dots[i]
-      var t  = d.theta + frame * d.sp * (state==='thinking'?2.5:state==='speaking'?1.8:1)
+      var t  = d.theta + frame * d.sp * (state==='thinking'?2.5:state==='speaking'?1.8:1) * spMul
       var x0 = Math.sin(d.phi)*Math.cos(t)
       var y0 = Math.sin(d.phi)*Math.sin(t)
       var z0 = Math.cos(d.phi)
@@ -3988,7 +4189,7 @@ function initOrb() {
       var sc = (z1+1.6)/2.6 * pls
       var alpha2 = Math.max(0.1, sc*0.8+0.05)
       ctx.globalAlpha = alpha2
-      ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : '#00BAFF'
+      ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : baseCol
       var r = Math.max(1, d.r*sc)
       ctx.fillRect(cx+x1*R*sc-r/2, cy+y0*R*sc-r/2, r, r)
     }
@@ -4885,6 +5086,39 @@ function startApp() {
     if (vb && config.version) vb.textContent = 'v'+config.version
   } catch{}
   loadSettValues(); initOrb(); setTimeout(initAether, 500)
+
+  // ── JS layout fix: set pixel dimensions so % heights resolve correctly ──
+  function _fixLayout() {
+    var tb   = document.getElementById('tbar')
+    var main = document.getElementById('main')
+    var wrap = document.getElementById('orb-wrap')
+    if (!main) return
+    var tbH  = tb ? tb.offsetHeight : 44
+    var W    = window.innerWidth
+    var H    = window.innerHeight - tbH
+    // Force #main to exact pixels — overrides all CSS cascade issues
+    main.style.setProperty('position', 'fixed',    'important')
+    main.style.setProperty('top',      tbH + 'px', 'important')
+    main.style.setProperty('left',     '0',         'important')
+    main.style.setProperty('right',    '0',         'important')
+    main.style.setProperty('bottom',   '0',         'important')
+    main.style.setProperty('width',    W + 'px',    'important')
+    main.style.setProperty('height',   H + 'px',    'important')
+    main.style.setProperty('overflow', 'hidden',    'important')
+    // Force #orb-wrap to exact pixels so children can use % heights
+    if (wrap) {
+      wrap.style.setProperty('position',  'absolute', 'important')
+      wrap.style.setProperty('top',       '0',        'important')
+      wrap.style.setProperty('left',      '0',        'important')
+      wrap.style.setProperty('width',     W + 'px',   'important')
+      wrap.style.setProperty('height',    H + 'px',   'important')
+      wrap.style.setProperty('transform', 'none',     'important')
+    }
+  }
+  _fixLayout()
+  window.addEventListener('resize', _fixLayout)
+  try { applyAllCustom() } catch(e) {}
+
   ttsMgr = new TTSManager()
   micMgr = new MicrophoneManager()
   buildShortcuts(); updateMemUI()
@@ -7773,6 +8007,9 @@ setTimeout(async function checkNet(){
 
 // ── SETTINGS ──────────────────────────────────────────
 function loadSettValues(){
+  // Load custom + home screen settings
+  try { _loadCustomUI(); applyAllCustom() } catch(e) {}
+  try { _loadHomeSettingsUI(); applyHomeSettings() } catch(e) {}
   const sv=el('sv'); if(sv) sv.value=config.voice||'en-GB-RyanNeural'
   const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'orbit'
   const st=el('stheme'); if(st) st.value=config.theme||'orbit'
@@ -7809,7 +8046,7 @@ function closeSett(){
   settOpen=false
   const s=el('sett'); if(!s)return
   s.classList.remove('open')
-  setTimeout(()=>{ if(s){s.style.display='none';s.style.transform='translateX(-100%)'} },220)  // hide after animation
+  setTimeout(()=>{ if(s){ s.style.display='none'; s.style.transform='' } },220)
 }
 
 
@@ -9237,6 +9474,283 @@ const _origSetOrbState = setOrbState
 document.addEventListener('DOMContentLoaded', () => {
   setTimeout(() => OrbitCursor.init(), 500)
 })
+
+
+// ── HOME SCREEN CUSTOMIZATION ─────────────────────────────────────────────
+var _homeDefaults = {
+  show_clock:    false,
+  qa_screenshot: true,
+  qa_timer:      true,
+  qa_weather:    true,
+  qa_time:       true,
+  qa_briefing:   true,
+  show_notes:    true,
+  show_todo:     true,
+  show_status:   true,
+  show_shortcuts:true,
+  show_memory:   true,
+}
+
+function saveHomeSetting(key, val) {
+  try {
+    var hm = (config && config.home_screen) ? config.home_screen : {}
+    hm[key] = val
+    if (!config) config = {}
+    config.home_screen = hm
+    orbit.saveConfig({ home_screen: hm })
+  } catch(e) {}
+}
+
+function _hmShow(ids, visible) {
+  ids.forEach(function(id) {
+    var el2 = document.getElementById(id)
+    if (el2) el2.style.display = visible ? '' : 'none'
+  })
+}
+
+function applyHomeSettings() {
+  var hm = (config && config.home_screen) ? config.home_screen : {}
+  function get(key) { return key in hm ? hm[key] : _homeDefaults[key] }
+
+  // Clock widget
+  var clk = document.getElementById('sb-clock-widget')
+  if (clk) clk.style.display = get('show_clock') ? 'block' : 'none'
+
+  // Quick action buttons
+  _hmShow(['sb-qa-screenshot'], get('qa_screenshot'))
+  _hmShow(['sb-qa-timer'],      get('qa_timer'))
+  _hmShow(['sb-qa-weather'],    get('qa_weather'))
+  _hmShow(['sb-qa-time'],       get('qa_time'))
+  _hmShow(['sb-qa-briefing'],   get('qa_briefing'))
+
+  // Hide qa section label if ALL buttons hidden
+  var qaAny = get('qa_screenshot')||get('qa_timer')||get('qa_weather')||get('qa_time')||get('qa_briefing')
+  _hmShow(['sb-sec-qa-label','sb-sec-qa'], qaAny)
+
+  // Sidebar sections
+  _hmShow(['sb-sec-notes-label','sb-notes','sb-sec-notes-inp'], get('show_notes'))
+  _hmShow(['sb-sec-todo-label','sb-todo','sb-sec-todo-inp'],    get('show_todo'))
+  _hmShow(['sb-sec-status-label','sb-sec-status'],              get('show_status'))
+  _hmShow(['sb-sec-sc-label','sb-sc'],                         get('show_shortcuts'))
+  _hmShow(['sb-sec-mem-label','sb-mem'],                       get('show_memory'))
+}
+
+function _loadHomeSettingsUI() {
+  var hm = (config && config.home_screen) ? config.home_screen : {}
+  function get(key) { return key in hm ? hm[key] : _homeDefaults[key] }
+  var ids = {
+    'hm-clock':'show_clock', 'hm-qa-screenshot':'qa_screenshot',
+    'hm-qa-timer':'qa_timer','hm-qa-weather':'qa_weather',
+    'hm-qa-time':'qa_time','hm-qa-briefing':'qa_briefing',
+    'hm-notes':'show_notes','hm-todo':'show_todo',
+    'hm-status':'show_status','hm-shortcuts':'show_shortcuts',
+    'hm-memory':'show_memory',
+  }
+  Object.keys(ids).forEach(function(id) {
+    var cb = document.getElementById(id)
+    if (cb) cb.checked = get(ids[id])
+  })
+}
+
+// Clock ticker for sidebar widget
+setInterval(function() {
+  var w = document.getElementById('sb-clock-widget')
+  if (w && w.style.display !== 'none') {
+    var n = new Date()
+    var h = String(n.getHours()).padStart(2,'0')
+    var m = String(n.getMinutes()).padStart(2,'0')
+    var s = String(n.getSeconds()).padStart(2,'0')
+    w.textContent = h + ':' + m + ':' + s
+  }
+}, 1000)
+
+
+
+// ══════════════════════════════════════════════════════════════════════════
+// ORBIT CUSTOMIZATION ENGINE
+// ══════════════════════════════════════════════════════════════════════════
+var _custDefaults = {
+  // Orb
+  orb_color:   '#00BAFF',
+  orb_size:    1.0,
+  orb_speed:   1.0,
+  orb_count:   180,
+  orb_glow:    1.0,
+  orb_shape:   'sphere',   // sphere | cube (future)
+  // Grid
+  grid_show:   true,
+  grid_opacity:0.4,
+  grid_color:  '#0a1f3a',
+  // HUD panels
+  hud_env:     true,
+  hud_diag:    true,
+  hud_cog:     true,
+  hud_audio:   true,
+  hud_opacity: 1.0,
+  // Standby
+  sby_clock:   true,
+  sby_date:    true,
+  sby_clock_size: 72,
+  sby_orb_size: 130,
+  // Titlebar
+  tb_clock:    true,
+  tb_weather:  true,
+  tb_title:    'Orbit',
+  // Chat
+  chat_font:   13,
+  chat_compact:false,
+  chat_bubbles:false,
+  // Sidebar
+  sb_name:     'Orbit',
+  sb_avatar:   'Y',
+  sb_width:    260,
+  // Background
+  bg_color:    '#070B14',
+  bg_grid_overlay: true,
+}
+
+function _custGet(key) {
+  var c = (config && config.custom) ? config.custom : {}
+  return key in c ? c[key] : _custDefaults[key]
+}
+
+function saveCust(key, val) {
+  if (!config) config = {}
+  if (!config.custom) config.custom = {}
+  config.custom[key] = val
+  try { orbit.saveConfig({ custom: config.custom }) } catch(e) {}
+}
+
+function applyAllCustom() {
+  // ── Orb globals ────────────────────────────────────
+  window._orbColor = _custGet('orb_color')
+  window._orbSpeed = _custGet('orb_speed')
+  window._orbN     = Math.round(_custGet('orb_count'))
+  window._orbGlow  = _custGet('orb_glow')
+
+  // ── Orb canvas size ────────────────────────────────
+  var sz = _custGet('orb_size')
+  var sbySz  = Math.round(_custGet('sby_orb_size'))
+  var actSz  = Math.round(260 * sz)
+  var sbyCv  = document.getElementById('orbit-sby-canvas')
+  var actCv  = document.getElementById('orbit-act-canvas')
+  var sbyOrb = document.getElementById('orbit-sby-orb')
+  var actOrb = document.getElementById('orbit-active-orb')
+  if (sbyCv)  { sbyCv.width = sbySz;  sbyCv.height = sbySz  }
+  if (sbyOrb) { sbyOrb.style.width = sbySz+'px'; sbyOrb.style.height = sbySz+'px' }
+  if (actCv)  { actCv.width = actSz;  actCv.height = actSz  }
+  if (actOrb) {
+    actOrb.style.width  = actSz+'px'
+    actOrb.style.height = actSz+'px'
+    actOrb.style.setProperty('transform','translate(-50%,-56%)','important')
+  }
+
+  // ── Grid ───────────────────────────────────────────
+  var gridEl = document.getElementById('orbit-grid-bg')
+  if (gridEl) {
+    gridEl.style.display   = _custGet('grid_show') ? '' : 'none'
+    gridEl.style.opacity   = _custGet('grid_opacity')
+    var gc = _custGet('grid_color')
+    gridEl.style.backgroundImage =
+      'linear-gradient('+gc+' 1px, transparent 1px),linear-gradient(90deg,'+gc+' 1px, transparent 1px)'
+  }
+
+  // ── HUD panels ─────────────────────────────────────
+  var hudMap = { 'ae-env':'hud_env','ae-diag':'hud_diag','ae-cog':'hud_cog','ae-audio':'hud_audio' }
+  var op = _custGet('hud_opacity')
+  Object.keys(hudMap).forEach(function(id) {
+    var el2 = document.getElementById(id)
+    if (!el2) return
+    el2.style.display = _custGet(hudMap[id]) ? '' : 'none'
+    el2.style.opacity = op
+  })
+
+  // ── Standby ────────────────────────────────────────
+  var ck = document.getElementById('orbit-clock-big')
+  var dt = document.getElementById('orbit-date-big')
+  if (ck) { ck.style.display = _custGet('sby_clock') ? '' : 'none'; ck.style.fontSize = _custGet('sby_clock_size')+'px' }
+  if (dt) { dt.style.display = _custGet('sby_date')  ? '' : 'none' }
+
+  // ── Titlebar ───────────────────────────────────────
+  var tbClock   = document.getElementById('tb-clock')
+  var tbWeather = document.getElementById('tb-weather')
+  var tbName    = document.getElementById('tb-name')
+  if (tbClock)   tbClock.style.display   = _custGet('tb_clock')   ? '' : 'none'
+  if (tbWeather) tbWeather.style.display = _custGet('tb_weather') ? '' : 'none'
+  if (tbName)    tbName.textContent      = _custGet('tb_title')
+
+  // ── Sidebar profile ────────────────────────────────
+  var sbName = document.querySelector('.sb-profile-name')
+  var sbAv   = document.querySelector('.sb-profile-avatar')
+  if (sbName) sbName.textContent = _custGet('sb_name')
+  if (sbAv)   sbAv.textContent   = _custGet('sb_avatar')
+
+  // ── Sidebar width ──────────────────────────────────
+  var sbW = _custGet('sb_width')
+  document.documentElement.style.setProperty('--sb', sbW+'px')
+  document.documentElement.style.setProperty('--sb-w', sbW+'px')
+
+  // ── Chat font size ─────────────────────────────────
+  var chatEl = document.getElementById('chat')
+  if (chatEl) chatEl.style.fontSize = _custGet('chat_font')+'px'
+
+  // ── Build dynamic <style> for deep CSS overrides ───
+  var styleEl = document.getElementById('orbit-custom-style')
+  if (!styleEl) {
+    styleEl = document.createElement('style')
+    styleEl.id = 'orbit-custom-style'
+    document.head.appendChild(styleEl)
+  }
+  var bg    = _custGet('bg_color')
+  var chatC = _custGet('chat_compact')
+
+  styleEl.textContent = [
+    'html,body,#app,#main{ background:'+bg+'!important }',
+    '#orbit-grid-bg{ background-size:40px 40px!important }',
+    chatC ? '.msg{padding:3px 10px!important;margin:1px 0!important}' : '',
+    _custGet('chat_bubbles') ? '.msg.user{background:rgba(0,186,255,0.08);border-radius:8px;padding:6px 10px}' : '',
+  ].join('\n')
+}
+
+function _loadCustomUI() {
+  var fields = {
+    'cu-orb-color':   'orb_color',
+    'cu-orb-size':    'orb_size',
+    'cu-orb-speed':   'orb_speed',
+    'cu-orb-count':   'orb_count',
+    'cu-orb-glow':    'orb_glow',
+    'cu-grid-show':   'grid_show',
+    'cu-grid-opacity':'grid_opacity',
+    'cu-grid-color':  'grid_color',
+    'cu-hud-env':     'hud_env',
+    'cu-hud-diag':    'hud_diag',
+    'cu-hud-cog':     'hud_cog',
+    'cu-hud-audio':   'hud_audio',
+    'cu-hud-opacity': 'hud_opacity',
+    'cu-sby-clock':   'sby_clock',
+    'cu-sby-date':    'sby_date',
+    'cu-sby-clksz':   'sby_clock_size',
+    'cu-sby-orbsz':   'sby_orb_size',
+    'cu-tb-clock':    'tb_clock',
+    'cu-tb-weather':  'tb_weather',
+    'cu-tb-title':    'tb_title',
+    'cu-chat-font':   'chat_font',
+    'cu-chat-compact':'chat_compact',
+    'cu-chat-bubbles':'chat_bubbles',
+    'cu-sb-name':     'sb_name',
+    'cu-sb-avatar':   'sb_avatar',
+    'cu-sb-width':    'sb_width',
+    'cu-bg-color':    'bg_color',
+  }
+  Object.keys(fields).forEach(function(id) {
+    var el2 = document.getElementById(id)
+    if (!el2) return
+    var v = _custGet(fields[id])
+    if (el2.type === 'checkbox') el2.checked = v
+    else el2.value = v
+  })
+}
+
 </script>
 </body>
 </html>
