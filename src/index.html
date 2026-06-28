@@ -900,6 +900,9 @@ input,select,textarea{font-family:inherit}
   top: 0; left: 0;
   width: 100%; height: 100%;
   border-radius: 50%;
+  z-index: 2;
+  display: block !important;
+  visibility: visible !important;
 }
 #orbit-sby-label {
   position: absolute;
@@ -1005,6 +1008,9 @@ input,select,textarea{font-family:inherit}
   top: 0; left: 0;
   width: 100%; height: 100%;
   border-radius: 50%;
+  z-index: 2;
+  display: block !important;
+  visibility: visible !important;
 }
 
 @keyframes orbit-act-breath {
@@ -1433,12 +1439,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
 .ae-grid { z-index:20!important; }          /* HUD panels on top    */
 #inp-bar,#inp-trigger { z-index:30!important; }
 
-/* Standby orb canvas — subtle glow backdrop */
+/* Standby orb — CSS glow background (no filter, safe for Electron canvas) */
 #orbit-sby-orb {
-  filter: drop-shadow(0 0 18px rgba(0,186,255,0.5)) drop-shadow(0 0 40px rgba(0,186,255,0.25));
-}
-#orbit-act-canvas {
-  filter: drop-shadow(0 0 24px rgba(0,186,255,0.4)) drop-shadow(0 0 60px rgba(0,186,255,0.2));
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(27,143,255,0.22) 0%, rgba(27,143,255,0.08) 55%, transparent 80%);
+  box-shadow: 0 0 40px rgba(27,143,255,0.35), 0 0 80px rgba(27,143,255,0.15);
 }
 </style>
 </head>
@@ -4981,6 +4986,7 @@ function waitForOrbit(n) {
 async function boot() {
   try {
     config    = await orbit.loadConfig() || {}
+    config.theme = 'blue'  // always start blue
     memory    = await orbit.loadMemory() || {facts:[],preferences:{},commands:[]}
     apiKey    = await orbit.loadKey()
     lang      = config.language || 'en'
@@ -5160,7 +5166,7 @@ function startApp() {
       if(clk) clk.textContent=h+':'+m
       if(dat) dat.textContent=DAYS[n.getDay()]+' '+n.getDate()+' '+MONS[n.getMonth()]
     }
-    tick(); setInterval(tick,10000)
+    tick(); setInterval(tick,1000)
   })()
   setupUpdaterUI()
 
@@ -5191,6 +5197,7 @@ function startApp() {
     showInp(); el('inp-txt').focus(); micMgr.toggle()
   })
   orbit.on('nav', p => { if (p==='settings') openSett() })
+  try { applyTheme('blue') } catch(e) {}
 }
 
 
