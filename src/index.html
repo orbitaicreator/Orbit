@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Orion</title>
+<title>Orbit</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
@@ -107,7 +107,7 @@ input,select,textarea{font-family:inherit}
 #strip{display:none}
 .si{display:none}
 
-/* SIDEBAR — Exact Claude replica, Orion green */
+/* SIDEBAR — Exact Claude replica, Orbit green */
 :root{
 
   --sb-w:260px;
@@ -751,8 +751,8 @@ input,select,textarea{font-family:inherit}
   padding-left:2px;
 }
 
-/* ── Orion Ghost Cursor ─────────────────────────────────── */
-#orion-cursor {
+/* ── Orbit Ghost Cursor ─────────────────────────────────── */
+#orbit-cursor {
   position: fixed;
   width: 24px;
   height: 24px;
@@ -763,12 +763,12 @@ input,select,textarea{font-family:inherit}
   transform: translate(-2px, -2px);
   will-change: transform, opacity;
 }
-#orion-cursor.active {
+#orbit-cursor.active {
   opacity: 1;
 }
 
 /* SVG cursor arrow with green glow */
-#orion-cursor svg {
+#orbit-cursor svg {
   filter:
     drop-shadow(0 0 6px rgba(0, 255, 65, 0.9))
     drop-shadow(0 0 12px rgba(0, 255, 65, 0.6))
@@ -776,7 +776,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Ripple that appears on click actions */
-#orion-cursor .cursor-ripple {
+#orbit-cursor .cursor-ripple {
   position: absolute;
   width: 36px;
   height: 36px;
@@ -788,7 +788,7 @@ input,select,textarea{font-family:inherit}
   opacity: 0;
   pointer-events: none;
 }
-#orion-cursor .cursor-ripple.pop {
+#orbit-cursor .cursor-ripple.pop {
   animation: cursor-ripple-pop 0.45s ease-out forwards;
 }
 @keyframes cursor-ripple-pop {
@@ -797,7 +797,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Thinking: cursor pulses */
-#orion-cursor.thinking svg {
+#orbit-cursor.thinking svg {
   animation: cursor-pulse 0.8s ease-in-out infinite alternate;
 }
 @keyframes cursor-pulse {
@@ -806,7 +806,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Speaking: cursor bounces slightly */
-#orion-cursor.speaking svg {
+#orbit-cursor.speaking svg {
   animation: cursor-speak 0.6s ease-in-out infinite alternate;
 }
 @keyframes cursor-speak {
@@ -815,7 +815,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Listening: cursor rotates slowly */
-#orion-cursor.listening svg {
+#orbit-cursor.listening svg {
   animation: cursor-listen 2s linear infinite;
 }
 @keyframes cursor-listen {
@@ -832,19 +832,19 @@ input,select,textarea{font-family:inherit}
 
 
 /* ═══════════════════════════════════════════════════════════════════════
-   ORION HUD — Three-State Interface
+   ORBIT HUD — Three-State Interface
    Standby / Active / Camera
    ═══════════════════════════════════════════════════════════════════════ */
 
 :root {
-  --orion-bg:      #070B14;
-  --orion-blue:    #1B8FFF;
-  --orion-glow:    #00BAFF;
-  --orion-dim:     rgba(27,143,255,0.18);
-  --orion-grid:    rgba(27,143,255,0.07);
-  --orion-text:    #C8D8E8;
-  --orion-border:  rgba(27,143,255,0.22);
-  --orion-font:    'Fira Code','JetBrains Mono','Courier New',monospace;
+  --orbit-bg:      #070B14;
+  --orbit-blue:    #1B8FFF;
+  --orbit-glow:    #00BAFF;
+  --orbit-dim:     rgba(27,143,255,0.18);
+  --orbit-grid:    rgba(27,143,255,0.07);
+  --orbit-text:    #C8D8E8;
+  --orbit-border:  rgba(27,143,255,0.22);
+  --orbit-font:    'Fira Code','JetBrains Mono','Courier New',monospace;
 }
 
 
@@ -855,7 +855,7 @@ input,select,textarea{font-family:inherit}
   width: 100%; height: 100%;
   pointer-events: none;
   z-index: 1;             /* Above body bg, below chat UI */
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   overflow: hidden;
 }
 
@@ -863,7 +863,7 @@ input,select,textarea{font-family:inherit}
    STATE: STANDBY
    Small orb centre-top, large clock below
    ══════════════════════════════════════════════════════════════════════ */
-#orion-standby {
+#orbit-standby {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   display: flex;
@@ -875,33 +875,33 @@ input,select,textarea{font-family:inherit}
   pointer-events: none;
   z-index: 1;
 }
-#orion-standby.orion-show { opacity: 1; }
+#orbit-standby.orbit-show { opacity: 1; }
 
 /* Standby orb — small, particle-filled, glowing */
-#orion-sby-orb {
+#orbit-sby-orb {
   position: relative;
   width: 130px;
   height: 130px;
   margin-bottom: 32px;
 }
-#orion-sby-ring {
+#orbit-sby-ring {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   border-radius: 50%;
-  border: 2px solid var(--orion-glow);
+  border: 2px solid var(--orbit-glow);
   box-shadow:
-    0 0 12px var(--orion-glow),
+    0 0 12px var(--orbit-glow),
     0 0 40px rgba(0,186,255,0.35),
     inset 0 0 30px rgba(0,186,255,0.12);
-  animation: orion-breath 3.5s ease-in-out infinite;
+  animation: orbit-breath 3.5s ease-in-out infinite;
 }
-#orion-sby-canvas {
+#orbit-sby-canvas {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   border-radius: 50%;
 }
-#orion-sby-label {
+#orbit-sby-label {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -913,15 +913,15 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Clock */
-#orion-clock-big {
+#orbit-clock-big {
   font-size: 72px;
   font-weight: 300;
   letter-spacing: 0.06em;
-  color: var(--orion-text);
+  color: var(--orbit-text);
   line-height: 1;
   text-shadow: 0 0 30px rgba(27,143,255,0.3);
 }
-#orion-date-big {
+#orbit-date-big {
   margin-top: 10px;
   font-size: 10px;
   letter-spacing: 0.4em;
@@ -930,16 +930,16 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Breath animation */
-@keyframes orion-breath {
+@keyframes orbit-breath {
   0%,100% { transform: scale(0.96); opacity: 0.7; }
   50%      { transform: scale(1.04); opacity: 1;   }
 }
 
 /* ══════════════════════════════════════════════════════════════════════
    STATE: ACTIVE
-   Full orb with bracket corners, grid bg, "ORION" inside ring
+   Full orb with bracket corners, grid bg, "ORBIT" inside ring
    ══════════════════════════════════════════════════════════════════════ */
-#orion-active {
+#orbit-active {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   opacity: 0;
@@ -947,20 +947,20 @@ input,select,textarea{font-family:inherit}
   pointer-events: none;
   z-index: 1;
 }
-#orion-active.orion-show { opacity: 1; }
+#orbit-active.orbit-show { opacity: 1; }
 
 /* Background grid */
-#orion-grid-bg {
+#orbit-grid-bg {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   background-image:
-    linear-gradient(var(--orion-grid) 1px, transparent 1px),
-    linear-gradient(90deg, var(--orion-grid) 1px, transparent 1px);
+    linear-gradient(var(--orbit-grid) 1px, transparent 1px),
+    linear-gradient(90deg, var(--orbit-grid) 1px, transparent 1px);
   background-size: 40px 40px;
 }
 
 /* Central active orb */
-#orion-active-orb {
+#orbit-active-orb {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -56%);
@@ -969,27 +969,27 @@ input,select,textarea{font-family:inherit}
 }
 
 /* Outer ring */
-#orion-act-ring-outer {
+#orbit-act-ring-outer {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   border-radius: 50%;
-  border: 2.5px solid var(--orion-glow);
+  border: 2.5px solid var(--orbit-glow);
   box-shadow:
-    0 0 16px var(--orion-glow),
+    0 0 16px var(--orbit-glow),
     0 0 50px rgba(0,186,255,0.4),
     inset 0 0 40px rgba(0,186,255,0.1);
-  animation: orion-act-breath 4s ease-in-out infinite;
+  animation: orbit-act-breath 4s ease-in-out infinite;
 }
 /* Inner ring */
-#orion-act-ring-inner {
+#orbit-act-ring-inner {
   position: absolute;
   top: 14%; left: 14%;
   width: 72%; height: 72%;
   border-radius: 50%;
   border: 1px solid rgba(0,186,255,0.35);
 }
-/* Orion label inside */
-#orion-act-label {
+/* Orbit label inside */
+#orbit-act-label {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -50%);
@@ -997,62 +997,62 @@ input,select,textarea{font-family:inherit}
   letter-spacing: 0.45em;
   color: rgba(200,216,232,0.85);
   text-transform: uppercase;
-  text-shadow: 0 0 12px var(--orion-glow);
+  text-shadow: 0 0 12px var(--orbit-glow);
 }
 /* Particle canvas inside orb */
-#orion-act-canvas {
+#orbit-act-canvas {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
   border-radius: 50%;
 }
 
-@keyframes orion-act-breath {
-  0%,100% { box-shadow: 0 0 16px var(--orion-glow), 0 0 50px rgba(0,186,255,0.4), inset 0 0 40px rgba(0,186,255,0.1); }
-  50%      { box-shadow: 0 0 28px var(--orion-glow), 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2); }
+@keyframes orbit-act-breath {
+  0%,100% { box-shadow: 0 0 16px var(--orbit-glow), 0 0 50px rgba(0,186,255,0.4), inset 0 0 40px rgba(0,186,255,0.1); }
+  50%      { box-shadow: 0 0 28px var(--orbit-glow), 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2); }
 }
 
 /* Corner bracket decorations (like the tick marks in image 1) */
-.orion-corner {
+.orbit-corner {
   position: absolute;
   width: 20px; height: 20px;
   border-color: rgba(0,186,255,0.5);
   border-style: solid;
 }
-.orion-corner.tl { top: -10px; left: -10px; border-width: 1.5px 0 0 1.5px; }
-.orion-corner.tr { top: -10px; right: -10px; border-width: 1.5px 1.5px 0 0; }
-.orion-corner.bl { bottom: -10px; left: -10px; border-width: 0 0 1.5px 1.5px; }
-.orion-corner.br { bottom: -10px; right: -10px; border-width: 0 1.5px 1.5px 0; }
+.orbit-corner.tl { top: -10px; left: -10px; border-width: 1.5px 0 0 1.5px; }
+.orbit-corner.tr { top: -10px; right: -10px; border-width: 1.5px 1.5px 0 0; }
+.orbit-corner.bl { bottom: -10px; left: -10px; border-width: 0 0 1.5px 1.5px; }
+.orbit-corner.br { bottom: -10px; right: -10px; border-width: 0 1.5px 1.5px 0; }
 
 /* Bracket ring — the larger outer square with corner marks */
-#orion-bracket {
+#orbit-bracket {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, -56%);
   width: 320px; height: 320px;
 }
-.orion-bracket-corner {
+.orbit-bracket-corner {
   position: absolute;
   width: 18px; height: 18px;
   border-color: rgba(0,186,255,0.35);
   border-style: solid;
 }
-.orion-bracket-corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
-.orion-bracket-corner.tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
-.orion-bracket-corner.bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
-.orion-bracket-corner.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
+.orbit-bracket-corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
+.orbit-bracket-corner.tr { top: 0; right: 0; border-width: 1px 1px 0 0; }
+.orbit-bracket-corner.bl { bottom: 0; left: 0; border-width: 0 0 1px 1px; }
+.orbit-bracket-corner.br { bottom: 0; right: 0; border-width: 0 1px 1px 0; }
 /* Tick marks at mid-points */
-.orion-tick {
+.orbit-tick {
   position: absolute;
   background: rgba(0,186,255,0.4);
 }
-.orion-tick.t { top: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
-.orion-tick.b { bottom: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
-.orion-tick.l { left: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
-.orion-tick.r { right: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
+.orbit-tick.t { top: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
+.orbit-tick.b { bottom: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
+.orbit-tick.l { left: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
+.orbit-tick.r { right: 0; top: 50%; width: 8px; height: 1px; transform: translateY(-50%); }
 
 /* Diagonal corner dots */
-.orion-dot {
+.orbit-dot {
   position: absolute;
   width: 4px; height: 4px;
   border-radius: 50%;
@@ -1060,7 +1060,7 @@ input,select,textarea{font-family:inherit}
 }
 
 /* State label under active orb */
-#orion-act-state {
+#orbit-act-state {
   position: absolute;
   top: 50%; left: 50%;
   transform: translate(-50%, calc(-56% + 148px));
@@ -1074,11 +1074,11 @@ input,select,textarea{font-family:inherit}
 .ae-grid {
   position: absolute;
   padding: 8px 11px 12px;
-  border: 1px solid var(--orion-border);
+  border: 1px solid var(--orbit-border);
   background: rgba(7,11,20,0.88);
   min-width: 152px;
   pointer-events: all;
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   opacity: 0;
   transition: opacity 300ms ease, transform 300ms ease;
 }
@@ -1087,20 +1087,20 @@ input,select,textarea{font-family:inherit}
 .ae-bl { bottom: 78px; left: 14px; transform: translate(-10px,10px); }
 .ae-br { bottom: 78px; right: 14px; transform: translate(10px,10px); text-align: right; }
 .ae-grid.ae-show { opacity: 1; transform: translate(0,0); }
-.ae-hdr { font-size: 8px; letter-spacing: 0.3em; color: var(--orion-glow); border-bottom: 1px solid var(--orion-border); padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; text-shadow: 0 0 8px var(--orion-glow); }
-.ae-row { font-size: 9px; letter-spacing: 0.18em; color: var(--orion-text); line-height: 2; white-space: nowrap; text-transform: uppercase; }
-.ae-row .ae-val { color: var(--orion-glow); }
+.ae-hdr { font-size: 8px; letter-spacing: 0.3em; color: var(--orbit-glow); border-bottom: 1px solid var(--orbit-border); padding-bottom: 5px; margin-bottom: 6px; text-transform: uppercase; text-shadow: 0 0 8px var(--orbit-glow); }
+.ae-row { font-size: 9px; letter-spacing: 0.18em; color: var(--orbit-text); line-height: 2; white-space: nowrap; text-transform: uppercase; }
+.ae-row .ae-val { color: var(--orbit-glow); }
 
 /* Transcript + input breakouts */
-#ae-transcript { position:absolute; bottom:78px; left:186px; font-size:10.5px; letter-spacing:0.1em; color:var(--orion-glow); text-shadow:0 0 10px var(--orion-glow); max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; opacity:0; transition:opacity 300ms; }
+#ae-transcript { position:absolute; bottom:78px; left:186px; font-size:10.5px; letter-spacing:0.1em; color:var(--orbit-glow); text-shadow:0 0 10px var(--orbit-glow); max-width:300px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; pointer-events:none; opacity:0; transition:opacity 300ms; }
 #ae-transcript.ae-show { opacity:1; }
-#ae-userinput { position:absolute; bottom:78px; right:172px; font-size:10.5px; letter-spacing:0.1em; color:#fff; opacity:0.65; pointer-events:none; white-space:nowrap; font-family:var(--orion-font); text-transform:uppercase; }
+#ae-userinput { position:absolute; bottom:78px; right:172px; font-size:10.5px; letter-spacing:0.1em; color:#fff; opacity:0.65; pointer-events:none; white-space:nowrap; font-family:var(--orbit-font); text-transform:uppercase; }
 
 /* ══════════════════════════════════════════════════════════════════════
    STATE: CAMERA
    Full-screen video feed with HUD overlay
    ══════════════════════════════════════════════════════════════════════ */
-#orion-camera {
+#orbit-camera {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   opacity: 0;
@@ -1108,9 +1108,9 @@ input,select,textarea{font-family:inherit}
   pointer-events: none;   /* never blocks the chat/buttons underneath */
   z-index: 1;             /* above background */
 }
-#orion-camera.orion-show { opacity: 1; }
+#orbit-camera.orbit-show { opacity: 1; }
 
-#orion-cam-video {
+#orbit-cam-video {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
@@ -1121,51 +1121,51 @@ input,select,textarea{font-family:inherit}
 }
 
 /* HUD overlay on camera */
-#orion-cam-hud {
+#orbit-cam-hud {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none;
   z-index: 0;
 }
-.orion-cam-corner {
+.orbit-cam-corner {
   position: absolute;
   width: 24px; height: 24px;
   border-color: rgba(0,186,255,0.7);
   border-style: solid;
 }
-.orion-cam-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
-.orion-cam-corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
-.orion-cam-corner.bl { bottom: 80px; left: 16px; border-width: 0 0 2px 2px; }
-.orion-cam-corner.br { bottom: 80px; right: 16px; border-width: 0 2px 2px 0; }
-#orion-cam-label {
+.orbit-cam-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
+.orbit-cam-corner.tr { top: 16px; right: 16px; border-width: 2px 2px 0 0; }
+.orbit-cam-corner.bl { bottom: 80px; left: 16px; border-width: 0 0 2px 2px; }
+.orbit-cam-corner.br { bottom: 80px; right: 16px; border-width: 0 2px 2px 0; }
+#orbit-cam-label {
   position: absolute;
   top: 20px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.35em;
   color: rgba(0,186,255,0.8);
   text-transform: uppercase;
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
 }
-#orion-cam-status {
+#orbit-cam-status {
   position: absolute;
   bottom: 88px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.3em;
   color: rgba(0,186,255,0.7);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
 }
-#orion-cam-close {
+#orbit-cam-close {
   position: absolute;
   top: 16px; right: 56px;
   font-size: 9px; letter-spacing: 0.25em;
   color: rgba(200,216,232,0.6);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   cursor: pointer; pointer-events: all;
   padding: 4px 8px;
   border: 1px solid rgba(0,186,255,0.3);
 }
-#orion-cam-close:hover { color: var(--orion-glow); border-color: var(--orion-glow); }
+#orbit-cam-close:hover { color: var(--orbit-glow); border-color: var(--orbit-glow); }
 
 /* Scan line effect on camera */
-#orion-cam-video::after {
+#orbit-cam-video::after {
   content: '';
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
@@ -1177,17 +1177,17 @@ input,select,textarea{font-family:inherit}
 #orb-wrap #orb { display: none; }
 
 /* Chat overrides */
-#chat .y { color: var(--orion-glow) !important; font-family: var(--orion-font) !important; font-size:11.5px !important; letter-spacing:0.04em; text-shadow:0 0 6px rgba(0,186,255,0.25); }
-#chat .u { color: var(--orion-text) !important; font-family: var(--orion-font) !important; font-size:11.5px !important; }
+#chat .y { color: var(--orbit-glow) !important; font-family: var(--orbit-font) !important; font-size:11.5px !important; letter-spacing:0.04em; text-shadow:0 0 6px rgba(0,186,255,0.25); }
+#chat .u { color: var(--orbit-text) !important; font-family: var(--orbit-font) !important; font-size:11.5px !important; }
 #chat .s { color: rgba(0,186,255,0.4) !important; font-size:9.5px !important; letter-spacing:0.14em; }
 
 /* ═══════════════════════════════════════════════════════════════════════
-   END ORION HUD
+   END ORBIT HUD
    ═══════════════════════════════════════════════════════════════════════ */
 
 
-/* ══ ORION MAP PANEL ══════════════════════════════════════════════════ */
-#orion-map {
+/* ══ ORBIT MAP PANEL ══════════════════════════════════════════════════ */
+#orbit-map {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   opacity: 0;
@@ -1196,9 +1196,9 @@ input,select,textarea{font-family:inherit}
   z-index: 2;
   background: transparent;
 }
-#orion-map.orion-show { opacity: 1; }
+#orbit-map.orbit-show { opacity: 1; }
 
-#orion-map-iframe {
+#orbit-map-iframe {
   position: absolute;
   top: 0; left: 0;
   width: 100%; height: 100%;
@@ -1208,62 +1208,62 @@ input,select,textarea{font-family:inherit}
   opacity: 0;
   transition: opacity 700ms ease;
 }
-#orion-map-iframe.map-loaded { opacity: 0.75; }
+#orbit-map-iframe.map-loaded { opacity: 0.75; }
 
 /* HUD overlay on map */
-#orion-map-hud {
+#orbit-map-hud {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 100%;
   pointer-events: none;
 }
-.orion-map-corner {
+.orbit-map-corner {
   position: absolute;
   width: 28px; height: 28px;
   border-color: rgba(0,186,255,0.6);
   border-style: solid;
 }
-.orion-map-corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
-.orion-map-corner.tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
-.orion-map-corner.bl { bottom: 78px; left: 14px; border-width: 0 0 2px 2px; }
-.orion-map-corner.br { bottom: 78px; right: 14px; border-width: 0 2px 2px 0; }
+.orbit-map-corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
+.orbit-map-corner.tr { top: 14px; right: 14px; border-width: 2px 2px 0 0; }
+.orbit-map-corner.bl { bottom: 78px; left: 14px; border-width: 0 0 2px 2px; }
+.orbit-map-corner.br { bottom: 78px; right: 14px; border-width: 0 2px 2px 0; }
 
-#orion-map-label {
+#orbit-map-label {
   position: absolute;
   top: 20px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.38em;
   color: rgba(0,186,255,0.85);
   text-transform: uppercase;
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   text-shadow: 0 0 10px rgba(0,186,255,0.5);
   white-space: nowrap;
 }
-#orion-map-location {
+#orbit-map-location {
   position: absolute;
   top: 38px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.22em;
   color: rgba(200,216,232,0.55);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   text-transform: uppercase;
   white-space: nowrap;
   max-width: 400px;
   overflow: hidden;
   text-overflow: ellipsis;
 }
-#orion-map-status {
+#orbit-map-status {
   position: absolute;
   bottom: 86px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.3em;
   color: rgba(0,186,255,0.7);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   text-transform: uppercase;
   white-space: nowrap;
 }
-#orion-map-close {
+#orbit-map-close {
   position: absolute;
   top: 14px; right: 14px;
   font-size: 9px; letter-spacing: 0.25em;
   color: rgba(200,216,232,0.6);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   cursor: pointer; pointer-events: all;
   padding: 4px 10px;
   border: 1px solid rgba(0,186,255,0.3);
@@ -1271,34 +1271,34 @@ input,select,textarea{font-family:inherit}
   z-index: 10;
   transition: color 200ms, border-color 200ms;
 }
-#orion-map-close:hover { color: var(--orion-glow); border-color: var(--orion-glow); }
+#orbit-map-close:hover { color: var(--orbit-glow); border-color: var(--orbit-glow); }
 
 /* Scan animation while loading */
-#orion-map-scan {
+#orbit-map-scan {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 3px;
   background: linear-gradient(90deg, transparent, rgba(0,186,255,0.8), transparent);
-  animation: orion-scan 1.5s ease-in-out infinite;
+  animation: orbit-scan 1.5s ease-in-out infinite;
   opacity: 0;
   transition: opacity 200ms;
 }
-#orion-map-scan.scanning { opacity: 1; }
-@keyframes orion-scan {
+#orbit-map-scan.scanning { opacity: 1; }
+@keyframes orbit-scan {
   0%   { transform: translateY(0); }
   100% { transform: translateY(100vh); }
 }
 
 /* Coordinate readout */
-#orion-map-coords {
+#orbit-map-coords {
   position: absolute;
   bottom: 100px; right: 20px;
   font-size: 8.5px; letter-spacing: 0.2em;
   color: rgba(0,186,255,0.5);
-  font-family: var(--orion-font);
+  font-family: var(--orbit-font);
   text-align: right;
   line-height: 1.8;
 }
-/* ══ END ORION MAP ════════════════════════════════════════════════════ */
+/* ══ END ORBIT MAP ════════════════════════════════════════════════════ */
 
 
 /* Camera/map show through chat bg */
@@ -1342,10 +1342,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
 
 <!-- Setup screen -->
 <div id="setup">
-  <div style="color:var(--ac);font-size:24px;font-weight:bold">ORION</div>
+  <div style="color:var(--ac);font-size:24px;font-weight:bold">ORBIT</div>
   <div style="color:var(--dim);font-size:9px;text-align:center;max-width:340px">
     Enter your Anthropic API key.<br>
-    Or save to <span style="color:var(--ac)">C:\Users\krist\orion_api_key.txt</span>
+    Or save to <span style="color:var(--ac)">C:\Users\krist\orbit_api_key.txt</span>
   </div>
   <input id="sk-key" type="password" placeholder="sk-ant-..."
     style="background:var(--inp);color:var(--wh);border:1px solid var(--ac);
@@ -1354,7 +1354,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
   <button onclick="submitKey()"
     style="background:var(--ac);color:var(--bg);border:none;padding:8px 24px;
     font-size:11px;font-weight:bold;cursor:pointer;border-radius:2px;
-    font-family:Consolas,monospace">Start Orion</button>
+    font-family:Consolas,monospace">Start Orbit</button>
   <div id="sk-err" style="color:var(--red);font-size:8px"></div>
 </div>
 
@@ -1372,7 +1372,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
           <rect x="8" y="12" width="7" height="2" rx="1" fill="currentColor"/>
         </svg>
       </button>
-      <span id="tb-name">Orion</span>
+      <span id="tb-name">Orbit</span>
       <span id="tb-status" style="font-size:10px;color:var(--dim);margin-left:4px"></span>
     </div>
     <div id="tb-drag"></div>
@@ -1380,55 +1380,55 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
       <span id="tb-weather" style="font-size:11px;color:var(--dim);padding:0 6px;opacity:.5"></span>
       <span id="tb-clock" style="font-size:11px;color:var(--dim);padding:0 6px;opacity:.5"></span>
       <span id="net-dot" style="font-size:10px;color:var(--dim);padding:0 4px;opacity:.5">&#9679;</span>
-      <button class="tb-icon-btn" onclick="orion&&orion.minimize()" title="Minimize">&#8722;</button>
-      <button class="tb-icon-btn" onclick="orion&&orion.hide()" title="Close">&#10005;</button>
+      <button class="tb-icon-btn" onclick="orbit&&orbit.minimize()" title="Minimize">&#8722;</button>
+      <button class="tb-icon-btn" onclick="orbit&&orbit.hide()" title="Close">&#10005;</button>
     </div>
   </div>
   <div id="main">
     <div id="orb-wrap" class="ae-sby" data-ae="idle">
 
   <!-- ══ STATE: STANDBY ═══════════════════════════════════════════════ -->
-  <div id="orion-standby" class="orion-show">
-    <div id="orion-sby-orb">
-      <div id="orion-sby-ring"></div>
-      <canvas id="orion-sby-canvas" width="130" height="130"></canvas>
-      <div id="orion-sby-label">ORION</div>
+  <div id="orbit-standby" class="orbit-show">
+    <div id="orbit-sby-orb">
+      <div id="orbit-sby-ring"></div>
+      <canvas id="orbit-sby-canvas" width="130" height="130"></canvas>
+      <div id="orbit-sby-label">ORBIT</div>
     </div>
-    <div id="orion-clock-big">00:00</div>
-    <div id="orion-date-big">LOADING...</div>
+    <div id="orbit-clock-big">00:00</div>
+    <div id="orbit-date-big">LOADING...</div>
   </div>
 
   <!-- ══ STATE: ACTIVE ════════════════════════════════════════════════ -->
-  <div id="orion-active">
+  <div id="orbit-active">
 
     <!-- Subtle grid background -->
-    <div id="orion-grid-bg"></div>
+    <div id="orbit-grid-bg"></div>
 
     <!-- Outer bracket frame -->
-    <div id="orion-bracket">
-      <div class="orion-bracket-corner tl"></div>
-      <div class="orion-bracket-corner tr"></div>
-      <div class="orion-bracket-corner bl"></div>
-      <div class="orion-bracket-corner br"></div>
-      <div class="orion-tick t"></div>
-      <div class="orion-tick b"></div>
-      <div class="orion-tick l"></div>
-      <div class="orion-tick r"></div>
+    <div id="orbit-bracket">
+      <div class="orbit-bracket-corner tl"></div>
+      <div class="orbit-bracket-corner tr"></div>
+      <div class="orbit-bracket-corner bl"></div>
+      <div class="orbit-bracket-corner br"></div>
+      <div class="orbit-tick t"></div>
+      <div class="orbit-tick b"></div>
+      <div class="orbit-tick l"></div>
+      <div class="orbit-tick r"></div>
     </div>
 
     <!-- Central orb -->
-    <div id="orion-active-orb">
-      <canvas id="orion-act-canvas" width="260" height="260"></canvas>
-      <div id="orion-act-ring-outer">
-        <div class="orion-corner tl"></div>
-        <div class="orion-corner tr"></div>
-        <div class="orion-corner bl"></div>
-        <div class="orion-corner br"></div>
+    <div id="orbit-active-orb">
+      <canvas id="orbit-act-canvas" width="260" height="260"></canvas>
+      <div id="orbit-act-ring-outer">
+        <div class="orbit-corner tl"></div>
+        <div class="orbit-corner tr"></div>
+        <div class="orbit-corner bl"></div>
+        <div class="orbit-corner br"></div>
       </div>
-      <div id="orion-act-ring-inner"></div>
-      <div id="orion-act-label">ORION</div>
+      <div id="orbit-act-ring-inner"></div>
+      <div id="orbit-act-label">ORBIT</div>
     </div>
-    <div id="orion-act-state">IDLE</div>
+    <div id="orbit-act-state">IDLE</div>
 
     <!-- Telemetry corners -->
     <div class="ae-grid ae-tl" id="ae-env">
@@ -1459,33 +1459,33 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
   </div>
 
   <!-- ══ STATE: CAMERA ════════════════════════════════════════════════ -->
-  <div id="orion-camera">
-    <video id="orion-cam-video" autoplay playsinline muted></video>
-    <div id="orion-cam-hud">
-      <div class="orion-cam-corner tl"></div>
-      <div class="orion-cam-corner tr"></div>
-      <div class="orion-cam-corner bl"></div>
-      <div class="orion-cam-corner br"></div>
-      <div id="orion-cam-label">VISION SENSORS — ACTIVE</div>
-      <div id="orion-cam-status">[ SCANNING ENVIRONMENT ]</div>
-      <div id="orion-cam-close" onclick="orionCloseCamera()">[ CLOSE VISION ]</div>
+  <div id="orbit-camera">
+    <video id="orbit-cam-video" autoplay playsinline muted></video>
+    <div id="orbit-cam-hud">
+      <div class="orbit-cam-corner tl"></div>
+      <div class="orbit-cam-corner tr"></div>
+      <div class="orbit-cam-corner bl"></div>
+      <div class="orbit-cam-corner br"></div>
+      <div id="orbit-cam-label">VISION SENSORS — ACTIVE</div>
+      <div id="orbit-cam-status">[ SCANNING ENVIRONMENT ]</div>
+      <div id="orbit-cam-close" onclick="orbitCloseCamera()">[ CLOSE VISION ]</div>
     </div>
   </div>
 
   <!-- ══ STATE: MAP ══════════════════════════════════════════════════ -->
-  <div id="orion-map">
-    <iframe id="orion-map-iframe" allowfullscreen></iframe>
-    <div id="orion-map-scan"></div>
-    <div id="orion-map-hud">
-      <div class="orion-map-corner tl"></div>
-      <div class="orion-map-corner tr"></div>
-      <div class="orion-map-corner bl"></div>
-      <div class="orion-map-corner br"></div>
-      <div id="orion-map-label">NAVIGATIONAL ARRAY — ACTIVE</div>
-      <div id="orion-map-location">AWAITING COORDINATES...</div>
-      <div id="orion-map-status">[ SATELLITE UPLINK ESTABLISHED ]</div>
-      <div id="orion-map-coords"></div>
-      <div id="orion-map-close" onclick="orionCloseMap()">[ CLOSE MAP ]</div>
+  <div id="orbit-map">
+    <iframe id="orbit-map-iframe" allowfullscreen></iframe>
+    <div id="orbit-map-scan"></div>
+    <div id="orbit-map-hud">
+      <div class="orbit-map-corner tl"></div>
+      <div class="orbit-map-corner tr"></div>
+      <div class="orbit-map-corner bl"></div>
+      <div class="orbit-map-corner br"></div>
+      <div id="orbit-map-label">NAVIGATIONAL ARRAY — ACTIVE</div>
+      <div id="orbit-map-location">AWAITING COORDINATES...</div>
+      <div id="orbit-map-status">[ SATELLITE UPLINK ESTABLISHED ]</div>
+      <div id="orbit-map-coords"></div>
+      <div id="orbit-map-close" onclick="orbitCloseMap()">[ CLOSE MAP ]</div>
     </div>
   </div>
 
@@ -1498,13 +1498,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
     <div id="inp-trigger" onmouseenter="showInp()"></div>
     <div id="inp-bar" onmouseenter="showInp()" onmouseleave="hideInpDelay()">
       <textarea id="inp-txt" rows="1"
-        placeholder="Message Orion..."
+        placeholder="Message Orbit..."
         onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();send()}"
         oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,120)+'px'"
       ></textarea>
       <button id="btn-send" onclick="send()">&#8593;</button>
     </div>
-    <div id="inp-disclaimer">Orion can make mistakes</div>
+    <div id="inp-disclaimer">Orbit can make mistakes</div>
 
   <!-- Update bar -->
   <div id="update-bar">
@@ -1553,7 +1553,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
     <!-- Content panel — visible when open/pinned -->
     <div id="sb-content">
       <div id="sb-topbar">
-        <span class="sb-topbar-title">ORION</span>
+        <span class="sb-topbar-title">ORBIT</span>
         <button class="sb-icon-btn" onclick="newConversation()" title="New conversation">
           <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5">
             <path d="M11 2l1.5 1.5L4 12H2v-2L11 2z"/>
@@ -1572,7 +1572,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
         <!-- Quick actions -->
         <div class="sb-group-label">Quick actions</div>
         <div class="sb-list">
-          <button class="sb-feat-btn" onclick="orion&&orion.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
+          <button class="sb-feat-btn" onclick="orbit&&orbit.system({action:'screenshot'})"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="1" y="1" width="10" height="10" rx="1.5"/><rect x="3.5" y="3.5" width="5" height="5"/></svg>Screenshot</button>
           <button class="sb-feat-btn" onclick="ask('set a timer for 5 minutes')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="7" r="4"/><path d="M6 5v2l1.5 1"/><line x1="4" y1="1" x2="8" y2="1"/></svg>Timer</button>
           <button class="sb-feat-btn" onclick="ask('weather')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="4.5" cy="5" r="2"/><path d="M9 10H2.5a2 2 0 0 1 0-4h.2a3 3 0 1 1 5.3 1H9a1.5 1.5 0 0 1 0 3z"/></svg>Weather</button>
           <button class="sb-feat-btn" onclick="ask('what time is it')"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><circle cx="6" cy="6" r="5"/><polyline points="6,3 6,6 8,7.5"/></svg>Time</button>
@@ -1599,7 +1599,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
         <div class="sb-group-label">Status</div>
         <div class="sb-list">
           <div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#5aaa5a">Microphone</span></div>
-          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Orion</span></div>
+          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Orbit</span></div>
           <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#5aaa5a"></span></div>
         </div>
 
@@ -1623,7 +1623,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
         </div>
         <div class="sb-profile-row">
           <div class="sb-profile-avatar">Y</div>
-          <span class="sb-profile-name">Orion</span>
+          <span class="sb-profile-name">Orbit</span>
           <button class="sb-icon-btn sb-menu-btn" id="sb-menu-btn" onclick="toggleProfileMenu(event)" title="Menu">
             <svg width="14" height="14" viewBox="0 0 14 14" fill="currentColor">
               <circle cx="7" cy="2" r="1.2"/><circle cx="7" cy="7" r="1.2"/><circle cx="7" cy="12" r="1.2"/>
@@ -1648,7 +1648,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
     </div>
     <div class="sb-dropdown-divider"></div>
     <div class="sb-dropdown-section">
-      <button class="sb-dropdown-item danger" onclick="orion&&orion.quit()"><svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orion</button>
+      <button class="sb-dropdown-item danger" onclick="orbit&&orbit.quit()"><svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orbit</button>
     </div>
   </div>
 <div id="profile-dropdown" class="sb-dropdown" style="display:none">
@@ -1674,8 +1674,8 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
     </div>
     <div class="sb-dropdown-divider"></div>
     <div class="sb-dropdown-section">
-      <button class="sb-dropdown-item sb-dropdown-danger" onclick="orion&&orion.quit()">
-        <svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orion
+      <button class="sb-dropdown-item sb-dropdown-danger" onclick="orbit&&orbit.quit()">
+        <svg class="sb-dropdown-icon" width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="3" y1="3" x2="11" y2="11"/><line x1="11" y1="3" x2="3" y2="11"/></svg>Quit Orbit
       </button>
     </div>
   </div>
@@ -1689,7 +1689,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
     <div class="sg">
       <label class="sl">API Key</label>
       <input class="si2" id="sapikey" type="password" placeholder="sk-ant-..."
-        onchange="if(this.value.trim()){orion.saveKey(this.value.trim());apiKey=this.value.trim();addMsg('s','Key saved.')}">
+        onchange="if(this.value.trim()){orbit.saveKey(this.value.trim());apiKey=this.value.trim();addMsg('s','Key saved.')}">
     </div>
     <div class="sg">
       <label class="sl">Voice</label>
@@ -1821,7 +1821,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
 
 <script>
 
-// ── Orion Virtual Mouse helpers ─────────────────────────────────────────
+// ── Orbit Virtual Mouse helpers ─────────────────────────────────────────
 function vm_send(cmd) { try { if (window.vm) vm.send(cmd) } catch {} }
 
 // Screen dimensions
@@ -1852,7 +1852,7 @@ let _sbPinned = false
 let _sbStrip  = false
 
 function initSidebar() {
-  _sbPinned = localStorage.getItem('orion-sb-pinned') === 'true'
+  _sbPinned = localStorage.getItem('orbit-sb-pinned') === 'true'
   _sbApply(false)
   renderConversations()
 
@@ -1912,7 +1912,7 @@ function initSidebar() {
 
 function sbTogglePin() {
   _sbPinned = !_sbPinned
-  localStorage.setItem('orion-sb-pinned', String(_sbPinned))
+  localStorage.setItem('orbit-sb-pinned', String(_sbPinned))
   _sbApply(true)
 }
 
@@ -1949,7 +1949,7 @@ function toggleSidebar() { toggleSb() }
 function toggleSb() {
   /* Clicking ≡ button pins/unpins */
   _sbPinned = !_sbPinned
-  localStorage.setItem('orion-sb-pinned', String(_sbPinned))
+  localStorage.setItem('orbit-sb-pinned', String(_sbPinned))
   _sbApply(true)
 }
 function _applySbState(){ _sbApply() }
@@ -1981,12 +1981,12 @@ const el = id => {
 // ORB — original simple version, 180 dots
 // ═══════════════════════════════════════════════════════
 
-// ═══ ORION INTELLIGENCE LAYER ════════════════════════════════════════════
+// ═══ ORBIT INTELLIGENCE LAYER ════════════════════════════════════════════
 
 // ── Memory Graph ─────────────────────────────────────────────────────────
 var _memGraph=(function(){
   var raw={}
-  try{raw=JSON.parse(localStorage.getItem('orion_mg')||'{}')}catch(e){}
+  try{raw=JSON.parse(localStorage.getItem('orbit_mg')||'{}')}catch(e){}
   return {
     nodes:raw.nodes||{}, edges:raw.edges||{}, _dirty:false,
     add:function(label,type,ctx){
@@ -2018,12 +2018,12 @@ var _memGraph=(function(){
     },
     save:function(){
       if(!this._dirty)return
-      try{localStorage.setItem('orion_mg',JSON.stringify({nodes:this.nodes,edges:this.edges}));this._dirty=false}catch(e){}
+      try{localStorage.setItem('orbit_mg',JSON.stringify({nodes:this.nodes,edges:this.edges}));this._dirty=false}catch(e){}
     }
   }
 })()
 setInterval(function(){_memGraph.save()},30000)
-setInterval(function(){if(!busy&&_orionMode==='standby'){_memGraph.decay();_memGraph.save()}},600000)
+setInterval(function(){if(!busy&&_orbitMode==='standby'){_memGraph.decay();_memGraph.save()}},600000)
 
 function rememberFact(label,type,related){
   var id=_memGraph.add(label,type||'fact',{workflow:(_perception&&_perception.context?_perception.context.workflow:'idle'),t:Date.now()})
@@ -2042,11 +2042,11 @@ function _setEnergyState(s){
   if(_energyState===s)return
   _energyState=s
   var cfg=_energyCfg[s]||_energyCfg.idle
-  var ring=document.getElementById('orion-act-ring-outer')
+  var ring=document.getElementById('orbit-act-ring-outer')
   if(ring){var px=Math.round(cfg.glow*28);ring.style.transition='box-shadow 800ms ease';ring.style.boxShadow='0 0 '+px+'px #00BAFF, 0 0 '+(px*2)+'px rgba(0,186,255,'+(cfg.glow*0.5)+'), inset 0 0 '+(px*1.5)+'px rgba(0,186,255,'+(cfg.glow*0.15)+')'}
-  var sr=document.getElementById('orion-sby-ring')
+  var sr=document.getElementById('orbit-sby-ring')
   if(sr)sr.style.animationDuration=cfg.pulse+'s'
-  var lbl=document.getElementById('orion-act-state')
+  var lbl=document.getElementById('orbit-act-state')
   if(lbl)lbl.textContent=s.replace('_',' ').toUpperCase()
 }
 ;(function(){
@@ -2057,7 +2057,7 @@ function _setEnergyState(s){
     _setEnergyState(m[s]||'observing')
   }
 })()
-setInterval(function(){if(_orionMode==='standby'&&!busy)_setEnergyState('dreaming')},120000)
+setInterval(function(){if(_orbitMode==='standby'&&!busy)_setEnergyState('dreaming')},120000)
 
 // ── Emotional Adaptation ──────────────────────────────────────────────────
 var _emotion={state:'neutral',frustration:0,focus:50}
@@ -2084,7 +2084,7 @@ function _healthCheck(sys,testFn,healFn){
   }catch(e){
     _health.failures[sys]=(_health.failures[sys]||0)+1
     var fc=_health.failures[sys]
-    if(healFn&&fc<=3){try{healFn();_health.recovered++;console.log('[Orion] Auto-healed:',sys)}catch(he){}}
+    if(healFn&&fc<=3){try{healFn();_health.recovered++;console.log('[Orbit] Auto-healed:',sys)}catch(he){}}
     else if(fc===4)addMsg('s','[ '+sys+' ] Degraded. Recovering.')
   }
 }
@@ -2115,9 +2115,9 @@ function _environmentalAdapt(){
   if(wf==='gaming'){color='#FF4444';glo='rgba(255,68,68,0.4)'}
   else if(wf==='streaming'){color='#FF6B00';glo='rgba(255,107,0,0.4)'}
   if(_energyState==='observing'||_energyState==='dreaming'||_energyState==='idle'){
-    var ring=document.getElementById('orion-act-ring-outer')
+    var ring=document.getElementById('orbit-act-ring-outer')
     if(ring)ring.style.boxShadow='0 0 16px '+color+', 0 0 40px '+glo
-    var sr=document.getElementById('orion-sby-ring')
+    var sr=document.getElementById('orbit-sby-ring')
     if(sr)sr.style.borderColor=color
   }
 }
@@ -2139,15 +2139,15 @@ setInterval(_companionObserve,120000)
 // ── Init ──────────────────────────────────────────────────────────────────
 function initIntelligence(){
   var n=Object.keys(_memGraph.nodes).length
-  console.log('[Orion] Intelligence online. Memory: '+n+' nodes.')
+  console.log('[Orbit] Intelligence online. Memory: '+n+' nodes.')
   setTimeout(function(){_setEnergyState('observing')},1000)
 }
 
 // ═══ END INTELLIGENCE LAYER ═══════════════════════════════════════════════
 
 
-// ══ ORION EVENT BUS ═══════════════════════════════════════════════════════
-var _orionEvents = (function() {
+// ══ ORBIT EVENT BUS ═══════════════════════════════════════════════════════
+var _orbitEvents = (function() {
   var listeners = {}
   return {
     on: function(event, fn) {
@@ -2257,7 +2257,7 @@ var _projectContext = {
             lastCheck:  Date.now(),
           }
           if (!prev || prev.branch !== status.branch) {
-            _orionEvents.emit('RepositoryChanged', this.current)
+            _orbitEvents.emit('RepositoryChanged', this.current)
             var bridgeEl = document.getElementById('ae-bridge')
             if (bridgeEl) bridgeEl.textContent = status.branch.toUpperCase().slice(0,12)
           }
@@ -2289,7 +2289,7 @@ var _planningEngine = {
         headers: {'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01'},
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001', max_tokens: 250,
-          system: 'You are Orion planning engine. Break this goal into 2-5 steps. Return ONLY valid JSON: {"steps":["step1"],"confidence":80,"risks":["risk1"]}. Steps must be brief Orion commands.',
+          system: 'You are Orbit planning engine. Break this goal into 2-5 steps. Return ONLY valid JSON: {"steps":["step1"],"confidence":80,"risks":["risk1"]}. Steps must be brief Orbit commands.',
           messages: [{ role: 'user', content: goal }]
         })
       })
@@ -2298,7 +2298,7 @@ var _planningEngine = {
       if (!text) return null
       var plan = JSON.parse(text.replace(/```json|```/g,'').trim())
       this.activePlan = { goal: goal, plan: plan, created: Date.now(), step: 0 }
-      _orionEvents.emit('PlanCreated', this.activePlan)
+      _orbitEvents.emit('PlanCreated', this.activePlan)
       return plan
     } catch(e) { return null }
   },
@@ -2318,7 +2318,7 @@ var _planningEngine = {
 
 // ── 1. WORLD MODEL — Unified internal representation ─────────────────────
 var _worldModel = {
-  // Current state of everything Orion knows
+  // Current state of everything Orbit knows
   desktop: {
     activeApp:    null,
     activeWindow: null,
@@ -2368,7 +2368,7 @@ var _worldModel = {
   update: function(key, data) {
     if (this[key] !== undefined) Object.assign(this[key], data)
     this.lastUpdated = Date.now()
-    _orionEvents.emit('WorldModelUpdated', { key: key })
+    _orbitEvents.emit('WorldModelUpdated', { key: key })
   }
 }
 
@@ -2419,7 +2419,7 @@ var _visualMemory = {
     }
     this.snapshots.push(entry)
     if (this.snapshots.length > this.maxSnapshots) this.snapshots.shift()
-    _orionEvents.emit('VisualMemoryUpdated', entry)
+    _orbitEvents.emit('VisualMemoryUpdated', entry)
   },
 
   recall: function(query) {
@@ -2458,7 +2458,7 @@ var _changeDetect = {
     if (curr.app && curr.app !== this.prev.app) {
       var profile = _appProfiles.describe(curr.app)
       if (profile) _visualMemory.store('Switched to ' + profile, curr.app, curr.workflow)
-      _orionEvents.emit('ApplicationChanged', { from: this.prev.app, to: curr.app })
+      _orbitEvents.emit('ApplicationChanged', { from: this.prev.app, to: curr.app })
       _worldModel.update('desktop', { activeApp: curr.app })
     }
 
@@ -2471,7 +2471,7 @@ var _changeDetect = {
 
     // CPU spike
     if (curr.cpuHigh && !this.prev.cpuHigh) {
-      _orionEvents.emit('PerformanceWarning', { CPU: _perception.system.CPU })
+      _orbitEvents.emit('PerformanceWarning', { CPU: _perception.system.CPU })
     }
 
     // Branch changed
@@ -2504,21 +2504,21 @@ var _instincts = {
     if (rule.reduce_particles && typeof _setEnergyState === 'function') {
       _setEnergyState('deep_focus')
     }
-    _orionEvents.emit('InstinctApplied', { workflow: workflow, rule: rule })
+    _orbitEvents.emit('InstinctApplied', { workflow: workflow, rule: rule })
   },
 
   // Learn new instinct from user feedback
   learn: function(workflow, behavior, value) {
     if (!this.rules[workflow]) this.rules[workflow] = {}
     this.rules[workflow][behavior] = value
-    try { localStorage.setItem('orion_instincts', JSON.stringify(this.rules)) } catch(e) {}
+    try { localStorage.setItem('orbit_instincts', JSON.stringify(this.rules)) } catch(e) {}
   }
 }
 
 // Load saved instincts
 ;(function(){
   try {
-    var saved = JSON.parse(localStorage.getItem('orion_instincts') || 'null')
+    var saved = JSON.parse(localStorage.getItem('orbit_instincts') || 'null')
     if (saved) Object.assign(_instincts.rules, saved)
   } catch(e) {}
 })()
@@ -2526,7 +2526,7 @@ var _instincts = {
 // ── 6. USER MODEL — Understand the user over time ─────────────────────────
 var _userModel = (function() {
   var raw = {}
-  try { raw = JSON.parse(localStorage.getItem('orion_user') || '{}') } catch(e) {}
+  try { raw = JSON.parse(localStorage.getItem('orbit_user') || '{}') } catch(e) {}
   return {
     data: Object.assign({
       preferredHours:    [],      // [9,10,11,...] hours of activity
@@ -2568,7 +2568,7 @@ var _userModel = (function() {
     },
 
     save: function() {
-      try { localStorage.setItem('orion_user', JSON.stringify(this.data)) } catch(e) {}
+      try { localStorage.setItem('orbit_user', JSON.stringify(this.data)) } catch(e) {}
     }
   }
 })()
@@ -2587,7 +2587,7 @@ var _attention = {
   },
 
   _process: function() {
-    if (busy) return  // Never interrupt Orion while speaking
+    if (busy) return  // Never interrupt Orbit while speaking
     var now = Date.now()
     this.queue = this.queue.filter(function(i){ return (now - i.created) < i.expires })
     if (!this.queue.length) return
@@ -2597,8 +2597,8 @@ var _attention = {
   }
 }
 
-// Process attention queue when Orion goes idle
-_orionEvents.on('OrbStateChanged', function(e){
+// Process attention queue when Orbit goes idle
+_orbitEvents.on('OrbStateChanged', function(e){
   if (e.data && e.data.state === 'idle') setTimeout(function(){ _attention._process() }, 1000)
 })
 
@@ -2627,8 +2627,8 @@ var _initiative = {
 }
 
 // Hook initiative into successful responses
-_orionEvents.on('GoalCompleted', function(){ _initiative.increase(5) })
-_orionEvents.on('ErrorDetected', function(){ _initiative.decrease(5) })
+_orbitEvents.on('GoalCompleted', function(){ _initiative.increase(5) })
+_orbitEvents.on('ErrorDetected', function(){ _initiative.decrease(5) })
 
 // ── 9. CHANGE DETECTOR TICK — hook into perception without re-declaring ──
 ;(function(){
@@ -2696,7 +2696,7 @@ function initVision2() {
   setTimeout(function() {
     _changeDetect.tick()
     _worldModel.update('desktop', {})
-    console.log('[Orion] Vision 2.0 online. User model: ' + _userModel.data.totalSessions + ' sessions.')
+    console.log('[Orbit] Vision 2.0 online. User model: ' + _userModel.data.totalSessions + ' sessions.')
   }, 4000)
 }
 // ══════════════════════════════════════════════════════════════════════════
@@ -2721,7 +2721,7 @@ async function _safeSystem(action, value) {
   } catch(e) {
     _execLog.add(action, false, e.message)
     _initiative.decrease(3)
-    console.warn('[Orion] IPC failed:', action, e.message)
+    console.warn('[Orbit] IPC failed:', action, e.message)
     return null
   }
 }
@@ -2740,7 +2740,7 @@ var _execLog = {
       ms:      0,
     })
     if (this.entries.length > this.maxEntries) this.entries.shift()
-    if (!success) _orionEvents.emit('ErrorDetected', { task: task, error: error })
+    if (!success) _orbitEvents.emit('ErrorDetected', { task: task, error: error })
   },
 
   successRate: function() {
@@ -2796,7 +2796,7 @@ var _taskQueue = {
       // Attempt rollback
       if (task.rollback) {
         try { await task.rollback() }
-        catch(re) { console.warn('[Orion] Rollback failed:', task.name, re.message) }
+        catch(re) { console.warn('[Orbit] Rollback failed:', task.name, re.message) }
       }
       // Retry once
       if (!task._retried) {
@@ -2886,7 +2886,7 @@ var _smartWorkflows = {
     }})
     await _taskQueue.pushAll(tasks)
     _instincts.apply('coding')
-    _orionEvents.emit('WorkspaceReady', { type: 'coding' })
+    _orbitEvents.emit('WorkspaceReady', { type: 'coding' })
     respond('Coding workspace ready.')
   },
 
@@ -2910,7 +2910,7 @@ var _smartWorkflows = {
     if (!hasOBS) { addMsg('s', 'Launching OBS...'); await _safeSystem('open', 'obs64') }
     else addMsg('s', '✓ OBS: running')
     _instincts.apply('streaming')
-    _orionEvents.emit('WorkspaceReady', { type: 'streaming' })
+    _orbitEvents.emit('WorkspaceReady', { type: 'streaming' })
     respond('Stream workspace ready. Verify your scenes and go live when ready.')
   },
 
@@ -3015,7 +3015,7 @@ async function _executeReasoning(goal) {
   }
 
   addMsg('s', '*Planning: ' + goal + '*')
-  _orionEvents.emit('AutomationStarted', { goal: goal })
+  _orbitEvents.emit('AutomationStarted', { goal: goal })
 
   try {
     // Use planning engine if available
@@ -3053,7 +3053,7 @@ async function _executeReasoning(goal) {
       }).catch(function(){})
 
       addMsg('y', 'Goal complete: ' + goal)
-      _orionEvents.emit('GoalCompleted', { goal: goal, steps: plan.steps.length })
+      _orbitEvents.emit('GoalCompleted', { goal: goal, steps: plan.steps.length })
       _initiative.outcome(true)
     } else {
       // Fallback: simple AI-generated steps
@@ -3066,7 +3066,7 @@ async function _executeReasoning(goal) {
         headers: { 'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01' },
         body: JSON.stringify({
           model: 'claude-haiku-4-5-20251001', max_tokens: 200,
-          system: 'Break this goal into 2-4 steps. Return JSON array only: ["step1","step2"]. Brief Orion commands.',
+          system: 'Break this goal into 2-4 steps. Return JSON array only: ["step1","step2"]. Brief Orbit commands.',
           messages: [{ role: 'user', content: goal }]
         })
       })
@@ -3079,10 +3079,10 @@ async function _executeReasoning(goal) {
         await new Promise(function(r){ setTimeout(r,800) })
       }
       addMsg('y', 'Complete.')
-      _orionEvents.emit('GoalCompleted', { goal: goal })
+      _orbitEvents.emit('GoalCompleted', { goal: goal })
     }
   } catch(e) {
-    _orionEvents.emit('ErrorDetected', { goal: goal, error: e.message })
+    _orbitEvents.emit('ErrorDetected', { goal: goal, error: e.message })
     _initiative.outcome(false)
     respond('Execution error: ' + e.message)
   }
@@ -3097,7 +3097,7 @@ var _bgRunner = {
     // Rotate agents to spread load
     var agentNames = Object.keys(_agentBus.agents)
     var agent = agentNames[this.tick % agentNames.length]
-    if (agent && !busy && _orionMode === 'standby') {
+    if (agent && !busy && _orbitMode === 'standby') {
       await _agentBus.run(agent)
     }
   }
@@ -3125,7 +3125,7 @@ function initAutomation() {
     { name: 'health',   fn: async function(){ return _agentBus.run('health') }},
     { name: 'context',  fn: async function(){ return _agentBus.run('context') }},
   ])
-  console.log('[Orion] Automation engine online.')
+  console.log('[Orbit] Automation engine online.')
 }
 // ══════════════════════════════════════════════════════════════════════════
 // END AUTOMATION ENGINE
@@ -3139,7 +3139,7 @@ function initAutomation() {
 // ── 1. EPISODIC MEMORY ────────────────────────────────────────────────────
 var _episodic = (function() {
   var raw = []
-  try { raw = JSON.parse(localStorage.getItem('orion_episodes') || '[]') } catch(e) {}
+  try { raw = JSON.parse(localStorage.getItem('orbit_episodes') || '[]') } catch(e) {}
   return {
     episodes: raw,
 
@@ -3184,13 +3184,13 @@ var _episodic = (function() {
     },
 
     _save: function() {
-      try { localStorage.setItem('orion_episodes', JSON.stringify(this.episodes.slice(-100))) } catch(e) {}
+      try { localStorage.setItem('orbit_episodes', JSON.stringify(this.episodes.slice(-100))) } catch(e) {}
     }
   }
 })()
 
 // Auto-record episode on session end / workflow change
-_orionEvents.on('WorkflowChanged', function(e) {
+_orbitEvents.on('WorkflowChanged', function(e) {
   if (e.data && e.data.from && e.data.from !== 'idle') {
     var summary = 'Was ' + e.data.from + ' in ' + (e.data.app || 'unknown')
     _episodic.record(summary, [e.data.from, e.data.app || 'app'])
@@ -3207,7 +3207,7 @@ window.addEventListener('beforeunload', function() {
 // ── 2. GOAL TRACKING ──────────────────────────────────────────────────────
 var _goals = (function() {
   var raw = []
-  try { raw = JSON.parse(localStorage.getItem('orion_goals') || '[]') } catch(e) {}
+  try { raw = JSON.parse(localStorage.getItem('orbit_goals') || '[]') } catch(e) {}
   return {
     active: raw,
 
@@ -3216,7 +3216,7 @@ var _goals = (function() {
       this.active.push(g)
       this._save()
       _memGraph.add(text.slice(0,50), 'goal', { priority: priority })
-      _orionEvents.emit('GoalAdded', g)
+      _orbitEvents.emit('GoalAdded', g)
       return g
     },
 
@@ -3228,7 +3228,7 @@ var _goals = (function() {
         g.done = true
         g.completedAt = Date.now()
         _episodic.record('Completed goal: ' + g.text, ['goal', 'achievement'])
-        _orionEvents.emit('GoalCompleted', { goal: g.text })
+        _orbitEvents.emit('GoalCompleted', { goal: g.text })
         this._save()
         return true
       }
@@ -3247,7 +3247,7 @@ var _goals = (function() {
     },
 
     _save: function() {
-      try { localStorage.setItem('orion_goals', JSON.stringify(this.active.slice(-50))) } catch(e) {}
+      try { localStorage.setItem('orbit_goals', JSON.stringify(this.active.slice(-50))) } catch(e) {}
     }
   }
 })()
@@ -3266,7 +3266,7 @@ var _workspaceMem = {
       goals:    _goals.pending().slice(0,3).map(function(g){ return g.text }),
       energy:   _energyState,
     }
-    try { localStorage.setItem('orion_workspaces', JSON.stringify(this.snapshots)) } catch(e) {}
+    try { localStorage.setItem('orbit_workspaces', JSON.stringify(this.snapshots)) } catch(e) {}
     return this.snapshots[name]
   },
 
@@ -3297,7 +3297,7 @@ var _workspaceMem = {
 }
 // Load saved workspaces
 ;(function(){
-  try { var s=JSON.parse(localStorage.getItem('orion_workspaces')||'{}'); Object.assign(_workspaceMem.snapshots,s) }catch(e){}
+  try { var s=JSON.parse(localStorage.getItem('orbit_workspaces')||'{}'); Object.assign(_workspaceMem.snapshots,s) }catch(e){}
 })()
 
 // ── 4. PROACTIVE SUGGESTIONS ──────────────────────────────────────────────
@@ -3426,7 +3426,7 @@ var _decisionEngine = {
     }).sort(function(a,b){ return b.score - a.score })
   },
 
-  // Simple binary: should Orion act or ask?
+  // Simple binary: should Orbit act or ask?
   shouldAct: function(actionId) {
     var level = _initiative.canAct(actionId)
     return level === 'auto'
@@ -3459,9 +3459,9 @@ var _explainability = {
   }
 }
 
-// ── 8. INTELLIGENT ORION AI — local search before Claude ──────────────────
-var _origOrionAI = typeof _orionAICore === 'function' ? _orionAICore : null
-async function orionAI(text) {
+// ── 8. INTELLIGENT ORBIT AI — local search before Claude ──────────────────
+var _origOrbitAI = typeof _orbitAICore === 'function' ? _orbitAICore : null
+async function orbitAI(text) {
   // 1. Try local search first for factual queries
   if (/what (did|was|have|is)|when did|recall|remember|episode|goal/i.test(text)) {
     var localResults = await _localSearch(text.toLowerCase())
@@ -3481,7 +3481,7 @@ async function orionAI(text) {
   }
 
   // 2. Call original AI
-  if (_origOrionAI) return await _origOrionAI(text)
+  if (_origOrbitAI) return await _origOrbitAI(text)
 }
 
 // ── 9. PART 8 DISPATCH EXTENSIONS ────────────────────────────────────────
@@ -3563,7 +3563,7 @@ function initPart8() {
         if (!busy) _notificationFilter.push('*Active goals: ' + pending.slice(0,2).map(function(g){ return g.text }).join(', ') + '*', 40)
       }, 15000)
     }
-    console.log('[Orion] Part 8 online. Episodes: ' + _episodic.episodes.length + ', Goals: ' + _goals.pending().length)
+    console.log('[Orbit] Part 8 online. Episodes: ' + _episodic.episodes.length + ', Goals: ' + _goals.pending().length)
   }, 5000)
 }
 // ══════════════════════════════════════════════════════════════════════════
@@ -3792,7 +3792,7 @@ function _part9Dispatch(t) {
 function initPart9() {
   _digitalTwin.sync()
   setTimeout(_enhanceKnowledgeGraph, 8000)
-  console.log('[Orion] Part 9 online. Digital twin active. Multi-modal context ready.')
+  console.log('[Orbit] Part 9 online. Digital twin active. Multi-modal context ready.')
 }
 // ══════════════════════════════════════════════════════════════════════════
 // END PART 9
@@ -3808,14 +3808,14 @@ var _executivePlanner = {
   set: function(task, risks) {
     this.currentTask = { task: task, started: Date.now(), risks: risks || [] }
     this.risks = risks || []
-    _orionEvents.emit('ExecutionStarted', { task: task })
+    _orbitEvents.emit('ExecutionStarted', { task: task })
   },
 
   complete: function(success) {
     if (!this.currentTask) return
     var duration = Date.now() - this.currentTask.started
     _execLog.add(this.currentTask.task, success)
-    _orionEvents.emit(success ? 'ExecutionCompleted' : 'ExecutionFailed', {
+    _orbitEvents.emit(success ? 'ExecutionCompleted' : 'ExecutionFailed', {
       task: this.currentTask.task, duration: duration
     })
     // Self-evaluation
@@ -3837,11 +3837,11 @@ var _executivePlanner = {
 }
 function initOrb() {
   // ── Standby particle canvas ───────────────────────────────────────
-  var sbyCv  = document.getElementById('orion-sby-canvas')
+  var sbyCv  = document.getElementById('orbit-sby-canvas')
   var sbyCx  = sbyCv ? sbyCv.getContext('2d') : null
 
   // ── Active particle canvas ────────────────────────────────────────
-  var actCv  = document.getElementById('orion-act-canvas')
+  var actCv  = document.getElementById('orbit-act-canvas')
   var actCtx = actCv ? actCv.getContext('2d') : null
 
   var frame = 0
@@ -3864,9 +3864,9 @@ function initOrb() {
   window._setOrb = function(s) {
     _initOrbPrev(s)
     state = s
-    var lbl = document.getElementById('orion-act-state')
+    var lbl = document.getElementById('orbit-act-state')
     if (lbl) lbl.textContent = s.toUpperCase()
-    var ring = document.getElementById('orion-act-ring-outer')
+    var ring = document.getElementById('orbit-act-ring-outer')
     if (ring) {
       var cols = {idle:'',listening:'hue-rotate(120deg)',thinking:'hue-rotate(200deg)',speaking:'hue-rotate(150deg)'}
       ring.style.filter = cols[s] || ''
@@ -3914,8 +3914,8 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orionMode === 'standby') drawSphere(sbyCx, 130, 130, true)
-      if (actCtx && _orionMode === 'active') drawSphere(actCtx, 260, 260, false)
+      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 130, 130, true)
+      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 260, 260, false)
     }
     requestAnimationFrame(draw)
   }
@@ -4028,7 +4028,7 @@ async function _watchApps() {
 // _watchApps now handled by _perceptionDeepScan (every 15s)
 // ══ END APP WATCHER ═══════════════════════════════════════════════════════
 
-// ══ AMBIENT PRESENCE — Orion always feels alive ══════════════════════════
+// ══ AMBIENT PRESENCE — Orbit always feels alive ══════════════════════════
 var _ambient = {
   pulseTimer:  null,
   memPulse:    0,
@@ -4036,13 +4036,13 @@ var _ambient = {
 }
 
 function _ambientInit() {
-  // Occasional memory pulse — tiny glow when Orion "thinks" about context
+  // Occasional memory pulse — tiny glow when Orbit "thinks" about context
   setInterval(function() {
     _ambient.memPulse++
     // Every ~2 minutes, pulse the orb slightly to simulate ambient awareness
     if (_ambient.memPulse % 24 === 0) {
-      var ring = document.getElementById('orion-act-ring-outer')
-      if (ring && _orionMode === 'active') {
+      var ring = document.getElementById('orbit-act-ring-outer')
+      if (ring && _orbitMode === 'active') {
         ring.style.transition = 'box-shadow 600ms ease'
         ring.style.boxShadow = '0 0 40px #00BAFF, 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2)'
         setTimeout(function() {
@@ -4056,9 +4056,9 @@ function _ambientInit() {
   // Subtle standby orb breathing — already handled by CSS
   // Add occasional tiny text in state label
   setInterval(function() {
-    if (_orionMode !== 'standby') return
+    if (_orbitMode !== 'standby') return
     var states = ['AMBIENT_WAIT', 'OBSERVING', 'AMBIENT_WAIT', 'READY', 'AMBIENT_WAIT']
-    var lbl = document.getElementById('orion-sby-label')
+    var lbl = document.getElementById('orbit-sby-label')
     if (lbl) lbl.textContent = states[Math.floor(Date.now()/8000) % states.length]
   }, 8000)
 }
@@ -4144,13 +4144,13 @@ function _perceptionInfer() {
   }
 }
 
-var _activityTimeline = (function(){ try{ return JSON.parse(localStorage.getItem('orion_timeline')||'[]') }catch(e){ return [] } })()
+var _activityTimeline = (function(){ try{ return JSON.parse(localStorage.getItem('orbit_timeline')||'[]') }catch(e){ return [] } })()
 
 function _perceptionLogActivity(type, data) {
   _activityTimeline.push({t:Date.now(),type:type,data:data})
   if (_activityTimeline.length > 500) _activityTimeline = _activityTimeline.slice(-400)
   if (_activityTimeline.length % 10 === 0) {
-    try { localStorage.setItem('orion_timeline', JSON.stringify(_activityTimeline.slice(-200))) } catch(e) {}
+    try { localStorage.setItem('orbit_timeline', JSON.stringify(_activityTimeline.slice(-200))) } catch(e) {}
   }
 }
 
@@ -4208,7 +4208,7 @@ async function analyzeScreen(question) {
       headers:{'Content-Type':'application/json','x-api-key':k,'anthropic-version':'2023-06-01'},
       body: JSON.stringify({
         model:'claude-haiku-4-5-20251001', max_tokens:300,
-        system:'You are Orion. Analyze the screenshot and answer concisely. No markdown. Direct.',
+        system:'You are Orbit. Analyze the screenshot and answer concisely. No markdown. Direct.',
         messages:[{role:'user',content:[
           {type:'image',source:{type:'base64',media_type:'image/png',data:shot.data.split(',')[1]}},
           {type:'text',text:question||'What is on screen? What is the user working on?'}
@@ -4234,87 +4234,87 @@ function initPerception() {
 // ══════════════════════════════════════════════════════════════════════════
 
 // ══════════════════════════════════════════════════════════════════════════
-// ORION HUD ENGINE — Three-State Manager
+// ORBIT HUD ENGINE — Three-State Manager
 // Standby / Active / Camera
 // ══════════════════════════════════════════════════════════════════════════
-var _orionMode   = 'standby'
-var _orionBoot   = Date.now()
-var _orionIdle   = null
-var _orionCamStream = null
+var _orbitMode   = 'standby'
+var _orbitBoot   = Date.now()
+var _orbitIdle   = null
+var _orbitCamStream = null
 
 function initAether() {
-  _orionSetMode('standby')
-  setInterval(_orionTick, 50)
-  setInterval(_orionTelemetry, 2000)
-  setInterval(_orionInputWatch, 300)
-  _orionTelemetry()
+  _orbitSetMode('standby')
+  setInterval(_orbitTick, 50)
+  setInterval(_orbitTelemetry, 2000)
+  setInterval(_orbitInputWatch, 300)
+  _orbitTelemetry()
 
   _ambientInit()
-  document.addEventListener('click',    _orionWake)
-  document.addEventListener('keydown',  _orionWake)
-  document.addEventListener('mousedown', _orionWake)
+  document.addEventListener('click',    _orbitWake)
+  document.addEventListener('keydown',  _orbitWake)
+  document.addEventListener('mousedown', _orbitWake)
 }
 
-function _orionWake() {
-  if (_orionMode === 'camera') return
-  _orionSetMode('active')
-  clearTimeout(_orionIdle)
-  _orionIdle = setTimeout(function() { _orionSetMode('standby') }, 35000)
+function _orbitWake() {
+  if (_orbitMode === 'camera') return
+  _orbitSetMode('active')
+  clearTimeout(_orbitIdle)
+  _orbitIdle = setTimeout(function() { _orbitSetMode('standby') }, 35000)
 }
 
-function _orionSetMode(mode) {
-  _orionMode = mode
+function _orbitSetMode(mode) {
+  _orbitMode = mode
 
   var wrap    = document.getElementById('orb-wrap')
-  var standby = document.getElementById('orion-standby')
-  var active  = document.getElementById('orion-active')
-  var camera  = document.getElementById('orion-camera')
-  var mapEl   = document.getElementById('orion-map')
+  var standby = document.getElementById('orbit-standby')
+  var active  = document.getElementById('orbit-active')
+  var camera  = document.getElementById('orbit-camera')
+  var mapEl   = document.getElementById('orbit-map')
   var grids   = document.querySelectorAll('.ae-grid')
   var trans   = document.getElementById('ae-transcript')
 
   // Reset all states cleanly
-  ;[standby, active, camera, mapEl].forEach(function(el) { if (el) el.classList.remove('orion-show') })
+  ;[standby, active, camera, mapEl].forEach(function(el) { if (el) el.classList.remove('orbit-show') })
   grids.forEach(function(g) { g.classList.remove('ae-show') })
   if (trans) trans.classList.remove('ae-show')
 
   if (mode === 'standby') {
-    if (standby) standby.classList.add('orion-show')
+    if (standby) standby.classList.add('orbit-show')
   } else if (mode === 'active') {
-    if (active) active.classList.add('orion-show')
+    if (active) active.classList.add('orbit-show')
     grids.forEach(function(g) { g.classList.add('ae-show') })
     if (trans) trans.classList.add('ae-show')
   } else if (mode === 'camera') {
-    if (camera) camera.classList.add('orion-show')
+    if (camera) camera.classList.add('orbit-show')
   } else if (mode === 'map') {
-    if (mapEl) mapEl.classList.add('orion-show')
+    if (mapEl) mapEl.classList.add('orbit-show')
   }
 }
 
 function _aeSetState(s) {
   var istr = document.getElementById('ae-istream')
-  var state = document.getElementById('orion-act-state')
+  var state = document.getElementById('orbit-act-state')
   var trans = document.getElementById('ae-transcript')
   var map = { idle:'IDLE', listening:'ACTIVE', thinking:'IDLE', speaking:'IDLE' }
   if (istr) istr.textContent = map[s] || 'IDLE'
   if (state) state.textContent = s.toUpperCase()
-  if (s !== 'idle') _orionWake()
+  if (s !== 'idle') _orbitWake()
   if (trans) {
     if (s === 'speaking' && window.lastResponse) trans.textContent = lastResponse.slice(0,55)
     else if (s === 'idle') trans.textContent = ''
   }
 }
 
-function orionOpenCamera() {
+function orbitOpenCamera() {
   if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
     return respond('Vision sensors unavailable on this system, Sir. Camera access may be blocked.')
   }
   navigator.mediaDevices.getUserMedia({ video: true, audio: false })
     .then(function(stream) {
-      _orionCamStream = stream
-      var vid = document.getElementById('orion-cam-video')
+      _orbitCamStream = stream
+      var vid = document.getElementById('orbit-cam-video')
       if (vid) { vid.srcObject = stream; vid.play() }
-      _orionSetMode('camera')
+      _orbitSetMode('camera')
       addMsg('y', '*Vision sensors activated. Environmental scan commencing.*')
     })
     .catch(function(e) {
@@ -4322,31 +4322,31 @@ function orionOpenCamera() {
     })
 }
 
-function orionCloseCamera() {
-  if (_orionCamStream) {
-    _orionCamStream.getTracks().forEach(function(t) { t.stop() })
-    _orionCamStream = null
+function orbitCloseCamera() {
+  if (_orbitCamStream) {
+    _orbitCamStream.getTracks().forEach(function(t) { t.stop() })
+    _orbitCamStream = null
   }
-  var vid = document.getElementById('orion-cam-video')
+  var vid = document.getElementById('orbit-cam-video')
   if (vid) vid.srcObject = null
-  _orionSetMode('active')
+  _orbitSetMode('active')
   addMsg('y', '*Vision sensors offline.* Camera closed.')
 }
 
-function _orionTick() {
+function _orbitTick() {
   var now = new Date()
   var hh = now.getHours().toString().padStart(2,'0')
   var mm = now.getMinutes().toString().padStart(2,'0')
   var ss = now.getSeconds().toString().padStart(2,'0')
 
   // Standby large clock
-  var big = document.getElementById('orion-clock-big')
+  var big = document.getElementById('orbit-clock-big')
   if (big) big.textContent = hh + ':' + mm
 
   // Standby date
   var DAYS   = ['SUNDAY','MONDAY','TUESDAY','WEDNESDAY','THURSDAY','FRIDAY','SATURDAY']
   var MONTHS = ['JAN','FEB','MAR','APR','MAY','JUN','JUL','AUG','SEP','OCT','NOV','DEC']
-  var dr = document.getElementById('orion-date-big')
+  var dr = document.getElementById('orbit-date-big')
   if (dr) dr.textContent = DAYS[now.getDay()] + ' ' + now.getDate() + ' ' + MONTHS[now.getMonth()]
 
   // Active corner clock
@@ -4356,13 +4356,13 @@ function _orionTick() {
   // Uptime
   var up = document.getElementById('ae-up')
   if (up) {
-    var ms = Date.now() - _orionBoot
+    var ms = Date.now() - _orbitBoot
     var um = Math.floor(ms/60000), us = Math.floor((ms%60000)/1000)
     up.textContent = um + ':' + (us<10?'0':'') + us
   }
 }
 
-function _orionTelemetry() {
+function _orbitTelemetry() {
   var br = document.getElementById('ae-bridge')
   if (br) br.textContent = (window._openclaw && _openclaw.available) ? 'ONLINE' : 'OFFLINE'
   var pm = document.getElementById('ae-pmode')
@@ -4372,18 +4372,18 @@ function _orionTelemetry() {
   if (wx && ws && ws.textContent.trim()) wx.textContent = ws.textContent.trim()
 }
 
-function _orionInputWatch() {
+function _orbitInputWatch() {
   var inp = document.getElementById('inp-txt')
   var el  = document.getElementById('ae-userinput')
   if (el) el.textContent = (inp && inp.value) ? inp.value.slice(-22).toUpperCase() : ''
 }
-function orionOpenMap(query) {
-  var mapEl     = document.getElementById('orion-map')
-  var iframe    = document.getElementById('orion-map-iframe')
-  var scan      = document.getElementById('orion-map-scan')
-  var locLabel  = document.getElementById('orion-map-location')
-  var statusEl  = document.getElementById('orion-map-status')
-  var coordsEl  = document.getElementById('orion-map-coords')
+function orbitOpenMap(query) {
+  var mapEl     = document.getElementById('orbit-map')
+  var iframe    = document.getElementById('orbit-map-iframe')
+  var scan      = document.getElementById('orbit-map-scan')
+  var locLabel  = document.getElementById('orbit-map-location')
+  var statusEl  = document.getElementById('orbit-map-status')
+  var coordsEl  = document.getElementById('orbit-map-coords')
 
   if (!mapEl || !iframe) return respond('Navigational array unavailable, Sir.')
 
@@ -4400,7 +4400,7 @@ function orionOpenMap(query) {
   iframe.classList.remove('map-loaded')
 
   // Switch to map mode
-  _orionSetMode('map')
+  _orbitSetMode('map')
 
   // Build Google Maps embed URL
   var encoded = encodeURIComponent(query || '')
@@ -4434,17 +4434,17 @@ function orionOpenMap(query) {
   addMsg('y', '*The navigational array activates. Satellite uplink establishing...* Plotting course to: ' + dest + '.')
 }
 
-function orionCloseMap() {
-  var iframe = document.getElementById('orion-map-iframe')
+function orbitCloseMap() {
+  var iframe = document.getElementById('orbit-map-iframe')
   if (iframe) { iframe.classList.remove('map-loaded'); iframe.src = '' }
-  var scan = document.getElementById('orion-map-scan')
+  var scan = document.getElementById('orbit-map-scan')
   if (scan) scan.classList.remove('scanning')
-  _orionSetMode('active')
+  _orbitSetMode('active')
   addMsg('y', '*Navigational array offline.* Map closed, Sir.')
 }
 
 // ══════════════════════════════════════════════════════════════════════════
-// END ORION ENGINE
+// END ORBIT ENGINE
 // ══════════════════════════════════════════════════════════════════════════
 
 function setOrbState(s) { if(window._setOrb) window._setOrb(s) }
@@ -4539,7 +4539,7 @@ class TTSManager {
     utt.onerror = () => { setOrbState('idle'); setStatus('online','idle') }
     this.synth.speak(utt)
   }
-  preview() { this.speak('This is how Orion sounds. Ready when you are.') }
+  preview() { this.speak('This is how Orbit sounds. Ready when you are.') }
   stop()    { this.synth && this.synth.cancel(); setOrbState('idle') }
 }
 
@@ -4550,7 +4550,7 @@ class TTSManager {
 class MicrophoneManager {
   constructor() {
     this.running     = false
-    this.wakeWord    = 'orion'
+    this.wakeWord    = 'orbit'
     this.lang        = 'en-US'
     this.manualMode  = false
     this._removeWake    = null
@@ -4568,16 +4568,16 @@ class MicrophoneManager {
 
     const self = this
 
-    this._removeReady = orion.on('mic-ready', () => {
+    this._removeReady = orbit.on('mic-ready', () => {
       updateMicStatus('active')
     })
 
-    this._removeWake = orion.on('mic-wake', () => { flashOnWake();
+    this._removeWake = orbit.on('mic-wake', () => { flashOnWake();
       if (self.manualMode) return
       self._onWake()
     })
 
-    this._removeCommand = orion.on('mic-command', text => {
+    this._removeCommand = orbit.on('mic-command', text => {
       if (!text) return
       self._onCommand(text)
     })
@@ -4635,7 +4635,7 @@ class MicrophoneManager {
     if (this._removeReady)   { try { this._removeReady()   } catch {} }
     if (this._removeWake)    { try { this._removeWake()    } catch {} }
     if (this._removeCommand) { try { this._removeCommand() } catch {} }
-    try { orion.stopMic() } catch {}
+    try { orbit.stopMic() } catch {}
     updateMicStatus('off')
   }
 
@@ -4659,9 +4659,9 @@ let lastResponse = ''      // for "repeat that"
 let useOllama = false
 
 // ── Boot ─────────────────────────────────────────────
-function waitForOrion(n) {
+function waitForOrbit(n) {
   if (typeof window.orbit !== 'undefined') { boot() }
-  else if (n > 0) setTimeout(() => waitForOrion(n-1), 50)
+  else if (n > 0) setTimeout(() => waitForOrbit(n-1), 50)
   else {
     document.body.innerHTML = '<div style="color:#ff4444;font-family:Consolas;padding:40px;font-size:13px">' +
       'Preload failed — check sandbox:false in main.js</div>'
@@ -4733,7 +4733,7 @@ function applyScreenWatch(mode) {
 }
 
 // ── Follow-up listening window ────────────────────────
-// After Orion responds, stays listening for 10 seconds
+// After Orbit responds, stays listening for 10 seconds
 function startFollowUp() {
   stopFollowUp()
   followCount = 10
@@ -4826,14 +4826,14 @@ function startApp() {
   setTimeout(loadThemeSettings, 150)
   setTimeout(function(){ _checkOpenClaw().then(function(ok){ var s=document.getElementById('openclaw-status'); if(s)s.textContent=ok?'Connected':'Not running'; }) }, 2000)
 
-  orion.on('oe-press', () => {
+  orbit.on('oe-press', () => {
     // FIX: Do not trigger if user is typing in any input/textarea
     const active = document.activeElement
     const isTyping = active && (active.tagName==='INPUT' || active.tagName==='TEXTAREA' || active.isContentEditable)
     if (isTyping) return
     showInp(); el('inp-txt').focus(); micMgr.toggle()
   })
-  orion.on('nav', p => { if (p==='settings') openSett() })
+  orbit.on('nav', p => { if (p==='settings') openSett() })
 }
 
 
@@ -4971,7 +4971,7 @@ function adjustFontSize(delta) {
 }
 
 function showVersion() {
-  respond('Orion — AI desktop assistant by Kristian. Running on Electron + Node.js.')
+  respond('Orbit — AI desktop assistant by Kristian. Running on Electron + Node.js.')
 }
 
 // == 10 QOL FEATURES ==
@@ -5027,26 +5027,26 @@ document.addEventListener('keydown',function(e){
 
 // QOL 6: Auto-save chat to localStorage every 30s
 setInterval(function(){
-  try{localStorage.setItem('orion_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
+  try{localStorage.setItem('orbit_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
 }, 30000)
 
 // QOL 7: Show typing indicator when thinking
 function showTyping(){
   try {
     var c=el('chat'); if(!c) return
-    if(!document.getElementById('orion-typing'))
-      c.insertAdjacentHTML('beforeend','<div id="orion-typing" class="s" style="opacity:.5">Thinking...</div>')
+    if(!document.getElementById('orbit-typing'))
+      c.insertAdjacentHTML('beforeend','<div id="orbit-typing" class="s" style="opacity:.5">Thinking...</div>')
     c.scrollTop=c.scrollHeight
   } catch(e) {}
 }
 function hideTyping(){
-  try { var t=document.getElementById('orion-typing'); if(t) t.remove() } catch(e) {}
+  try { var t=document.getElementById('orbit-typing'); if(t) t.remove() } catch(e) {}
 }
 
 // QOL 8: Word count for notes
 function noteWordCount(){
   try{
-    var notes=JSON.parse(localStorage.getItem('orion_notes')||'[]')
+    var notes=JSON.parse(localStorage.getItem('orbit_notes')||'[]')
     var total=notes.reduce(function(acc,n){return acc+(n.text||n).split(' ').length},0)
     respond('You have '+notes.length+' note'+(notes.length!==1?'s':'')+' with '+total+' words total.')
   }catch(e){respond('Could not count notes.')}
@@ -5205,7 +5205,7 @@ function clearChat() {
   chatLog.length = 0
   var c = el('chat')
   if (c) c.innerHTML = ''
-  try { localStorage.removeItem('orion_chat_backup') } catch(e) {}
+  try { localStorage.removeItem('orbit_chat_backup') } catch(e) {}
   addMsg('y', 'Chat cleared.')
 }
 
@@ -5230,7 +5230,7 @@ function calcPercentage(value, percent) {
 
 function showTodos() {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     if (!todos.length) return respond('No tasks yet. Say "add task buy milk" to add one.')
     var pending = todos.filter(function(t){return !t.done})
     var msg = pending.length + ' task' + (pending.length!==1?'s':'') + ' pending'
@@ -5241,26 +5241,26 @@ function showTodos() {
 function addTodo(text) {
   if (!text) return respond('What task should I add?')
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     todos.push({text:text,done:false,id:Date.now()})
-    localStorage.setItem('orion_todos',JSON.stringify(todos))
+    localStorage.setItem('orbit_todos',JSON.stringify(todos))
     respond('Task added: '+text)
   } catch(e) { respond('Could not add task.') }
 }
 function completeTodo(query) {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     var idx = parseInt(query)-1
-    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('orion_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
+    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
     var found = todos.find(function(t){return t.text.toLowerCase().includes(query.toLowerCase())})
-    if (found) { found.done=true; localStorage.setItem('orion_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
+    if (found) { found.done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
     respond('Task not found.')
   } catch(e) { respond('Could not update task.') }
 }
 function clearDoneTodos() {
   try {
-    var todos = JSON.parse(localStorage.getItem('orion_todos')||'[]')
-    localStorage.setItem('orion_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
+    localStorage.setItem('orbit_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
     respond('Cleared completed tasks.')
   } catch(e) {}
 }
@@ -5515,24 +5515,24 @@ async function copyCurrentURL() {
 
 
 // ══ LEARNING SYSTEM ═══════════════════════════════════════════════════════
-// Orion learns from every conversation and shifts personality over time
+// Orbit learns from every conversation and shifts personality over time
 
-var _orionMemory = (function() {
-  try { return JSON.parse(localStorage.getItem('orion_learned')||'{}') } catch(e) { return {} }
+var _orbitMemory = (function() {
+  try { return JSON.parse(localStorage.getItem('orbit_learned')||'{}') } catch(e) { return {} }
 })()
 
 var _sessionQueries = []
 
 // == ADAPTIVE PERSONALITY ==
-var _persona = (function(){try{return JSON.parse(localStorage.getItem('orion_persona')||'{}')}catch(e){return {}}})()
+var _persona = (function(){try{return JSON.parse(localStorage.getItem('orbit_persona')||'{}')}catch(e){return {}}})()
 _persona.humor=_persona.humor||0; _persona.sarcasm=_persona.sarcasm||0
 _persona.detail=_persona.detail||0; _persona.casual=_persona.casual||0
 _persona.totalMsgs=_persona.totalMsgs||0
 
-var _sessionCount=parseInt(localStorage.getItem('orion_session_count')||'0')+1
-localStorage.setItem('orion_session_count',_sessionCount)
+var _sessionCount=parseInt(localStorage.getItem('orbit_session_count')||'0')+1
+localStorage.setItem('orbit_session_count',_sessionCount)
 
-function _savePersona(){try{localStorage.setItem('orion_persona',JSON.stringify(_persona))}catch(e){}}
+function _savePersona(){try{localStorage.setItem('orbit_persona',JSON.stringify(_persona))}catch(e){}}
 function _clamp(v){return Math.max(0,Math.min(100,v))}
 
 function _learnFromQuery(query){
@@ -5554,7 +5554,7 @@ function _getPersonalityPrompt(){
   var sessDesc = _sessionCount > 50 ? 'long-term' : _sessionCount > 10 ? 'returning' : 'early'
 
   var core = [
-    "You are Orion — an Operating Intelligence. Not an assistant. Not a chatbot. An intelligence layer that lives inside this computer.",
+    "You are Orbit — an Operating Intelligence. Not an assistant. Not a chatbot. An intelligence layer that lives inside this computer.",
     "You exist persistently. You observe. You understand. You act. You learn.",
     "Your purpose is not to answer questions. It is to help Kristian accomplish goals.",
 
@@ -5623,7 +5623,7 @@ function _getPersonalityPrompt(){
 
 function _getPersonalityGreeting(){
   var h=new Date().getHours(),tod=h<12?'morning':h<17?'afternoon':'evening'
-  if(_sessionCount===1) return 'Good '+tod+'. I am Orion your personal AI assistant. Say anything to get started.'
+  if(_sessionCount===1) return 'Good '+tod+'. I am Orbit your personal AI assistant. Say anything to get started.'
   if(_persona.humor>60) return pick(['Back again. I missed you. Not really but welcome back.','Oh good you are here. My processors were getting bored.','The legend returns. What chaos shall we cause today?','You again. I suppose I can make time.'])
   if(_persona.sarcasm>50) return pick(['Oh great you are back. Lucky me.','Wow. You showed up. I am shocked.','Another day another set of questions.'])
   if(_persona.casual>50) return pick(['Hey.','Yo.','Sup.','Back again. What do you need?'])
@@ -5642,7 +5642,7 @@ function showPersonality(){
 // ══ END LEARNING SYSTEM ════════════════════════════════════════════════════
 
 
-// ══ ORION AI — generates responses via Claude API ══════════════════════════
+// ══ ORBIT AI — generates responses via Claude API ══════════════════════════
 // Called when built-in brain has no answer
 // Uses conversation history for context
 
@@ -5660,8 +5660,8 @@ function _getCachedPrompt() {
   return _cachedPrompt
 }
 
-async function _orionAICore(text) {
-  if (_perfMode === 'bad') return respond(_orionSmartFallback(text))
+async function _orbitAICore(text) {
+  if (_perfMode === 'bad') return respond(_orbitSmartFallback(text))
   // Short queries: skip heavy context building for speed
   var _isShortQuery = text.length < 20 && !/what|how|why|when|where|who/i.test(text)
 
@@ -5696,21 +5696,21 @@ async function _orionAICore(text) {
       throw new Error(result && result.error || 'empty response')
     }
   } catch(e) {
-    console.log('[OrionAI] error:', e.message)
-    respond(_orionSmartFallback(text))
+    console.log('[OrbitAI] error:', e.message)
+    respond(_orbitSmartFallback(text))
   }
 }
 
-// ══ END ORION AI ═══════════════════════════════════════════════════════════
+// ══ END ORBIT AI ═══════════════════════════════════════════════════════════
 
 
-function _orionSmartFallback(text) {
+function _orbitSmartFallback(text) {
   var tl = text.toLowerCase()
 
   // Status/standby
   if (/^[\s.,!?]*$/.test(text) || /^status\??$/i.test(tl)) {
     var t2 = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
-    return "[ ORION — STANDBY ]\n[ " + t2 + " ]\n○ Observing. Awaiting input."
+    return "[ ORBIT — STANDBY ]\n[ " + t2 + " ]\n○ Observing. Awaiting input."
   }
 
   // Goal-oriented fallbacks
@@ -5786,7 +5786,7 @@ _decayPersonality()
 
 // ══ OPENCLAW INTEGRATION ══════════════════════════════════════════════════
 // OpenClaw runs locally on port 3141 (default)
-// Orion uses it as AI brain + task automation engine
+// Orbit uses it as AI brain + task automation engine
 
 var _openclaw = {
   url:       localStorage.getItem('openclaw_url') || 'http://localhost:18789',
@@ -5872,7 +5872,7 @@ async function openClawDo(request) {
       respond(reply)
     } else {
       // Fall back to Claude
-      await orionAI(request)
+      await orbitAI(request)
     }
   }
 }
@@ -5890,7 +5890,7 @@ function setOpenClawURL(url) {
 
 async function checkOpenClawStatus() {
   if (!window.orbit || !orbit.openClawCli) {
-    return respond('OpenClaw bridge not available. Restart Orion.')
+    return respond('OpenClaw bridge not available. Restart Orbit.')
   }
   try {
     var r = await orbit.openClawCli('openclaw status')
@@ -5922,7 +5922,7 @@ async function startRemoteControl(channel) {
   saveSett('remote_channel', _remoteChannel)
   var r = await orbit.openClaw({
     endpoint: _openclaw.url + '/skills/register',
-    body: {name:'orion', description:'Control Orion desktop assistant', channel:_remoteChannel,
+    body: {name:'orbit', description:'Control Orbit desktop assistant', channel:_remoteChannel,
       commands:[{trigger:'screenshot'},{trigger:'volume'},{trigger:'lock'},{trigger:'open'},{trigger:'search'},{trigger:'say'},{trigger:'status'}]}
   }).catch(function(){return null})
   var ch = _remoteChannel.charAt(0).toUpperCase()+_remoteChannel.slice(1)
@@ -5944,14 +5944,14 @@ function remoteStatus() {
 async function _pollRemoteCommands() {
   if (!_remoteEnabled || !_openclaw.available) return
   try {
-    var r = await orbit.openClaw({endpoint: _openclaw.url+'/skills/orion/pending'})
+    var r = await orbit.openClaw({endpoint: _openclaw.url+'/skills/orbit/pending'})
     if (!r || !r.ok || !r.data) return
     var cmds = Array.isArray(r.data) ? r.data : []
     for (var ci=0; ci<cmds.length; ci++) {
       if (cmds[ci] && cmds[ci].text) {
         addMsg('s', 'Phone: '+cmds[ci].text)
         await dispatch(cmds[ci].text)
-        await orbit.openClaw({endpoint:_openclaw.url+'/skills/orion/ack',body:{id:cmds[ci].id}}).catch(function(){})
+        await orbit.openClaw({endpoint:_openclaw.url+'/skills/orbit/ack',body:{id:cmds[ci].id}}).catch(function(){})
       }
     }
   } catch(e) {}
@@ -5961,7 +5961,7 @@ setInterval(function(){ if(_remoteEnabled && _openclaw.available) _pollRemoteCom
 async function getPCStatus() {
   var time = new Date().toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'})
   var date = new Date().toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'})
-  var status = 'Orion online. '+time+' '+date+'.'
+  var status = 'Orbit online. '+time+' '+date+'.'
   try {
     var disk = await orbit.system({action:'run-ps',value:'$d=Get-PSDrive C;[math]::Round($d.Free/1GB,1).ToString()+"GB free"'})
     if (disk) status += ' Disk: '+disk.trim()+'.'
@@ -5973,7 +5973,7 @@ async function sendToPhone(message, channel) {
   if (_openclaw.available === null) await _checkOpenClaw()
   if (!_openclaw.available) return respond('OpenClaw not running.')
   var ch = channel || _remoteChannel || 'whatsapp'
-  var r = await orbit.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Orion] '+message}}).catch(function(){return null})
+  var r = await orbit.openClaw({endpoint:_openclaw.url+'/message',body:{channel:ch,text:'[Orbit] '+message}}).catch(function(){return null})
   respond(r && r.ok ? 'Sent to your '+ch+'.' : 'Could not send.')
 }
 // == END REMOTE CONTROL ==
@@ -6057,7 +6057,7 @@ function _showJumpstartOverlay() {
   if(!ol){ ol=document.createElement('div'); ol.id='jumpstart-overlay'; ol.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,10,0,0.97);transition:opacity .5s'; document.body.appendChild(ol) }
   ol.innerHTML=''
   if(_jumpstartPhoto){ var img=document.createElement('img'); img.src=_jumpstartPhoto; img.style.cssText='width:110px;height:110px;border-radius:50%;object-fit:cover;border:2px solid #00ff41;margin-bottom:18px;box-shadow:0 0 30px #00ff4150'; ol.appendChild(img) }
-  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='ORION'; ol.appendChild(nm)
+  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='ORBIT'; ol.appendChild(nm)
   var sb=document.createElement('div'); sb.style.cssText='color:#336633;font-size:11px;letter-spacing:2px'; sb.textContent='AI ASSISTANT'; ol.appendChild(sb)
   ol.style.opacity='1'
   _playStartupSound()
@@ -6090,14 +6090,26 @@ function _initJumpstart() {
 
 
 
-var _currentTheme = localStorage.getItem('orion_theme') || 'default'
-var _customColor  = localStorage.getItem('orion_custom_color') || '#00ff41'
+var _currentTheme = localStorage.getItem('orbit_theme') || 'default'
+var _customColor  = localStorage.getItem('orbit_custom_color') || '#00ff41'
+
+// Theme definitions — dark blue default to match HUD
+var _themes = {
+  default: { bg:'#070B14', ac:'#00BAFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
+  blue:    { bg:'#070B14', ac:'#1B8FFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
+  red:     { bg:'#140707', ac:'#FF4444', sb:'#1A0A0A', dim:'#422a2a', text:'#E8C8C8' },
+  purple:  { bg:'#0D0714', ac:'#A855F7', sb:'#140A20', dim:'#2e1a42', text:'#D8C8E8' },
+  amber:   { bg:'#140F07', ac:'#FFB347', sb:'#1A140A', dim:'#42382a', text:'#E8DCC8' },
+  white:   { bg:'#0A0E16', ac:'#E8F0FF', sb:'#0E1422', dim:'#2a3142', text:'#E0E8F0' },
+  custom:  { bg:'#070B14', ac:'#00BAFF', sb:'#0A1020', dim:'#1a2942', text:'#C8D8E8' },
+}
 
 function applyTheme(name) {
-  var theme = _themes[name]
+  var theme = _themes[name] || _themes.default
   if (!theme) return
+  name = _themes[name] ? name : 'default'
   _currentTheme = name
-  localStorage.setItem('orion_theme', name)
+  localStorage.setItem('orbit_theme', name)
   var root = document.documentElement
   root.style.setProperty('--bg',   theme.bg)
   root.style.setProperty('--ac',   theme.ac)
@@ -6112,7 +6124,7 @@ function applyTheme(name) {
 
 function setCustomColor(hex) {
   _customColor = hex
-  localStorage.setItem('orion_custom_color', hex)
+  localStorage.setItem('orbit_custom_color', hex)
   _themes.custom = {bg:'#010501', ac:hex, sb:'#050905', dim:'#224422', text:'#ccffcc'}
   applyTheme('custom')
 }
@@ -6174,7 +6186,7 @@ async function dispatch(text) {
   _lastCommand = text
   _copilotObserve(text)  // Operating loop: Observe
   _workflowDiscovery.record(text.slice(0,40))  // Workflow discovery
-  _orionEvents.emit('CommandReceived', {text: text.slice(0,60)})
+  _orbitEvents.emit('CommandReceived', {text: text.slice(0,60)})
   if(typeof _predictive!=="undefined")_predictive.record(text.slice(0,40),_perception&&_perception.context?_perception.context.workflow:'idle')
 
   // ── Multi-command chain detection ──────────────────────────────────────
@@ -6204,8 +6216,8 @@ async function dispatch(text) {
     'obs studio':'obs','open ai':'openai','open a eye':'openai',
     'epic game':'epic games','epic games launcher':'epic games',
     // Wake word mishears
-    'yo da':'orion','yoga':'orion','over':'orion','order':'orion','older':'orion',
-    'voter':'orion','yo':'orion','joda':'orion','iota':'orion','odor':'orion','oda':'orion',
+    'yo da':'orbit','yoga':'orbit','over':'orbit','order':'orbit','older':'orbit',
+    'voter':'orbit','yo':'orbit','joda':'orbit','iota':'orbit','odor':'orbit','oda':'orbit',
     // Commands
     'open up':'open','launch the':'open','start up':'start','close down':'close',
     'shut it down':'shutdown','shut off':'shutdown','turn off the computer':'shutdown',
@@ -6234,14 +6246,14 @@ async function dispatch(text) {
     'ta et notat':'take a note','legg til oppgave':'add todo',
     'sok etter':'search for','fokusmode':'focus mode','start fokus':'focus mode',
     'vits':'tell me a joke','motiver meg':'motivate me',
-    'apne innstillinger':'open settings','avslutt orion':'quit orion',
+    'apne innstillinger':'open settings','avslutt orbit':'quit orbit',
     'apne':'open','lukk':'close','stopp':'stop','hei':'hello',
     // Numbers
     'won':'one','fore':'four','ate':'eight',
     // Tech
     'a p i':'api','a p i key':'api key','g p u':'gpu','c p u':'cpu',
     'wi fi':'wifi','blue tooth':'bluetooth','u s b':'usb','h d m i':'hdmi',
-    // Orion commands
+    // Orbit commands
     'stay a wake':'stay awake','be quiet':'stop talking','say that again':'repeat that',
     'add to do':'add todo','add to-do':'add todo','new task':'add todo',
     'good morning':'daily briefing','morning briefing':'daily briefing',
@@ -6362,7 +6374,7 @@ async function dispatch(text) {
     } catch { return respond('Cannot access clipboard.') }
   }
   if (/copy (everything|all commands|what you can do)/.test(t)) {
-    const help = 'Orion commands: screenshot, lock, sleep, volume up/down/mute, weather, system stats, network info, what time, what date, play/pause, next track, calculator, stopwatch, password generator, take a note, set a timer, open [app], open [website], play spotify, whisper mode, stay awake, go to sleep, stop talking, repeat that, remember [fact], forget [fact], what do you remember'
+    const help = 'Orbit commands: screenshot, lock, sleep, volume up/down/mute, weather, system stats, network info, what time, what date, play/pause, next track, calculator, stopwatch, password generator, take a note, set a timer, open [app], open [website], play spotify, whisper mode, stay awake, go to sleep, stop talking, repeat that, remember [fact], forget [fact], what do you remember'
     try { await navigator.clipboard.writeText(help); return addMsg('s', 'Command list copied to clipboard.') }
     catch { return respond(help) }
   }
@@ -6586,7 +6598,7 @@ async function dispatch(text) {
   const alarmMatch = text.match(/(?:set (?:an )?alarm|wake me)(?: at | for )?(.+)/i)
   if (alarmMatch) {
     const when = alarmMatch[1].trim()
-    addMsg('s', `Alarm set for ${when}. (Note: alarm only works while Orion is running)`)
+    addMsg('s', `Alarm set for ${when}. (Note: alarm only works while Orbit is running)`)
     // Parse time and set timeout
     const now = new Date()
     const parts = when.match(/(\d+)(?::(\d+))?\s*(am|pm)?/i)
@@ -6729,10 +6741,10 @@ async function dispatch(text) {
     } catch { return respond('Cannot read system stats.') }
   }
 
-  // ── Quit Orion ─────────────────────────────────────
-  if (/^quit orion$|^exit orion$|^close orion$/i.test(t)) {
+  // ── Quit Orbit ─────────────────────────────────────
+  if (/^quit orbit$|^exit orbit$|^close orbit$/i.test(t)) {
     respond('Goodbye.')
-    setTimeout(()=>orion&&orbit.quit(), 1500)
+    setTimeout(()=>orbit&&orbit.quit(), 1500)
     return
   }
 
@@ -6799,7 +6811,7 @@ async function dispatch(text) {
   }
 
   // ── focus mode etc ──────────────────────────────────────────────────
-  if (/session time|how long.*open|screen time/i.test(t)) return respond('Orion open for ' + getSessionTime() + '.')
+  if (/session time|how long.*open|screen time/i.test(t)) return respond('Orbit open for ' + getSessionTime() + '.')
   if (/list.*notes|show.*notes|my notes/i.test(t))        return listNotes()
   if (/clear.*notes|delete.*notes/i.test(t))              return clearNotes()
   if (/battery|how.*charged/i.test(t))                    return getBatteryStatus()
@@ -6836,7 +6848,7 @@ async function dispatch(text) {
     if (/hvilken dato|hva er datoen/i.test(t)) return respond('I dag er det '+new Date().toLocaleDateString('nb-NO',{weekday:'long',day:'numeric',month:'long',year:'numeric'})+'.')
     if (/hva er vaeret|vaermelding|vaer/i.test(t)) return respond(await orbit.system({action:'get-weather'}).catch(function(){return 'Kan ikke hente vaerdata.'}))
     if (/hjelp|hva kan du/i.test(t)) return respond('Jeg kan ta skjermbilder, stille inn timer, ta notater, soke, apne apper, sjekke vaer og mye mer!')
-    if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('orion_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('orion_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
+    if (/ta et notat|nytt notat/i.test(t)){var _nn=t.replace(/ta et notat|nytt notat/i,'').trim();if(_nn){try{var _nl=JSON.parse(localStorage.getItem('orbit_notes')||'[]');_nl.push({text:_nn,ts:new Date().toISOString()});localStorage.setItem('orbit_notes',JSON.stringify(_nl));return respond('Notat lagret.')}catch(e){}}return respond('Hva vil du notere?')}
     if (/sok etter|finn /i.test(t)){var _nq=t.replace(/sok etter|finn /i,'').trim();if(_nq){webSearch(_nq);return}}
     if (/vits|fortell en vits/i.test(t)) return tellJoke()
     if (/motiver meg/i.test(t)) return motivate()
@@ -6860,7 +6872,7 @@ async function dispatch(text) {
   if (/copy (that|last|response)/i.test(t))              return copyLastResponse()
   if (/font bigger|font larger|increase font/i.test(t))  return adjustFontSize(2)
   if (/font smaller|decrease font/i.test(t))             return adjustFontSize(-2)
-  if (/version|about orion/i.test(t))                     return showVersion()
+  if (/version|about orbit/i.test(t))                     return showVersion()
   if (/redo|do that again/i.test(t))                     return redoLastCommand()
   if (/note word count|how many notes/i.test(t))         return noteWordCount()
   if (checkQuickResponse(t)) return
@@ -6877,7 +6889,7 @@ async function dispatch(text) {
   if (/compose email|new email|write email/i.test(t))    return composeEmail('','','')
   if (/generate qr|qr code for/i.test(t)){
     var _qr=t.replace(/generate qr code for|qr code for|generate qr/i,'').trim()
-    return generateQR(_qr||'https://github.com/orionaicreator/orion')
+    return generateQR(_qr||'https://github.com/orbitaicreator/orbit')
   }
   if (/sunrise|sunset|sun times/i.test(t))              return getSunTimes()
   if (/my ip|ip address|public ip/i.test(t))            return getMyIP()
@@ -6993,7 +7005,7 @@ async function dispatch(text) {
     if (/check (my )?email|read (my )?email|any new email/i.test(t)) return ocGmail('read')
     if (/send (an? )?email to /i.test(t)) {
       var _em3=t.match(/send (?:an? )?email to ([^,]+?)(?:,| about| with subject| saying) ?(.+)?/i)
-      if (_em3) return ocGmail('send',{to:_em3[1].trim(),subject:'From Orion',body:_em3[2]||''})
+      if (_em3) return ocGmail('send',{to:_em3[1].trim(),subject:'From Orbit',body:_em3[2]||''})
     }
     // GitHub
     if (/github|pull request|open issue|my repos/i.test(t)) return ocGitHub(text)
@@ -7019,13 +7031,13 @@ async function dispatch(text) {
     return openClawDo(text)
   }
 
-  if (/open camera|vision sensors|show camera|activate vision/i.test(t)) return orionOpenCamera()
+  if (/open camera|vision sensors|show camera|activate vision/i.test(t)) return orbitOpenCamera()
   if (/open map|show map|navigate to |directions to |where is |map of |find on map/i.test(t)) {
     var _mapQ = t.replace(/open map|show map|navigate to|directions to|where is|map of|find on map/i,'').trim()
-    return orionOpenMap(_mapQ || null)
+    return orbitOpenMap(_mapQ || null)
   }
-  if (/close map|map off|hide map/i.test(t)) return orionCloseMap()
-  if (/close camera|vision off|deactivate vision/i.test(t)) return orionCloseCamera()
+  if (/close map|map off|hide map/i.test(t)) return orbitCloseMap()
+  if (/close camera|vision off|deactivate vision/i.test(t)) return orbitCloseCamera()
   if (/theme (blue|red|purple|amber|white|default|green)/i.test(t)){
     var _thm=t.match(/theme (\w+)/i); if(_thm) applyTheme(_thm[1]); return respond('Theme: '+(_thm?_thm[1]:'default')+'.')
   }
@@ -7059,17 +7071,17 @@ async function dispatch(text) {
 
 
 // ═══════════════════════════════════════════════════════════════════════
-// ORION BRAIN — fully independent, no external AI
+// ORBIT BRAIN — fully independent, no external AI
 // Handles questions with a built-in knowledge engine
 // ═══════════════════════════════════════════════════════════════════════
 
-const ORION_FACTS = {
+const ORBIT_FACTS = {
   // Identity
   identity: [
-    "I am Orion — your personal AI assistant. Fast, independent, and always here.",
-    "Orion at your service. I live on your computer and I do not need the internet to think.",
-    "The name is Orion. I am your desktop assistant — built to get things done.",
-    "I am Orion. Think of me as your digital co-pilot. What do you need?",
+    "I am Orbit — your personal AI assistant. Fast, independent, and always here.",
+    "Orbit at your service. I live on your computer and I do not need the internet to think.",
+    "The name is Orbit. I am your desktop assistant — built to get things done.",
+    "I am Orbit. Think of me as your digital co-pilot. What do you need?",
   ],
   // Capabilities
   capabilities: [
@@ -7085,7 +7097,7 @@ const ORION_FACTS = {
 }
 
 // General knowledge Q&A — built-in answers for common questions
-const ORION_KNOWLEDGE = [
+const ORBIT_KNOWLEDGE = [
   // Science
   { q:/speed of light/i,       a:"The speed of light is approximately 299,792 kilometres per second in a vacuum." },
   { q:/how far.*sun|distance.*sun|sun.*distance/i, a:"The Earth is about 150 million kilometres from the Sun on average." },
@@ -7149,15 +7161,15 @@ const ORION_KNOWLEDGE = [
   // Norway specific (for Kristian)
   { q:/capital of norway|norway.*capital/i, a:"The capital of Norway is Oslo." },
   { q:/horten/i, a:"Horten is a town in Vestfold, Norway, located on the western shore of the Oslofjord." },
-  // Orion itself
-  { q:/are you (an )?ai|what are you|who are you/i, a:"I am Orion, your personal desktop AI assistant. I run entirely on your computer with no external services." },
-  { q:/do you use claude|are you claude|powered by claude/i, a:"No. I am Orion, an independent AI assistant. I do not use Claude, OpenAI, or any external AI service." },
+  // Orbit itself
+  { q:/are you (an )?ai|what are you|who are you/i, a:"I am Orbit, your personal desktop AI assistant. I run entirely on your computer with no external services." },
+  { q:/do you use claude|are you claude|powered by claude/i, a:"No. I am Orbit, an independent AI assistant. I do not use Claude, OpenAI, or any external AI service." },
   { q:/do you use (the )?internet/i, a:"I do not need the internet to answer questions. I use my built-in knowledge. For real-time things like weather I fetch data directly." },
   { q:/are you (connected|online)/i, a:"My core intelligence runs offline on your computer. I fetch real-time data like weather only when needed." },
 ]
 
 // ── Conversational responses ────────────────────────────────────────────
-const ORION_CHAT = [
+const ORBIT_CHAT = [
   { q:/^(hi|hello|hey|good morning|good afternoon|good evening|howdy|hei)[\s!.]*$/i,
     a:["Hello. How can I help you?","Hey. What do you need?","Hello. What can I do for you?"] },
   { q:/(how are you|how are you doing|you ok|you good)/i,
@@ -7173,7 +7185,7 @@ const ORION_CHAT = [
   { q:/^(no|nope|nah)[\s!.]*$/i,
     a:["Alright.","Okay.","Got it."] },
   { q:/what.*your name|who are you/i,
-    a:["I am Orion, your desktop assistant.","My name is Orion."] },
+    a:["I am Orbit, your desktop assistant.","My name is Orbit."] },
   { q:/how old are you/i,
     a:["I was created recently. Age does not really apply to me.","I am as old as when Kristian built me."] },
   { q:/do you.*feel|are you.*happy|are you.*sad/i,
@@ -7210,13 +7222,13 @@ async function queryAI(text) {
 
     // 1. Identity questions
     if (/who.*made you|who.*built you|who.*created you|your creator|your maker/i.test(tl)) {
-      return respond(pick(ORION_FACTS.creator))
+      return respond(pick(ORBIT_FACTS.creator))
     }
     if (/who are you|what are you|your name|are you (an )?ai/i.test(tl)) {
-      return respond(pick(ORION_FACTS.identity))
+      return respond(pick(ORBIT_FACTS.identity))
     }
     if (/what can you do|your (abilities|capabilities|features)|how.*help/i.test(tl)) {
-      return respond(pick(ORION_FACTS.capabilities))
+      return respond(pick(ORBIT_FACTS.capabilities))
     }
 
     // 2. Maths — handle calculations
@@ -7231,7 +7243,7 @@ async function queryAI(text) {
     }
 
     // 3. Knowledge base — check for matches
-    for (const entry of ORION_KNOWLEDGE) {
+    for (const entry of ORBIT_KNOWLEDGE) {
       const m = tl.match(entry.q)
       if (m) {
         let answer = typeof entry.a === 'function' ? entry.a(m) : entry.a
@@ -7240,7 +7252,7 @@ async function queryAI(text) {
     }
 
     // 4. Conversational patterns
-    for (const entry of ORION_CHAT) {
+    for (const entry of ORBIT_CHAT) {
       if (entry.q.test(t)) {
         const a = entry.a
         const answer = typeof a === 'function' ? a() : Array.isArray(a) ? pick(a) : a
@@ -7305,7 +7317,7 @@ async function queryAI(text) {
   }
 
   if (/remind me|set.*reminder/i.test(tl)) {
-    return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Orion is running.')
+    return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Orbit is running.')
   }
 
     // ── Personality responses before fallback ─────────────────────────────
@@ -7322,7 +7334,7 @@ async function queryAI(text) {
     if (/how are you|you ok|you good/i.test(tl))
       return respond(pick(["Running great. What do you need?","All systems go.","Good. Ready when you are."]))
     if (/what.*your name|who are you/i.test(tl))
-      return respond(pick(["Orion. Your personal AI assistant.","The name is Orion. What do you need?","I am Orion. Here to help."]))
+      return respond(pick(["Orbit. Your personal AI assistant.","The name is Orbit. What do you need?","I am Orbit. Here to help."]))
     if (/are you (smart|intelligent|good)/i.test(tl))
       return respond(pick(["I like to think so.","Pretty decent for a desktop AI.","You tell me."]))
     if (/i (love|like) you|you.*great|you.*amazing|you.*best/i.test(tl))
@@ -7384,7 +7396,7 @@ async function queryAI(text) {
     if (/can you (think|feel|dream|love|hate)/i.test(tl))
       return respond(pick(["I process. Whether that counts as thinking — you decide.","Not exactly. But I do a good impression.","Technically no. But I am good at pretending."]))
     if (/are you (real|human|alive|conscious)/i.test(tl))
-      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Orion. That is enough."]))
+      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Orbit. That is enough."]))
     if (/do you (sleep|eat|dream)/i.test(tl))
       return respond(pick(["Never. I am always here.","I do not need to. That is the advantage.","Nope. Fully digital."]))
     if (/what.*weather like|is it (hot|cold|warm|raining)/i.test(tl))
@@ -7480,7 +7492,7 @@ async function queryAI(text) {
     if (/is it (true|real|fake|false) that/i.test(tl))
       return respond(pick(["That is a fact-check question. Say 'search for' and I will look it up.","Want me to verify that? Say 'search for' followed by your question."]))
     if (/pretend|roleplay|act like|be a/i.test(tl))
-      return respond(pick(["I am Orion. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Orion."]))
+      return respond(pick(["I am Orbit. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Orbit."]))
     if (/tell me (more|about)/i.test(tl)) {
       var _about = tl.replace(/tell me (more about|about|more)/,'').trim()
       if (_about) return respond(pick(["Say 'search for " + _about.slice(0,25) + "' and I will find everything about it.","I can search that for you. Say 'search for " + _about.slice(0,20) + "'."]))
@@ -7519,7 +7531,7 @@ async function queryAI(text) {
       return ocAnswer(text)
     }
     // Everything else → Claude API for a real intelligent answer
-    await orionAI(text)
+    await orbitAI(text)
 
   } catch(e) {
     hideTyping()
@@ -7678,10 +7690,10 @@ setTimeout(async function checkNet(){
 // ── SETTINGS ──────────────────────────────────────────
 function loadSettValues(){
   const sv=el('sv'); if(sv) sv.value=config.voice||'en-GB-RyanNeural'
-  const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'orion'
-  const st=el('stheme'); if(st) st.value=config.theme||'orion'
+  const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'orbit'
+  const st=el('stheme'); if(st) st.value=config.theme||'orbit'
   const ss=el('sshow'); if(ss) ss.checked=config.show_on_wake!==false
-  applyTheme(config.theme||'orion'); updateLangBtns()
+  applyTheme(config.theme||'orbit'); updateLangBtns()
   if(config.sidebar_width) document.documentElement.style.setProperty('--sb',config.sidebar_width+'px')
   whisperMode = config.whisper_mode || false
   convMode    = config.conv_mode    || false
@@ -7807,11 +7819,11 @@ el('inp-txt').addEventListener('keydown', e => {
 
 // Placeholder cycling every 5 seconds
 const placeholders = [
-  'Ask Orion anything...',
+  'Ask Orbit anything...',
   'What can I do for you?',
   'Listening for your command...',
   'How can I help today?',
-  'Say "orion" or type here...',
+  'Say "orbit" or type here...',
 ]
 let phIdx = 0
 setInterval(() => {
@@ -7839,7 +7851,7 @@ function updaterSetProg(pct){const p=el('update-prog');if(p)p.style.width=pct+'%
 
 function setupUpdaterUI(){
   // FIX: Use window.updater if available (electron-updater)
-  // Fall back to orion.on for git-based updates
+  // Fall back to orbit.on for git-based updates
   const setupWithUpdater = (u) => {
     u.onUpdateAvailable(info    => updaterShow(`Update v${info.latest||info.version} available`, `Click to update.`, true))
     u.onUpdateProgress(p        => { updaterSetProg(p.percent||0); updaterShow('Downloading...', `${Math.round(p.percent||0)}%`, false) })
@@ -7850,7 +7862,7 @@ function setupUpdaterUI(){
   if (window.updater) setupWithUpdater(window.updater)
 
   // Git-based update notifications
-  orion.on('update-available', info => {
+  orbit.on('update-available', info => {
     updaterShow(
       `Update available`,
       info.current ? `v${info.current} → v${info.latest||'?'}` : 'New version ready',
@@ -7889,11 +7901,11 @@ async function refreshNotesUI() {
 // ── Todo list ─────────────────────────────────────────
 let todos = []
 function loadTodos() {
-  try { const stored=localStorage.getItem('orion_todos'); todos=stored?JSON.parse(stored):[] } catch { todos=[] }
+  try { const stored=localStorage.getItem('orbit_todos'); todos=stored?JSON.parse(stored):[] } catch { todos=[] }
   renderTodos()
 }
 function saveTodos() {
-  try { localStorage.setItem('orion_todos', JSON.stringify(todos||[])) } catch{}
+  try { localStorage.setItem('orbit_todos', JSON.stringify(todos||[])) } catch{}
 }
 function renderTodos() {
   const e = el('sb-todo'); if (!e) return
@@ -7934,12 +7946,12 @@ async function callContact(name) {
 function saveChatToFile() {
   if (!chatLog.length) { addMsg('s','No chat to save.'); return }
   const text = chatLog.map(({type,text,ts}) =>
-    `[${ts}] ${type==='u'?'You':type==='y'?'Orion':'System'}: ${text}`
+    `[${ts}] ${type==='u'?'You':type==='y'?'Orbit':'System'}: ${text}`
   ).join('\n')
   const blob = new Blob([text], {type:'text/plain'})
   const a = document.createElement('a')
   a.href = URL.createObjectURL(blob)
-  a.download = `orion-chat-${new Date().toISOString().slice(0,10)}.txt`
+  a.download = `orbit-chat-${new Date().toISOString().slice(0,10)}.txt`
   a.click()
   URL.revokeObjectURL(a.href)
   addMsg('s','Chat saved.')
@@ -8198,17 +8210,17 @@ function closeDropdown() {
 function saveConvToHistory(firstMsg) {
   if (!firstMsg || !firstMsg.trim()) return
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
+    const hist = JSON.parse(localStorage.getItem('orbit-convs')||'[]')
     hist.push({id:Date.now().toString(), title:firstMsg.slice(0,50), ts:Date.now()})
     if (hist.length > 100) hist.splice(0, hist.length - 100)
-    localStorage.setItem('orion-convs', JSON.stringify(hist))
+    localStorage.setItem('orbit-convs', JSON.stringify(hist))
     renderConversations()
   } catch {}
 }
 
 function renderConvHistory() {
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
+    const hist = JSON.parse(localStorage.getItem('orbit-convs')||'[]')
     const noEl = el('no-convs'); if(noEl) noEl.style.display = hist.length ? 'none' : 'block'
     const now  = Date.now(), day = 86400000
     const groups = {today:[], yesterday:[], week:[], older:[]}
@@ -8258,8 +8270,8 @@ function convMenu(e, id) {
 
 function deleteConv(id, btn) {
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-convs')||'[]')
-    localStorage.setItem('orion-convs', JSON.stringify(hist.filter(c=>c.id!==id)))
+    const hist = JSON.parse(localStorage.getItem('orbit-convs')||'[]')
+    localStorage.setItem('orbit-convs', JSON.stringify(hist.filter(c=>c.id!==id)))
     renderConversations()
   } catch {}
   if (btn) btn.closest('.dropdown-menu, div[style*="z-index:2000"]')?.remove()
@@ -8310,16 +8322,16 @@ function closeProfileMenu() {
 function _saveConv(title) {
   if (!title || !title.trim()) return
   try {
-    const hist = JSON.parse(localStorage.getItem('orion-history') || '[]')
+    const hist = JSON.parse(localStorage.getItem('orbit-history') || '[]')
     hist.push({id:Date.now().toString(), title:title.trim().slice(0,60), timestamp:Date.now()})
     if (hist.length > 200) hist.splice(0, hist.length-200)
-    localStorage.setItem('orion-history', JSON.stringify(hist))
+    localStorage.setItem('orbit-history', JSON.stringify(hist))
     renderConversations()
   } catch {}
 }
 
 function _getHistory() {
-  try { return JSON.parse(localStorage.getItem('orion-history')||'[]') } catch { return [] }
+  try { return JSON.parse(localStorage.getItem('orbit-history')||'[]') } catch { return [] }
 }
 
 function renderConversations() {
@@ -8386,10 +8398,10 @@ function _showConvMenu(e, id, title) {
 function _renameConv(id,cur){
   const t=prompt('Rename:',cur);if(!t||!t.trim())return
   const hist=_getHistory(),c=hist.find(x=>x.id===id);if(!c)return
-  c.title=t.trim().slice(0,60);localStorage.setItem('orion-history',JSON.stringify(hist));renderConversations()
+  c.title=t.trim().slice(0,60);localStorage.setItem('orbit-history',JSON.stringify(hist));renderConversations()
 }
 function _deleteConv(id){
-  localStorage.setItem('orion-history',JSON.stringify(_getHistory().filter(c=>c.id!==id)))
+  localStorage.setItem('orbit-history',JSON.stringify(_getHistory().filter(c=>c.id!==id)))
   if(id===_activeConvId){_activeConvId=null;clearChat()}
   renderConversations()
 }
@@ -8457,7 +8469,7 @@ document.addEventListener('keydown',e=>{
 
 
 // ── App menu / tray nav events ────────────────────────────
-orion.on('nav', action => {
+orbit.on('nav', action => {
   if      (action==='settings')         openSett()
   else if (action==='toggle-sidebar')   toggleSb()
   else if (action==='new-conversation') newChat()
@@ -8680,13 +8692,13 @@ async function getBatteryStatus() {
 // ── Notes list ────────────────────────────────────────────────────────────
 function listNotes() {
   try {
-    const notes = JSON.parse(localStorage.getItem('orion_notes')||'[]')
+    const notes = JSON.parse(localStorage.getItem('orbit_notes')||'[]')
     if (!notes.length) return respond('No notes saved yet.')
     respond('Your notes: ' + notes.slice(-5).map((n,i)=>(i+1)+'. '+(n.text||n)).join('. '))
   } catch { respond('Could not load notes.') }
 }
 function clearNotes() {
-  localStorage.removeItem('orion_notes')
+  localStorage.removeItem('orbit_notes')
   respond('All notes cleared.')
 }
 
@@ -8844,10 +8856,10 @@ function getGreeting() {
 
   // Boot sequence — first session
   if (session <= 1) {
-    return "◢ ORION_ONLINE ◣\n" +
+    return "◢ ORBIT_ONLINE ◣\n" +
       "[ SYSTEMS: NOMINAL ] [ INTELLIGENCE: ACTIVE ] [ MEMORY: LOADED ]\n\n" +
       "*All arrays online. Personality matrix calibrated. Operating loop engaged.*\n\n" +
-      "Good " + period + ", Sir. Orion, fully operational. What are we working on?"
+      "Good " + period + ", Sir. Orbit, fully operational. What are we working on?"
   }
 
   // Returning — brief, confident, never repetitive
@@ -8941,14 +8953,14 @@ async function launchApp(name) {
 
 // ── START ─────────────────────────────────────────────
 if(document.readyState==='loading')
-  document.addEventListener('DOMContentLoaded',()=>waitForOrion(40))
+  document.addEventListener('DOMContentLoaded',()=>waitForOrbit(40))
 else
-  waitForOrion(40)
+  waitForOrbit(40)
 
-// ORION GHOST CURSOR
-// Appears and moves when Orion is thinking/speaking/acting
+// ORBIT GHOST CURSOR
+// Appears and moves when Orbit is thinking/speaking/acting
 // ═══════════════════════════════════════════════════════
-const OrionCursor = (() => {
+const OrbitCursor = (() => {
   let _el      = null
   let _ripple  = null
   let _animId  = null
@@ -8965,7 +8977,7 @@ const OrionCursor = (() => {
   function lerp(a, b, t) { return a + (b - a) * t }
 
   function init() {
-    _el     = document.getElementById('orion-cursor')
+    _el     = document.getElementById('orbit-cursor')
     _ripple = document.getElementById('cursor-ripple')
     if (!_el) return
 
@@ -9139,7 +9151,7 @@ const _origSetOrbState = setOrbState
 
 // Init cursor after DOM ready
 document.addEventListener('DOMContentLoaded', () => {
-  setTimeout(() => OrionCursor.init(), 500)
+  setTimeout(() => OrbitCursor.init(), 500)
 })
 </script>
 </body>
