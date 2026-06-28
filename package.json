@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.10.0",
+  "version": "1.0.1",
   "description": "Orbit AI Assistant",
   "main": "src/main.js",
   "scripts": {
@@ -81,5 +81,5 @@
     "electron": "42.0.1",
     "electron-builder": "^26.8.1"
   },
-  "author": "Kristian"
+  "author": "Kristian Relbe-Moe"
 }

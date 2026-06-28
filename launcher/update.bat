@@ -55,12 +55,11 @@ echo  [4/5] Releasing...
 
 :: Bump MINOR version: 1.0.0 → 1.1.0 → 1.2.0 ... 1.10.0 → 1.11.0
 echo const fs=require('fs'); > "%TEMP%\orbit_bump.js"
-echo const p=JSON.parse(fs.readFileSync('C:\\Users\\krist\\Orbit\\package.json','utf8')); >> "%TEMP%\orbit_bump.js"
-echo const a=p.version.split('.'); >> "%TEMP%\orbit_bump.js"
-echo a[1]=String(parseInt(a[1])+1); >> "%TEMP%\orbit_bump.js"
-echo a[2]='0'; >> "%TEMP%\orbit_bump.js"
+echo const p=JSON.parse(fs.readFileSync(process.cwd()+'/package.json','utf8')); >> "%TEMP%\orbit_bump.js"
+echo const a=p.version.split('.').map(Number); >> "%TEMP%\orbit_bump.js"
+echo a[2]=a[2]+1; >> "%TEMP%\orbit_bump.js"
 echo p.version=a.join('.'); >> "%TEMP%\orbit_bump.js"
-echo fs.writeFileSync('C:\\Users\\krist\\Orbit\\package.json',JSON.stringify(p,null,2)); >> "%TEMP%\orbit_bump.js"
+echo fs.writeFileSync(process.cwd()+'/package.json',JSON.stringify(p,null,2)); >> "%TEMP%\orbit_bump.js"
 echo process.stdout.write(p.version); >> "%TEMP%\orbit_bump.js"
 
 for /f %%v in ('node "%TEMP%\orbit_bump.js"') do set NEW_VER=%%v
@@ -74,15 +73,15 @@ git rm -r --cached vosk-model-small-en-us/ >nul 2>&1
 git rm -r --cached vosk-model-small-en-us-0.15/ >nul 2>&1
 
 :: Git push
-:: Store credentials so git never prompts
+:: Write credentials file directly
+echo https://orbitaicreator:!GH_TOKEN!@github.com>> "%USERPROFILE%\.git-credentials"
 git config --global credential.helper store >nul 2>&1
-echo https://orbitaicreator:!GH_TOKEN!@github.com > "%USERPROFILE%\.git-credentials" 2>nul
-git remote set-url origin "https://github.com/orbitaicreator/Orbit.git" >nul 2>&1
+git remote set-url origin "https://orbitaicreator:!GH_TOKEN!@github.com/orbitaicreator/Orbit.git" >nul 2>&1
 git add -A
 git commit -m "v!NEW_VER!" >nul 2>&1
-git -c "http.extraheader=Authorization: token !GH_TOKEN!" push -u origin main
+git push -u origin main
 if errorlevel 1 (
-    echo  [ERROR] Push failed - see error above
+    echo  [ERROR] Push failed - check your token has repo permissions
     pause & exit /b 1
 )
 
@@ -97,9 +96,9 @@ timeout /t 2 /nobreak >nul
 
 :: Tag
 git tag -d "v!NEW_VER!" >nul 2>&1
-git -c "http.extraheader=Authorization: token !GH_TOKEN!" push origin ":refs/tags/v!NEW_VER!" >nul 2>&1
+git push origin ":refs/tags/v!NEW_VER!" >nul 2>&1
 git tag -a "v!NEW_VER!" -m "Release v!NEW_VER!"
-git -c "http.extraheader=Authorization: token !GH_TOKEN!" push origin "v!NEW_VER!" >nul 2>&1
+git push origin "v!NEW_VER!" >nul 2>&1
 
 
 :: ── Generate AI release notes ──────────────────────────────────────────
