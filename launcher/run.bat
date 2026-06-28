@@ -6,34 +6,47 @@ title Orbit
 where node >nul 2>&1
 if errorlevel 1 (
     echo.
-    echo  [ERROR] Node.js not found.
-    echo  Download from https://nodejs.org
+    echo  [ERROR] Node.js not found. Download from https://nodejs.org
     echo.
-    pause
-    exit /b 1
+    pause & exit /b 1
 )
 
-:: ── Install dependencies if electron is missing ────────
-if not exist "node_modules\.bin\electron.cmd" (
+:: ── Resolve electron path ──────────────────────────────
+set ELECTRON=
+if exist "node_modules\.bin\electron.cmd"          set ELECTRON=node_modules\.bin\electron.cmd
+if "%ELECTRON%"=="" if exist "node_modules\electron\dist\electron.exe"  set ELECTRON=node_modules\electron\dist\electron.exe
+
+:: ── Install / repair if electron not found ────────────
+if "%ELECTRON%"=="" (
     echo.
     echo  Installing dependencies...
     echo.
+    :: Force-reinstall to fix broken .bin links
+    call npm install --prefer-offline 2>nul
     call npm install
-    if errorlevel 1 (
-        echo.
-        echo  [ERROR] npm install failed. Check your internet connection.
-        echo.
-        pause
-        exit /b 1
-    )
+    :: Re-check after install
+    if exist "node_modules\.bin\electron.cmd"         set ELECTRON=node_modules\.bin\electron.cmd
+    if "%ELECTRON%"=="" if exist "node_modules\electron\dist\electron.exe" set ELECTRON=node_modules\electron\dist\electron.exe
+)
+
+:: ── Still not found — hard fail ────────────────────────
+if "%ELECTRON%"=="" (
+    echo.
+    echo  [ERROR] Electron not found after npm install.
+    echo.
+    echo  Try running these commands manually:
+    echo    npm install
+    echo    npm install electron --save-dev
+    echo.
+    pause & exit /b 1
 )
 
 :: ── Launch Orbit ───────────────────────────────────────
 echo  Starting Orbit...
-"node_modules\.bin\electron.cmd" .
+"%ELECTRON%" .
 if errorlevel 1 (
     echo.
-    echo  [ERROR] Orbit crashed. See above for details.
+    echo  [ERROR] Orbit exited with an error.
     echo.
     pause
 )
