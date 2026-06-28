@@ -7,17 +7,17 @@
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
 
-  --bg:#010d01;--bg2:#0a110a;--bg3:#0d160d;
+  --bg:#010d01;--bg2:#0a110a;--bg3:#08101e;
   --ac:#cc785c;--ac2:#b5623e;
-  --wh:#e8ffe8;--dim:#5aaa5a;--dim2:#1e3a1e;
-  --green:#00ff41;--green-mid:#00cc33;--green-dim:#006622;
-  --red:#ff4444;--inp:#0a1a0a;
-  --sb-w:260px;--sb-col:52px;--sb-bg:#080e08;
-  --sb-border:#1e3a1e;
-  --sb-hover:rgba(0,220,60,0.09);
-  --sb-active:rgba(0,220,60,0.16);
-  --sb-text:#88cc88;--sb-text-bright:#ccffcc;--sb-text-dim:#447744;
-  --sb-accent:#00ff41;--sb-accent-dim:#006622;--sb-radius:6px;
+  --wh:#e8ffe8;--dim:#4a8acc;--dim2:#1e3a1e;
+  --green:#1B8FFF;--green-mid:#00cc33;--green-dim:#0a2a48;
+  --red:#ff4444;--inp:#08101e;
+  --sb-w:260px;--sb-col:52px;--sb-bg:#08101e;
+  --sb-border:#1a2e42;
+  --sb-hover:rgba(27,143,255,0.09);
+  --sb-active:rgba(27,143,255,0.16);
+  --sb-text:#8ab0cc;--sb-text-bright:#C8D8E8;--sb-text-dim:#3a5a78;
+  --sb-accent:#1B8FFF;--sb-accent-dim:#0a2a48;--sb-radius:6px;
   --ac3:#a0603a;--btn:#1a2a1a;
   --sb:280px;--strip:0px;--tb:44px;--r:12px;
 }
@@ -197,8 +197,8 @@ input,select,textarea{font-family:inherit}
 /* Side panels — always open right of sidebar */
 .side-panel{
   position:fixed;top:0;left:var(--sb-w);
-  height:100vh;width:300px;background:#0d120d;
-  border-right:1px solid #1a2e1a;z-index:150;
+  height:100vh;width:300px;background:#08101e;
+  border-right:1px solid #1a2e42;z-index:150;
   display:none;flex-direction:column;
   transform:translateX(-100%);
   transition:transform .2s ease}
@@ -213,7 +213,7 @@ input,select,textarea{font-family:inherit}
   position:fixed;top:0;
   left:0;           /* positioned dynamically by JS */
   width:360px;bottom:0;
-  background:#0d160d;border-right:1px solid #1a2e1a;
+  background:#08101e;border-right:1px solid #1a2e42;
   display:none;flex-direction:column;z-index:500;
   overflow-y:auto;
   transform:translateX(-100%);  /* slides in from left */
@@ -359,17 +359,17 @@ input,select,textarea{font-family:inherit}
 .sb-dropdown-divider{height:1px;background:var(--sb-border);margin:3px 0}
 /* Chat brighter colors */
 #chat .u{text-align:right;color:#44ff77;font-size:13px;line-height:1.65;padding:2px 0}
-#chat .y{text-align:left;color:#ccffcc;font-size:13px;line-height:1.65;padding:2px 0}
-#chat .s{text-align:center;color:#5aaa5a;font-size:11px;padding:1px 0}
+#chat .y{text-align:left;color:#C8D8E8;font-size:13px;line-height:1.65;padding:2px 0}
+#chat .s{text-align:center;color:#4a8acc;font-size:11px;padding:1px 0}
 /* Input brighter */
 
 #inp-txt{color:var(--wh)}
-#inp-txt::placeholder{color:#447744}
+#inp-txt::placeholder{color:#3a5a78}
 /* Settings brighter */
 
-.sh{color:#88cc88;background:#0d160d}
-.sl{color:#5aaa5a}
-.si2,.ss{background:#0a1a0a;color:#ccffcc;border:1px solid #004a14}
+.sh{color:#8ab0cc;background:#08101e}
+.sl{color:#4a8acc}
+.si2,.ss{background:#08101e;color:#C8D8E8;border:1px solid #004a14}
 
 /* Sidebar feature buttons */
 .sb-feat-btn{
@@ -402,14 +402,14 @@ input,select,textarea{font-family:inherit}
 .sb-strip-btn {
   width:36px; height:36px;
   background:none; border:none;
-  color:#446644;
+  color:#3a5a78;
   cursor:pointer;
   border-radius:6px;
   display:flex; align-items:center; justify-content:center;
   transition:background .12s, color .12s;
 }
-.sb-strip-btn:hover { background:rgba(0,220,60,.09); color:#ccffcc; }
-.sb-strip-btn.active { color:#00ff41; }
+.sb-strip-btn:hover { background:rgba(0,220,60,.09); color:#C8D8E8; }
+.sb-strip-btn.active { color:#1B8FFF; }
 
 /* Content panel — slides in on hover/pin */
 #sb-content {
@@ -427,11 +427,11 @@ input,select,textarea{font-family:inherit}
   padding:8px 8px 4px;
   gap:4px;
   flex-shrink:0;
-  border-bottom:1px solid #1a2e1a;
+  border-bottom:1px solid #1a2e42;
 }
 .sb-topbar-title {
   font-size:11px;
-  color:#446644;
+  color:#3a5a78;
   letter-spacing:2px;
   flex:1;
   padding-left:4px;
@@ -453,7 +453,7 @@ input,select,textarea{font-family:inherit}
 .sb-group-label {
   font-size:10px;
   letter-spacing:1px;
-  color:#446644;
+  color:#3a5a78;
   padding:10px 8px 4px;
   text-transform:uppercase;
   user-select:none;
@@ -462,21 +462,21 @@ input,select,textarea{font-family:inherit}
 /* Conversation groups */
 .sb-group { margin-bottom:2px; }
 .sb-list  { display:flex; flex-direction:column; gap:1px; }
-.sb-empty { font-size:12px; color:#446644; padding:16px 8px; text-align:center; }
+.sb-empty { font-size:12px; color:#3a5a78; padding:16px 8px; text-align:center; }
 
 /* Conversation items */
 .sb-conv-item {
   position:relative; width:100%; height:34px;
   background:none; border:none;
-  color:#88cc88; cursor:pointer;
+  color:#8ab0cc; cursor:pointer;
   border-radius:6px;
   display:flex; align-items:center; padding:0 8px;
   font-size:13px; text-align:left; font-family:inherit;
   transition:background .1s, color .1s;
   overflow:hidden;
 }
-.sb-conv-item:hover  { background:rgba(0,220,60,.09); color:#ccffcc; }
-.sb-conv-item.active { background:rgba(0,220,60,.15); color:#00ff41; }
+.sb-conv-item:hover  { background:rgba(0,220,60,.09); color:#C8D8E8; }
+.sb-conv-item.active { background:rgba(0,220,60,.15); color:#1B8FFF; }
 .sb-conv-title {
   flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   -webkit-mask-image:linear-gradient(to right,black 75%,transparent 100%);
@@ -486,44 +486,44 @@ input,select,textarea{font-family:inherit}
   position:absolute; right:4px;
   width:22px; height:22px;
   background:none; border:none;
-  color:#446644; cursor:pointer;
+  color:#3a5a78; cursor:pointer;
   border-radius:4px; display:none;
   align-items:center; justify-content:center; font-size:13px;
 }
 .sb-conv-item:hover .sb-conv-menu { display:flex; }
-.sb-conv-menu:hover { background:rgba(0,220,60,.09); color:#ccffcc; }
+.sb-conv-menu:hover { background:rgba(0,220,60,.09); color:#C8D8E8; }
 
 /* Feature buttons */
 .sb-feat-btn {
   width:100%; min-height:32px;
   background:none; border:none;
-  color:#88cc88; cursor:pointer;
+  color:#8ab0cc; cursor:pointer;
   border-radius:6px;
   display:flex; align-items:center; gap:8px; padding:4px 8px;
   font-size:12px; text-align:left; font-family:inherit;
   transition:background .1s, color .1s;
 }
-.sb-feat-btn:hover { background:rgba(0,220,60,.09); color:#ccffcc; }
-.sb-feat-btn svg { flex-shrink:0; color:#446644; }
-.sb-feat-btn:hover svg { color:#00ff41; }
-.sb-feat-dim { font-size:11px; color:#446644; padding:4px 8px; }
+.sb-feat-btn:hover { background:rgba(0,220,60,.09); color:#C8D8E8; }
+.sb-feat-btn svg { flex-shrink:0; color:#3a5a78; }
+.sb-feat-btn:hover svg { color:#1B8FFF; }
+.sb-feat-dim { font-size:11px; color:#3a5a78; padding:4px 8px; }
 
 /* Icon button */
 .sb-icon-btn {
   width:32px; height:32px;
   background:none; border:none;
-  color:#446644; cursor:pointer;
+  color:#3a5a78; cursor:pointer;
   border-radius:6px;
   display:flex; align-items:center; justify-content:center;
   transition:background .12s, color .12s;
 }
-.sb-icon-btn:hover { background:rgba(0,220,60,.09); color:#ccffcc; }
+.sb-icon-btn:hover { background:rgba(0,220,60,.09); color:#C8D8E8; }
 
 /* Bottom profile row */
 #sb-bottom {
   flex-shrink:0;
   padding:4px 8px 8px;
-  border-top:1px solid #1a2e1a;
+  border-top:1px solid #1a2e42;
 }
 .sb-update-pill {
   display:flex; align-items:center; gap:8px;
@@ -535,10 +535,10 @@ input,select,textarea{font-family:inherit}
 }
 .sb-update-dot {
   width:6px; height:6px; border-radius:50%;
-  background:#00ff41; flex-shrink:0;
-  box-shadow:0 0 6px #00ff41;
+  background:#1B8FFF; flex-shrink:0;
+  box-shadow:0 0 6px #1B8FFF;
 }
-.sb-update-label { font-size:12px; color:#ccffcc; }
+.sb-update-label { font-size:12px; color:#C8D8E8; }
 .sb-profile-row {
   display:flex; align-items:center; gap:10px;
   padding:5px 4px; border-radius:6px;
@@ -547,39 +547,39 @@ input,select,textarea{font-family:inherit}
 .sb-profile-row:hover { background:rgba(0,220,60,.09); }
 .sb-profile-avatar {
   width:28px; height:28px; border-radius:50%;
-  background:#005518; border:1.5px solid #00ff41;
+  background:#005518; border:1.5px solid #1B8FFF;
   display:flex; align-items:center; justify-content:center;
-  font-size:13px; font-weight:700; color:#00ff41; flex-shrink:0;
+  font-size:13px; font-weight:700; color:#1B8FFF; flex-shrink:0;
 }
-.sb-profile-name { font-size:13px; color:#ccffcc; font-weight:500; flex:1; }
+.sb-profile-name { font-size:13px; color:#C8D8E8; font-weight:500; flex:1; }
 .sb-menu-btn { flex-shrink:0; }
 
 /* Dropdown */
 .sb-dropdown {
   position:fixed; bottom:52px; left:8px; width:230px;
-  background:#0e180e; border:1px solid #1a2e1a;
+  background:#0e180e; border:1px solid #1a2e42;
   border-radius:10px; padding:4px; z-index:1000;
   box-shadow:0 8px 32px rgba(0,0,0,.6);
 }
 .sb-dropdown-section { padding:2px 0; }
 .sb-dropdown-item {
   width:100%; height:36px; background:none; border:none;
-  color:#88cc88; cursor:pointer; border-radius:6px;
+  color:#8ab0cc; cursor:pointer; border-radius:6px;
   display:flex; align-items:center; gap:10px; padding:0 10px;
   font-size:13px; text-align:left; font-family:inherit;
   transition:background .1s, color .1s;
 }
-.sb-dropdown-item:hover { background:rgba(0,220,60,.09); color:#ccffcc; }
+.sb-dropdown-item:hover { background:rgba(0,220,60,.09); color:#C8D8E8; }
 .sb-dropdown-item.danger { color:#aa5555; }
 .sb-dropdown-item.danger:hover { color:#ff7777; background:rgba(200,50,50,.1); }
-.sb-dropdown-icon { flex-shrink:0; color:#446644; width:14px; height:14px; }
-.sb-dropdown-item:hover .sb-dropdown-icon { color:#00ff41; }
-.sb-dropdown-divider { height:1px; background:#1a2e1a; margin:3px 0; }
+.sb-dropdown-icon { flex-shrink:0; color:#3a5a78; width:14px; height:14px; }
+.sb-dropdown-item:hover .sb-dropdown-icon { color:#1B8FFF; }
+.sb-dropdown-divider { height:1px; background:#1a2e42; margin:3px 0; }
 
 /* Settings panel */
 #sett {
   position:fixed; top:0; right:0; width:360px; bottom:0;
-  background:#0d160d; border-left:1px solid #1a2e1a;
+  background:#08101e; border-left:1px solid #1a2e42;
   display:none; flex-direction:column; z-index:500;
   overflow-y:auto;
   transform:translateX(100%);
@@ -588,37 +588,37 @@ input,select,textarea{font-family:inherit}
 #sett.open { transform:translateX(0); }
 .sh {
   padding:16px 16px 12px; font-size:13px; font-weight:500;
-  color:#ccffcc; border-bottom:1px solid #1a2e1a;
-  position:sticky; top:0; background:#0d160d; z-index:1;
+  color:#C8D8E8; border-bottom:1px solid #1a2e42;
+  position:sticky; top:0; background:#08101e; z-index:1;
 }
 .sg { padding:10px 16px; border-bottom:1px solid rgba(255,255,255,.04); }
-.sl { display:block; font-size:11px; color:#446644; margin-bottom:4px; }
+.sl { display:block; font-size:11px; color:#3a5a78; margin-bottom:4px; }
 .si2,.ss {
-  width:100%; background:#0a1a0a; color:#ccffcc;
-  border:1px solid #1a2e1a; padding:6px 10px;
+  width:100%; background:#08101e; color:#C8D8E8;
+  border:1px solid #1a2e42; padding:6px 10px;
   font-size:12px; border-radius:6px; outline:none;
 }
 .si2:focus,.ss:focus { border-color:#00882a; }
-.sr  { width:100%; accent-color:#00ff41; }
+.sr  { width:100%; accent-color:#1B8FFF; }
 .sbt {
-  background:#0a1a0a; color:#ccffcc;
-  border:1px solid #1a2e1a; padding:6px 14px;
+  background:#08101e; color:#C8D8E8;
+  border:1px solid #1a2e42; padding:6px 14px;
   border-radius:6px; font-size:12px;
   transition:background .15s;
 }
 .sbt:hover { background:#1a2a1a; }
 .stog {
   display:flex; align-items:center; gap:8px;
-  font-size:12px; color:#ccffcc; cursor:pointer;
+  font-size:12px; color:#C8D8E8; cursor:pointer;
 }
-.stog input { accent-color:#00ff41; }
+.stog input { accent-color:#1B8FFF; }
 .lb {
-  background:#0a1a0a; color:#446644;
-  border:1px solid #1a2e1a; padding:4px 10px;
+  background:#08101e; color:#3a5a78;
+  border:1px solid #1a2e42; padding:4px 10px;
   border-radius:6px; font-size:11px;
   transition:background .15s, color .15s;
 }
-.lb.on { background:#1a2a1a; color:#ccffcc; border-color:#00882a; }
+.lb.on { background:#1a2a1a; color:#C8D8E8; border-color:#00882a; }
 
 /* Toast notification */
 @keyframes toast-in {
@@ -628,8 +628,8 @@ input,select,textarea{font-family:inherit}
 #toast {
   position:fixed; bottom:80px; left:50%;
   transform:translateX(-50%);
-  background:#0d1a0d; border:1px solid #006622;
-  color:#88cc88; padding:8px 16px;
+  background:#0d1a0d; border:1px solid #0a2a48;
+  color:#8ab0cc; padding:8px 16px;
   border-radius:8px; font-size:12px; z-index:9999;
   pointer-events:none; box-shadow:0 4px 16px rgba(0,0,0,.4);
   animation:toast-in 150ms ease-out;
@@ -640,15 +640,15 @@ input,select,textarea{font-family:inherit}
 .sc-row{display:flex;align-items:center;gap:4px;margin-bottom:3px}
 .sc-btn{
   flex:1;background:rgba(0,255,65,.06);
-  border:1px solid #1a3a1a;color:#88cc88;
+  border:1px solid #1a3a1a;color:#8ab0cc;
   border-radius:6px;padding:4px 10px;
   font-size:12px;text-align:left;font-family:inherit;
   cursor:pointer;transition:background .1s,color .1s,border-color .1s;
   overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.sc-btn:hover{background:rgba(0,220,60,.12);border-color:#00882a;color:#ccffcc}
+.sc-btn:hover{background:rgba(0,220,60,.12);border-color:#00882a;color:#C8D8E8}
 .sc-del{
   background:none;border:1px solid #1a3a1a;
-  color:#446644;border-radius:5px;
+  color:#3a5a78;border-radius:5px;
   width:22px;height:22px;flex-shrink:0;
   font-size:11px;cursor:pointer;
   display:flex;align-items:center;justify-content:center;
@@ -745,7 +745,7 @@ input,select,textarea{font-family:inherit}
 }
 .sb-topbar-title {
   font-size:11px;
-  color:#446644;
+  color:#3a5a78;
   letter-spacing:2px;
   flex:1;
   padding-left:2px;
@@ -1666,7 +1666,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <div class="sb-group" id="sb-group-older"     style="display:none"><div class="sb-group-label">Older</div>           <div id="sb-list-older"    class="sb-list"></div></div>
 
         <!-- Clock widget -->
-        <div id="sb-clock-widget" style="display:none;padding:8px 10px 4px;font-family:Consolas,monospace;color:#5aaa5a;font-size:22px;text-align:center;letter-spacing:0.1em;border-bottom:1px solid #1a2e1a"></div>
+        <div id="sb-clock-widget" style="display:none;padding:8px 10px 4px;font-family:Consolas,monospace;color:#4a8acc;font-size:22px;text-align:center;letter-spacing:0.1em;border-bottom:1px solid #1a2e42"></div>
 
         <!-- Quick actions -->
         <div class="sb-group-label" id="sb-sec-qa-label">Quick actions</div>
@@ -1682,24 +1682,24 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <div class="sb-group-label" id="sb-sec-notes-label">Notes</div>
         <div id="sb-notes" class="sb-list"><div class="sb-feat-dim">No notes yet</div></div>
         <div id="sb-sec-notes-inp" style="display:flex;gap:3px;padding:2px 4px 6px">
-          <input id="sb-note-inp" placeholder="Quick note..." style="flex:1;background:#0a1a0a;color:#88cc88;border:1px solid #1a2e1a;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter'&&this.value.trim()){ask('take a note: '+this.value.trim());this.value=''}">
-          <button style="background:#0a1a0a;color:#5aaa5a;border:1px solid #1a2e1a;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="const v=document.getElementById('sb-note-inp').value.trim();if(v){ask('take a note: '+v);document.getElementById('sb-note-inp').value=''}">+</button>
+          <input id="sb-note-inp" placeholder="Quick note..." style="flex:1;background:#08101e;color:#8ab0cc;border:1px solid #1a2e42;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter'&&this.value.trim()){ask('take a note: '+this.value.trim());this.value=''}">
+          <button style="background:#08101e;color:#4a8acc;border:1px solid #1a2e42;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="const v=document.getElementById('sb-note-inp').value.trim();if(v){ask('take a note: '+v);document.getElementById('sb-note-inp').value=''}">+</button>
         </div>
 
         <!-- To-do -->
         <div class="sb-group-label" id="sb-sec-todo-label">To-do</div>
         <div id="sb-todo" class="sb-list"><div class="sb-feat-dim">No tasks yet</div></div>
         <div id="sb-sec-todo-inp" style="display:flex;gap:3px;padding:2px 4px 6px">
-          <input id="todo-inp" placeholder="Add task..." style="flex:1;background:#0a1a0a;color:#88cc88;border:1px solid #1a2e1a;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')addTodo()">
-          <button style="background:#0a1a0a;color:#5aaa5a;border:1px solid #1a2e1a;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="addTodo()">+</button>
+          <input id="todo-inp" placeholder="Add task..." style="flex:1;background:#08101e;color:#8ab0cc;border:1px solid #1a2e42;padding:4px 8px;font-size:11px;border-radius:5px;outline:none;font-family:inherit" onkeydown="if(event.key==='Enter')addTodo()">
+          <button style="background:#08101e;color:#4a8acc;border:1px solid #1a2e42;padding:3px 8px;border-radius:5px;cursor:pointer;font-size:11px;font-family:inherit" onclick="addTodo()">+</button>
         </div>
 
         <!-- Status -->
         <div class="sb-group-label" id="sb-sec-status-label">Status</div>
         <div class="sb-list">
-          <div id="sb-sec-status" class="sb-list"><div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#5aaa5a">Microphone</span></div>
-          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#00ff41;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #00ff41"></span><span id="sb-ai-mode" style="font-size:12px;color:#5aaa5a">Orbit</span></div>
-          <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#5aaa5a"></span></div>
+          <div id="sb-sec-status" class="sb-list"><div class="sb-feat-btn" style="cursor:default;gap:6px"><span id="mic-status-dot" style="width:7px;height:7px;border-radius:50%;background:#333;flex-shrink:0;display:inline-block"></span><span id="mic-status-label" style="font-size:12px;color:#4a8acc">Microphone</span></div>
+          <div class="sb-feat-btn" style="cursor:default;gap:6px"><span style="width:7px;height:7px;border-radius:50%;background:#1B8FFF;flex-shrink:0;display:inline-block;box-shadow:0 0 4px #1B8FFF"></span><span id="sb-ai-mode" style="font-size:12px;color:#4a8acc">Orbit</span></div>
+          <div class="sb-feat-btn" style="cursor:default"><span id="ss-weather-sb" style="font-size:12px;color:#4a8acc"></span></div>
         </div>
 
         <!-- Shortcuts -->
@@ -1710,7 +1710,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <!-- Memory -->
         <div class="sb-group-label" id="sb-sec-mem-label">Memory</div>
         <div id="sb-mem" class="sb-list"><div class="sb-feat-dim">No memories yet</div></div>
-        <button class="sb-feat-btn" style="color:#884444" onclick="typeof wipeMemory==='function'&&wipeMemory()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="1,3 11,3"/><path d="M3.5 3V2h5v1"/><rect x="2" y="3" width="8" height="7" rx="1"/></svg>Wipe memory</button>
+        <button class="sb-feat-btn" style="color:#7a4444" onclick="typeof wipeMemory==='function'&&wipeMemory()"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.3"><polyline points="1,3 11,3"/><path d="M3.5 3V2h5v1"/><rect x="2" y="3" width="8" height="7" rx="1"/></svg>Wipe memory</button>
         <div style="height:12px"></div>
       </div>
 
@@ -1783,7 +1783,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
   <!-- Settings panel -->
   <div id="sett">
     <div class="sh">Settings
-      <button onclick="closeSett()" title="Close" style="float:right;background:none;border:none;color:#88cc88;cursor:pointer;font-size:18px;line-height:1;padding:0 4px" onmouseover="this.style.color='#00ff41'" onmouseout="this.style.color='#88cc88'">&#10005;</button>
+      <button onclick="closeSett()" title="Close" style="float:right;background:none;border:none;color:#8ab0cc;cursor:pointer;font-size:18px;line-height:1;padding:0 4px" onmouseover="this.style.color='#1B8FFF'" onmouseout="this.style.color='#8ab0cc'">&#10005;</button>
     </div>
     <div class="sg">
       <label class="sl">API Key</label>
@@ -1856,11 +1856,11 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <button class="sbt" id="perf-better" onclick="setPerformance('better')" >Better</button>
         <button class="sbt" id="perf-best"   onclick="setPerformance('best')"   >Best</button>
       </div>
-      <div id="perf-desc" style="margin-top:6px;font-size:11px;color:#5a9a5a">Good — balanced.</div>
+      <div id="perf-desc" style="margin-top:6px;font-size:11px;color:#4a8acc">Good — balanced.</div>
       <label class="sl" style="margin-top:12px">Reply Speed</label>
       <input type="range" class="sr" id="sperf-speed" min="0" max="300" value="180"
         oninput="setResponseDelay(this.value)">
-      <div style="display:flex;justify-content:space-between;font-size:10px;color:#446644;margin-top:2px">
+      <div style="display:flex;justify-content:space-between;font-size:10px;color:#3a5a78;margin-top:2px">
         <span>Instant</span><span>Natural</span><span>Slow</span>
       </div>
       <label class="sl" style="margin-top:12px">Search Speed</label>
@@ -1878,7 +1878,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="sbt" onclick="checkOpenClawStatus()">Check Status</button>
       </div>
-      <div id="openclaw-status" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
+      <div id="openclaw-status" style="margin-top:6px;font-size:11px;color:#4a8acc"></div>
     </div>
     <div class="sg">
       <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">THEME</label>
@@ -1893,7 +1893,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
       </div>
       <label class="sl" style="margin-top:10px">Custom Accent Color</label>
       <div style="display:flex;align-items:center;gap:8px;margin-top:6px">
-        <input type="color" id="custom-color-picker" value="#00ff41"
+        <input type="color" id="custom-color-picker" value="#1B8FFF"
           oninput="setCustomColor(this.value)"
           style="width:40px;height:28px;border:none;background:none;cursor:pointer;padding:0">
         <button class="sbt" id="theme-custom" onclick="setCustomColor(document.getElementById('custom-color-picker').value)">Apply Custom</button>
@@ -1938,13 +1938,13 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div class="sg">
       <label class="sl">Particle colour</label>
       <input type="color" id="cu-orb-color" value="#00BAFF"
-        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        style="width:100%;height:28px;border:1px solid #1a2e42;background:none;cursor:pointer;border-radius:4px"
         oninput="saveCust('orb_color',this.value);applyAllCustom()">
     </div>
 
     <div class="sg">
-      <label class="sl">Size <span id="cu-orb-size-v">1.0</span>×</label>
-      <input type="range" class="sr" id="cu-orb-size" min="0.4" max="2.0" step="0.05" value="1.0"
+      <label class="sl">Size <span id="cu-orb-size-v">1.40</span>×</label>
+      <input type="range" class="sr" id="cu-orb-size" min="0.4" max="2.5" step="0.05" value="1.4"
         oninput="document.getElementById('cu-orb-size-v').textContent=parseFloat(this.value).toFixed(2);saveCust('orb_size',parseFloat(this.value));applyAllCustom()">
     </div>
 
@@ -1988,7 +1988,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div class="sg">
       <label class="sl">Grid colour</label>
       <input type="color" id="cu-grid-color" value="#0a1f3a"
-        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        style="width:100%;height:28px;border:1px solid #1a2e42;background:none;cursor:pointer;border-radius:4px"
         oninput="saveCust('grid_color',this.value);applyAllCustom()">
     </div>
 
@@ -2086,7 +2086,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
     <div class="sg">
       <label class="sl">Background colour</label>
       <input type="color" id="cu-bg-color" value="#070B14"
-        style="width:100%;height:28px;border:1px solid #1a2e1a;background:none;cursor:pointer;border-radius:4px"
+        style="width:100%;height:28px;border:1px solid #1a2e42;background:none;cursor:pointer;border-radius:4px"
         oninput="saveCust('bg_color',this.value);applyAllCustom()">
     </div>
 
@@ -2105,7 +2105,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;overflow:hidden;background:#
         <button class="sbt" onclick="gitPublish()">Publish</button>
         <button class="sbt" onclick="gitPull()">Pull</button>
       </div>
-      <div id="git-status-bar" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
+      <div id="git-status-bar" style="margin-top:6px;font-size:11px;color:#4a8acc"></div>
     </div>
     <div style="height:16px"></div>
   </div>
@@ -6391,8 +6391,8 @@ function _showJumpstartOverlay() {
   var ol=document.getElementById('jumpstart-overlay')
   if(!ol){ ol=document.createElement('div'); ol.id='jumpstart-overlay'; ol.style.cssText='position:fixed;top:0;left:0;width:100%;height:100%;z-index:9999;display:flex;flex-direction:column;align-items:center;justify-content:center;background:rgba(0,10,0,0.97);transition:opacity .5s'; document.body.appendChild(ol) }
   ol.innerHTML=''
-  if(_jumpstartPhoto){ var img=document.createElement('img'); img.src=_jumpstartPhoto; img.style.cssText='width:110px;height:110px;border-radius:50%;object-fit:cover;border:2px solid #00ff41;margin-bottom:18px;box-shadow:0 0 30px #00ff4150'; ol.appendChild(img) }
-  var nm=document.createElement('div'); nm.style.cssText='color:#00ff41;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='ORBIT'; ol.appendChild(nm)
+  if(_jumpstartPhoto){ var img=document.createElement('img'); img.src=_jumpstartPhoto; img.style.cssText='width:110px;height:110px;border-radius:50%;object-fit:cover;border:2px solid #1B8FFF;margin-bottom:18px;box-shadow:0 0 30px #1B8FFF50'; ol.appendChild(img) }
+  var nm=document.createElement('div'); nm.style.cssText='color:#1B8FFF;font-size:26px;font-weight:bold;letter-spacing:4px;margin-bottom:6px'; nm.textContent='ORBIT'; ol.appendChild(nm)
   var sb=document.createElement('div'); sb.style.cssText='color:#336633;font-size:11px;letter-spacing:2px'; sb.textContent='AI ASSISTANT'; ol.appendChild(sb)
   ol.style.opacity='1'
   _playStartupSound()
@@ -6425,8 +6425,8 @@ function _initJumpstart() {
 
 
 
-var _currentTheme = localStorage.getItem('orbit_theme') || 'default'
-var _customColor  = localStorage.getItem('orbit_custom_color') || '#00ff41'
+var _currentTheme = localStorage.getItem('orbit_theme') || 'blue'
+var _customColor  = localStorage.getItem('orbit_custom_color') || '#1B8FFF'
 
 // Theme definitions — dark blue default to match HUD
 var _themes = {
@@ -6445,6 +6445,26 @@ function applyTheme(name) {
   name = _themes[name] ? name : 'default'
   _currentTheme = name
   localStorage.setItem('orbit_theme', name)
+  // Update sidebar variables to match theme
+  var sbPalette = {
+    default:{sbBg:'#08101e',sbBorder:'#1a2e42',sbText:'#8ab0cc',sbAccent:'#00BAFF'},
+    blue:   {sbBg:'#08101e',sbBorder:'#1a2e42',sbText:'#8ab0cc',sbAccent:'#1B8FFF'},
+    red:    {sbBg:'#1a0808',sbBorder:'#421a1a',sbText:'#cc8a8a',sbAccent:'#FF4444'},
+    purple: {sbBg:'#100818',sbBorder:'#3a1a42',sbText:'#b08acc',sbAccent:'#A855F7'},
+    amber:  {sbBg:'#181008',sbBorder:'#423a1a',sbText:'#ccb88a',sbAccent:'#FFB347'},
+    white:  {sbBg:'#0e1422',sbBorder:'#2a3142',sbText:'#c0c8d8',sbAccent:'#E8F0FF'},
+    custom: {sbBg:'#08101e',sbBorder:'#1a2e42',sbText:'#8ab0cc',sbAccent:'#1B8FFF'},
+  }
+  var sp = sbPalette[name] || sbPalette.blue
+  root.style.setProperty('--sb-bg',           sp.sbBg)
+  root.style.setProperty('--sb-border',        sp.sbBorder)
+  root.style.setProperty('--sb-text',          sp.sbText)
+  root.style.setProperty('--sb-text-bright',   sp.sbText)
+  root.style.setProperty('--sb-text-dim',      sp.sbBorder)
+  root.style.setProperty('--sb-accent',        sp.sbAccent)
+  root.style.setProperty('--sb-accent-dim',    sp.sbBg)
+  root.style.setProperty('--sb-hover',         sp.sbAccent+'18')
+  root.style.setProperty('--sb-active',        sp.sbAccent+'28')
   var root = document.documentElement
   root.style.setProperty('--bg',   theme.bg)
   root.style.setProperty('--ac',   theme.ac)
@@ -6460,7 +6480,7 @@ function applyTheme(name) {
 function setCustomColor(hex) {
   _customColor = hex
   localStorage.setItem('orbit_custom_color', hex)
-  _themes.custom = {bg:'#010501', ac:hex, sb:'#050905', dim:'#224422', text:'#ccffcc'}
+  _themes.custom = {bg:'#010501', ac:hex, sb:'#050905', dim:'#224422', text:'#C8D8E8'}
   applyTheme('custom')
 }
 
@@ -8031,7 +8051,7 @@ function loadSettValues(){
   const sw2=el('sw2'); if(sw2) sw2.value=config.wake_word||'orbit'
   const st=el('stheme'); if(st) st.value=config.theme||'orbit'
   const ss=el('sshow'); if(ss) ss.checked=config.show_on_wake!==false
-  applyTheme(config.theme||'orbit'); updateLangBtns()
+  applyTheme(config.theme||'blue'); updateLangBtns()
   if(config.sidebar_width) document.documentElement.style.setProperty('--sb',config.sidebar_width+'px')
   whisperMode = config.whisper_mode || false
   convMode    = config.conv_mode    || false
@@ -9589,7 +9609,7 @@ setInterval(function() {
 var _custDefaults = {
   // Orb
   orb_color:   '#00BAFF',
-  orb_size:    1.0,
+  orb_size:    1.4,
   orb_speed:   1.0,
   orb_count:   180,
   orb_glow:    1.0,
@@ -9717,9 +9737,17 @@ function applyAllCustom() {
   document.documentElement.style.setProperty('--sb', sbW+'px')
   document.documentElement.style.setProperty('--sb-w', sbW+'px')
 
-  // ── Chat font size ─────────────────────────────────
+  // ── Chat font size + push below orb ─────────────────
   var chatEl = document.getElementById('chat')
-  if (chatEl) chatEl.style.fontSize = _custGet('chat_font')+'px'
+  if (chatEl) {
+    chatEl.style.fontSize = _custGet('chat_font')+'px'
+    // Bottom of orb = 50%H + 44% × orbPx  (from translate(-50%,-56%) math)
+    var orbPx = Math.round(260 * sz)
+    var mainEl2 = document.getElementById('main')
+    var mainH = mainEl2 ? mainEl2.offsetHeight : (window.innerHeight - 44)
+    var chatTopPx = Math.round(mainH * 0.5 + orbPx * 0.44 + 24)
+    chatEl.style.paddingTop = chatTopPx + 'px'
+  }
 
   // ── Build dynamic <style> for deep CSS overrides ───
   var styleEl = document.getElementById('orbit-custom-style')
