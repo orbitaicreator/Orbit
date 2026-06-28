@@ -74,10 +74,13 @@ git rm -r --cached vosk-model-small-en-us/ >nul 2>&1
 git rm -r --cached vosk-model-small-en-us-0.15/ >nul 2>&1
 
 :: Git push
-git remote set-url origin "https://!GH_TOKEN!@github.com/orbitaicreator/orbit.git" >nul 2>&1
+:: Store credentials so git never prompts
+git config --global credential.helper store >nul 2>&1
+echo https://orbitaicreator:!GH_TOKEN!@github.com > "%USERPROFILE%\.git-credentials" 2>nul
+git remote set-url origin "https://github.com/orbitaicreator/Orbit.git" >nul 2>&1
 git add -A
 git commit -m "v!NEW_VER!" >nul 2>&1
-git push -u origin main
+git -c "http.extraheader=Authorization: token !GH_TOKEN!" push -u origin main
 if errorlevel 1 (
     echo  [ERROR] Push failed - see error above
     pause & exit /b 1
@@ -94,9 +97,9 @@ timeout /t 2 /nobreak >nul
 
 :: Tag
 git tag -d "v!NEW_VER!" >nul 2>&1
-git push origin ":refs/tags/v!NEW_VER!" >nul 2>&1
+git -c "http.extraheader=Authorization: token !GH_TOKEN!" push origin ":refs/tags/v!NEW_VER!" >nul 2>&1
 git tag -a "v!NEW_VER!" -m "Release v!NEW_VER!"
-git push origin "v!NEW_VER!" >nul 2>&1
+git -c "http.extraheader=Authorization: token !GH_TOKEN!" push origin "v!NEW_VER!" >nul 2>&1
 
 
 :: ── Generate AI release notes ──────────────────────────────────────────
