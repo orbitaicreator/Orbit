@@ -1490,6 +1490,17 @@ body.hide-stats #tb-stats{display:none !important}
   position:absolute;bottom:5px;left:0;right:0;text-align:center;
   font-size:9.5px;color:var(--tx-faint);z-index:29;pointer-events:none;opacity:.65}
 
+
+/* ══ ORB-TOP / CHAT-BELOW LAYOUT ══ */
+#orbit-sby-orb{width:190px;height:190px}
+#orbit-active-orb{width:340px;height:340px}
+#orbit-standby,#orbit-active{height:60%;top:0}
+body.hide-chat #orbit-standby,body.hide-chat #orbit-active{height:100%}
+#chat{top:60%;bottom:0;padding-top:8px}
+body.hide-chat #chat{display:none !important}
+body.hide-chat #inp-bar{bottom:22px}  /* keep input reachable with chat hidden */
+#orbit-clock-big{font-size:54px}
+
 </style>
 </head>
 <body>
@@ -1537,6 +1548,9 @@ body.hide-stats #tb-stats{display:none !important}
       <button class="tb-icon-btn" id="btn-mic" onclick="restartMic()" title="Microphone — click to restart">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1.5a2 2 0 0 1 2 2v3.5a2 2 0 0 1-4 0V3.5a2 2 0 0 1 2-2z"/><path d="M3 6.5v.5a4 4 0 0 0 8 0v-.5M7 11.5V13"/></svg>
       </button>
+      <button class="tb-icon-btn" id="tb-msgs" onclick="toggleMessages()" title="Show / hide messages">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2.5h10a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H5l-3 2.5V3.5a1 1 0 0 1 1-1z"/></svg>
+      </button>
       <button class="tb-icon-btn" id="tb-whisper" onclick="toggleWhisper()" title="Toggle voice replies">[ spk ]</button>
       <button class="tb-icon-btn" id="tb-lang" onclick="cycleLanguage()" title="Cycle language">[ EN ]</button>
       <button class="tb-icon-btn" onclick="orbit&&orbit.minimize()" title="Minimize">&#8722;</button>
@@ -1550,7 +1564,7 @@ body.hide-stats #tb-stats{display:none !important}
   <div id="orbit-standby" class="orbit-show">
     <div id="orbit-sby-orb">
       <div id="orbit-sby-ring"></div>
-      <canvas id="orbit-sby-canvas" width="130" height="130"></canvas>
+      <canvas id="orbit-sby-canvas" width="190" height="190"></canvas>
       <div id="orbit-sby-label">ORBIT</div>
     </div>
     <div id="orbit-clock-big">00:00</div>
@@ -1577,7 +1591,7 @@ body.hide-stats #tb-stats{display:none !important}
 
     <!-- Central orb -->
     <div id="orbit-active-orb">
-      <canvas id="orbit-act-canvas" width="260" height="260"></canvas>
+      <canvas id="orbit-act-canvas" width="340" height="340"></canvas>
       <div id="orbit-act-ring-outer">
         <div class="orbit-corner tl"></div>
         <div class="orbit-corner tr"></div>
@@ -1905,7 +1919,15 @@ body.hide-stats #tb-stats{display:none !important}
     </div>
     <div class="sg">
       <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">CHAT</label>
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
+      <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="smsgs" onchange="saveSett('show_messages',this.checked);applyHudPrefs()">
+        Show messages under the orb
+      </label>
+      <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="sautohide" onchange="saveSett('input_autohide',this.checked);applyInputMode()">
+        Auto-hide the input bar
+      </label>
+      <div style="display:flex;gap:6px;margin-top:10px;flex-wrap:wrap">
         <button class="sbt" onclick="exportChat()">Export chat</button>
         <button class="sbt" onclick="clearChat()">Clear chat</button>
         <button class="sbt" onclick="openCmdPalette();closeSett()">Command palette</button>
@@ -4090,8 +4112,8 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 130, 130, true)
-      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 260, 260, false)
+      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 190, 190, true)
+      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 340, 340, false)
     }
     requestAnimationFrame(draw)
   }
@@ -5938,14 +5960,15 @@ var _PERF_MODES={
   better: {delay:100, tokens:250, useAI:true,  desc:'Better — higher quality.'},
   best:   {delay:50,  tokens:400, useAI:true,  desc:'Best — maximum quality.'},
 }
-function setPerformance(mode){
+function setPerformance(mode, silent){
   _perfMode=mode; saveSett('perf_mode',mode)
   var cfg=_PERF_MODES[mode]||_PERF_MODES.good
   _responseDelay=cfg.delay
   ;['bad','good','better','best'].forEach(function(m){var b=document.getElementById('perf-'+m);if(b)b.style.background=m===mode?'var(--ac)':''})
   var d=document.getElementById('perf-desc');if(d)d.textContent=cfg.desc
   var sl=document.getElementById('sperf-speed');if(sl)sl.value=cfg.delay
-  addMsg('s','Performance: '+mode+'. '+cfg.desc)
+  // FIX: no more chat spam — quiet toast on manual change, nothing at boot
+  if (!silent && typeof showToast==='function') showToast('Performance: '+cfg.desc)
 }
 function setResponseDelay(v){_responseDelay=parseInt(v)||0;saveSett('perf_delay',_responseDelay)}
 function setSearchSpeed(speed){
@@ -5955,7 +5978,7 @@ function setSearchSpeed(speed){
 }
 function loadPerfSettings(){
   var _ocurl=localStorage.getItem('openclaw_url'); if(_ocurl) _openclaw.url=_ocurl;
-  setPerformance((config&&config.perf_mode)||'good')
+  setPerformance((config&&config.perf_mode)||'good', true)
   _responseDelay=(config&&config.perf_delay)||180
   setSearchSpeed((config&&config.search_speed)||'fast')
 }
@@ -7932,6 +7955,7 @@ function applyHudPrefs() {
     document.body.classList.toggle('hud-grid',    config.show_grid === true)
     document.body.classList.toggle('hud-widgets', config.show_widgets === true)
     document.body.classList.toggle('hide-stats',  config.show_stats === false)
+    document.body.classList.toggle('hide-chat',   config.show_messages === false)
   } catch(e) {}
 }
 
@@ -7943,7 +7967,10 @@ function loadSettValues(){
   const sg2=el('sgrid');    if(sg2) sg2.checked = config.show_grid === true
   const swd=el('swidgets'); if(swd) swd.checked = config.show_widgets === true
   const sst=el('sstats');   if(sst) sst.checked = config.show_stats !== false
-  applyHudPrefs()
+  const smg=el('smsgs');    if(smg) smg.checked = config.show_messages !== false
+  const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
+  applyHudPrefs(); applyInputMode()
+  const tbm=el('tb-msgs'); if(tbm) tbm.style.opacity = config.show_messages !== false ? '1' : '.45'
   const st=el('stheme'); if(st) st.value=config.theme||'orbit'
   const ss=el('sshow'); if(ss) ss.checked=config.show_on_wake!==false
   applyTheme(config.theme||'orbit'); updateLangBtns()
@@ -8074,6 +8101,7 @@ function addShortcut(){ openScAdd() }
 let inpVis=false
 function showInp(){clearTimeout(inpTimer);if(inpVis)return;inpVis=true;const ib=el('inp-bar');if(ib)ib.classList.add('up')}
 function hideInpDelay(){
+  if (config.input_autohide !== true) return  // FIX: input stays visible by default
   clearTimeout(inpTimer)
   inpTimer=setTimeout(()=>{
     if(document.activeElement===el('inp-txt'))return
@@ -9600,6 +9628,7 @@ function _cmdpalActions() {
   // App
   add('Settings', 'Ctrl+,', typeof openSett==='function' ? openSett : null, 'preferences config')
   add('Toggle whisper mode', '', typeof toggleWhisper==='function' ? toggleWhisper : null, 'mute tts voice silent')
+  add('Toggle messages', '', typeof toggleMessages==='function' ? toggleMessages : null, 'chat hide show under orb')
   // System — routed through the normal command pipeline
   if (typeof ask === 'function') {
     add('Take a screenshot', '', function(){ ask('take a screenshot') }, 'capture screen')
@@ -9727,6 +9756,36 @@ document.addEventListener('keydown', function(e){
 })
 
 // ══ END ORBIT FEATURES v3 ══════════════════════════════════════════════════
+
+
+
+// ══ MESSAGE VISIBILITY + INPUT PINNING ══════════════════════════════════
+function toggleMessages() {
+  var show = !(config.show_messages !== false)  // flip
+  saveSett('show_messages', show)
+  applyHudPrefs()
+  var tb = el('tb-msgs'); if (tb) tb.style.opacity = show ? '1' : '.45'
+  showToast(show ? 'Messages shown' : 'Messages hidden')
+}
+
+// Input bar: visible by default; auto-hide only if enabled in settings
+function applyInputMode() {
+  var bar = el('inp-bar'); if (!bar) return
+  if (config.input_autohide === true) { /* hover behavior handles it */ }
+  else bar.classList.add('up')
+}
+
+// Type anywhere -> focus the input (so you can always just start typing)
+document.addEventListener('keydown', function(e){
+  if (e.ctrlKey || e.altKey || e.metaKey) return
+  if (e.key.length !== 1) return
+  var a = document.activeElement
+  if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return
+  if (document.getElementById('cmdpal-overlay') && document.getElementById('cmdpal-overlay').classList.contains('open')) return
+  if (document.getElementById('orbit-prompt') || document.getElementById('sc-add-modal')) return
+  var t = el('inp-txt')
+  if (t) { showInp(); t.focus() }
+})
 
 </script>
 </body>
