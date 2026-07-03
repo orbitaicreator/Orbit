@@ -735,10 +735,10 @@ input,select,textarea{font-family:inherit}
   --orbit-bg:      var(--bg);
   --orbit-blue:    #1B8FFF;
   --orbit-glow:    #00BAFF;
-  --orbit-dim:     rgba(27,143,255,0.18);
-  --orbit-grid:    rgba(27,143,255,0.07);
+  --orbit-dim:     rgba(var(--ac-rgb),0.18);
+  --orbit-grid:    rgba(var(--ac-rgb),0.07);
   --orbit-text:    #C8D8E8;
-  --orbit-border:  rgba(27,143,255,0.22);
+  --orbit-border:  rgba(var(--ac-rgb),0.22);
   --orbit-font:    'Fira Code','JetBrains Mono','Courier New',monospace;
 }
 
@@ -786,8 +786,8 @@ input,select,textarea{font-family:inherit}
   border: 2px solid var(--orbit-glow);
   box-shadow:
     0 0 12px var(--orbit-glow),
-    0 0 40px rgba(0,186,255,0.35),
-    inset 0 0 30px rgba(0,186,255,0.12);
+    0 0 40px rgba(var(--ac-rgb),0.35),
+    inset 0 0 30px rgba(var(--ac-rgb),0.12);
   animation: orbit-breath 3.5s ease-in-out infinite;
 }
 #orbit-sby-canvas {
@@ -814,7 +814,7 @@ input,select,textarea{font-family:inherit}
   letter-spacing: 0.06em;
   color: var(--orbit-text);
   line-height: 1;
-  text-shadow: 0 0 30px rgba(27,143,255,0.3);
+  text-shadow: 0 0 30px rgba(var(--ac-rgb),0.3);
 }
 #orbit-date-big {
   margin-top: 10px;
@@ -871,8 +871,8 @@ input,select,textarea{font-family:inherit}
   border: 2.5px solid var(--orbit-glow);
   box-shadow:
     0 0 16px var(--orbit-glow),
-    0 0 50px rgba(0,186,255,0.4),
-    inset 0 0 40px rgba(0,186,255,0.1);
+    0 0 50px rgba(var(--ac-rgb),0.4),
+    inset 0 0 40px rgba(var(--ac-rgb),0.1);
   animation: orbit-act-breath 4s ease-in-out infinite;
 }
 /* Inner ring */
@@ -881,7 +881,7 @@ input,select,textarea{font-family:inherit}
   top: 14%; left: 14%;
   width: 72%; height: 72%;
   border-radius: 50%;
-  border: 1px solid rgba(0,186,255,0.35);
+  border: 1px solid rgba(var(--ac-rgb),0.35);
 }
 /* Orbit label inside */
 #orbit-act-label {
@@ -903,15 +903,15 @@ input,select,textarea{font-family:inherit}
 }
 
 @keyframes orbit-act-breath {
-  0%,100% { box-shadow: 0 0 16px var(--orbit-glow), 0 0 50px rgba(0,186,255,0.4), inset 0 0 40px rgba(0,186,255,0.1); }
-  50%      { box-shadow: 0 0 28px var(--orbit-glow), 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2); }
+  0%,100% { box-shadow: 0 0 16px var(--orbit-glow), 0 0 50px rgba(var(--ac-rgb),0.4), inset 0 0 40px rgba(var(--ac-rgb),0.1); }
+  50%      { box-shadow: 0 0 28px var(--orbit-glow), 0 0 80px rgba(var(--ac-rgb),0.6), inset 0 0 60px rgba(var(--ac-rgb),0.2); }
 }
 
 /* Corner bracket decorations (like the tick marks in image 1) */
 .orbit-corner {
   position: absolute;
   width: 20px; height: 20px;
-  border-color: rgba(0,186,255,0.5);
+  border-color: rgba(var(--ac-rgb),0.5);
   border-style: solid;
 }
 .orbit-corner.tl { top: -10px; left: -10px; border-width: 1.5px 0 0 1.5px; }
@@ -929,7 +929,7 @@ input,select,textarea{font-family:inherit}
 .orbit-bracket-corner {
   position: absolute;
   width: 18px; height: 18px;
-  border-color: rgba(0,186,255,0.35);
+  border-color: rgba(var(--ac-rgb),0.35);
   border-style: solid;
 }
 .orbit-bracket-corner.tl { top: 0; left: 0; border-width: 1px 0 0 1px; }
@@ -939,7 +939,7 @@ input,select,textarea{font-family:inherit}
 /* Tick marks at mid-points */
 .orbit-tick {
   position: absolute;
-  background: rgba(0,186,255,0.4);
+  background: rgba(var(--ac-rgb),0.4);
 }
 .orbit-tick.t { top: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
 .orbit-tick.b { bottom: 0; left: 50%; width: 1px; height: 8px; transform: translateX(-50%); }
@@ -951,7 +951,7 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   width: 4px; height: 4px;
   border-radius: 50%;
-  background: rgba(0,186,255,0.5);
+  background: rgba(var(--ac-rgb),0.5);
 }
 
 /* State label under active orb */
@@ -1025,7 +1025,7 @@ input,select,textarea{font-family:inherit}
 .orbit-cam-corner {
   position: absolute;
   width: 24px; height: 24px;
-  border-color: rgba(0,186,255,0.7);
+  border-color: rgba(var(--ac-rgb),0.7);
   border-style: solid;
 }
 .orbit-cam-corner.tl { top: 16px; left: 16px; border-width: 2px 0 0 2px; }
@@ -1036,7 +1036,7 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   top: 20px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.35em;
-  color: rgba(0,186,255,0.8);
+  color: rgba(var(--ac-rgb),0.8);
   text-transform: uppercase;
   font-family: var(--orbit-font);
 }
@@ -1044,7 +1044,7 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   bottom: 88px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.3em;
-  color: rgba(0,186,255,0.7);
+  color: rgba(var(--ac-rgb),0.7);
   font-family: var(--orbit-font);
 }
 #orbit-cam-close {
@@ -1055,7 +1055,7 @@ input,select,textarea{font-family:inherit}
   font-family: var(--orbit-font);
   cursor: pointer; pointer-events: all;
   padding: 4px 8px;
-  border: 1px solid rgba(0,186,255,0.3);
+  border: 1px solid rgba(var(--ac-rgb),0.3);
 }
 #orbit-cam-close:hover { color: var(--orbit-glow); border-color: var(--orbit-glow); }
 
@@ -1072,9 +1072,9 @@ input,select,textarea{font-family:inherit}
 #orb-wrap #orb { display: none; }
 
 /* Chat overrides */
-#chat .y { color: var(--orbit-glow) !important; font-family: var(--orbit-font) !important; font-size:11.5px !important; letter-spacing:0.04em; text-shadow:0 0 6px rgba(0,186,255,0.25); }
+#chat .y { color: var(--orbit-glow) !important; font-family: var(--orbit-font) !important; font-size:11.5px !important; letter-spacing:0.04em; text-shadow:0 0 6px rgba(var(--ac-rgb),0.25); }
 #chat .u { color: var(--orbit-text) !important; font-family: var(--orbit-font) !important; font-size:11.5px !important; }
-#chat .s { color: rgba(0,186,255,0.4) !important; font-size:9.5px !important; letter-spacing:0.14em; }
+#chat .s { color: rgba(var(--ac-rgb),0.4) !important; font-size:9.5px !important; letter-spacing:0.14em; }
 
 /* ═══════════════════════════════════════════════════════════════════════
    END ORBIT HUD
@@ -1114,7 +1114,7 @@ input,select,textarea{font-family:inherit}
 .orbit-map-corner {
   position: absolute;
   width: 28px; height: 28px;
-  border-color: rgba(0,186,255,0.6);
+  border-color: rgba(var(--ac-rgb),0.6);
   border-style: solid;
 }
 .orbit-map-corner.tl { top: 14px; left: 14px; border-width: 2px 0 0 2px; }
@@ -1126,10 +1126,10 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   top: 20px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.38em;
-  color: rgba(0,186,255,0.85);
+  color: rgba(var(--ac-rgb),0.85);
   text-transform: uppercase;
   font-family: var(--orbit-font);
-  text-shadow: 0 0 10px rgba(0,186,255,0.5);
+  text-shadow: 0 0 10px rgba(var(--ac-rgb),0.5);
   white-space: nowrap;
 }
 #orbit-map-location {
@@ -1148,7 +1148,7 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   bottom: 86px; left: 50%; transform: translateX(-50%);
   font-size: 9px; letter-spacing: 0.3em;
-  color: rgba(0,186,255,0.7);
+  color: rgba(var(--ac-rgb),0.7);
   font-family: var(--orbit-font);
   text-transform: uppercase;
   white-space: nowrap;
@@ -1161,7 +1161,7 @@ input,select,textarea{font-family:inherit}
   font-family: var(--orbit-font);
   cursor: pointer; pointer-events: all;
   padding: 4px 10px;
-  border: 1px solid rgba(0,186,255,0.3);
+  border: 1px solid rgba(var(--ac-rgb),0.3);
   background: rgba(7,11,20,0.8);
   z-index: 10;
   transition: color 200ms, border-color 200ms;
@@ -1172,7 +1172,7 @@ input,select,textarea{font-family:inherit}
 #orbit-map-scan {
   position: absolute;
   top: 0; left: 0; width: 100%; height: 3px;
-  background: linear-gradient(90deg, transparent, rgba(0,186,255,0.8), transparent);
+  background: linear-gradient(90deg, transparent, rgba(var(--ac-rgb),0.8), transparent);
   animation: orbit-scan 1.5s ease-in-out infinite;
   opacity: 0;
   transition: opacity 200ms;
@@ -1188,7 +1188,7 @@ input,select,textarea{font-family:inherit}
   position: absolute;
   bottom: 100px; right: 20px;
   font-size: 8.5px; letter-spacing: 0.2em;
-  color: rgba(0,186,255,0.5);
+  color: rgba(var(--ac-rgb),0.5);
   font-family: var(--orbit-font);
   text-align: right;
   line-height: 1.8;
@@ -1458,7 +1458,7 @@ body.hide-stats #tb-stats{display:none !important}
    bottom-center; chat is a centered column.
    ════════════════════════════════════════════════════════════════════ */
 #main{display:block;position:relative;flex:1 1 auto;width:100%;overflow:hidden;min-height:0;background:var(--bg)}
-#orb-wrap{position:absolute;inset:0;pointer-events:none;z-index:1}
+#orb-wrap{position:absolute;inset:0;width:auto;height:auto;transform:none;pointer-events:none;z-index:1}
 #chat{
   position:absolute;inset:0;z-index:10;overflow-y:auto;pointer-events:auto;
   padding:16px max(18px,calc((100% - 780px)/2)) 120px;
@@ -1992,6 +1992,10 @@ body.hide-stats #tb-stats{display:none !important}
   </div>
 
 <script>
+// Theme accent for canvas renderers (canvas can't read CSS var() directly)
+function _ORB_AC(){ return window._orbAccentRGB || '0,186,255' }
+function _ORB_HEX(){ return window._orbAccentHEX || '#00BAFF' }
+
 
 // ── Orbit Virtual Mouse helpers ─────────────────────────────────────────
 function vm_send(cmd) { try { if (window.vm) vm.send(cmd) } catch {} }
@@ -2215,7 +2219,7 @@ function _setEnergyState(s){
   _energyState=s
   var cfg=_energyCfg[s]||_energyCfg.idle
   var ring=document.getElementById('orbit-act-ring-outer')
-  if(ring){var px=Math.round(cfg.glow*28);ring.style.transition='box-shadow 800ms ease';ring.style.boxShadow='0 0 '+px+'px #00BAFF, 0 0 '+(px*2)+'px rgba(0,186,255,'+(cfg.glow*0.5)+'), inset 0 0 '+(px*1.5)+'px rgba(0,186,255,'+(cfg.glow*0.15)+')'}
+  if(ring){var px=Math.round(cfg.glow*28);ring.style.transition='box-shadow 800ms ease';ring.style.boxShadow='0 0 '+px+'px '+_ORB_HEX()+', 0 0 '+(px*2)+'px rgba('+_ORB_AC()+','+(cfg.glow*0.5)+'), inset 0 0 '+(px*1.5)+'px rgba('+_ORB_AC()+','+(cfg.glow*0.15)+')'}
   var sr=document.getElementById('orbit-sby-ring')
   if(sr)sr.style.animationDuration=cfg.pulse+'s'
   var lbl=document.getElementById('orbit-act-state')
@@ -2283,7 +2287,7 @@ function _environmentalAdapt(){
   var h=new Date().getHours(),wf=(_perception&&_perception.context?_perception.context.workflow:'idle')
   var color='#00E5FF',glo='rgba(0,229,255,0.5)'
   if(h>=22||h<6){color='#FFB347';glo='rgba(255,179,71,0.4)'}
-  else if(h<9){color='#00BAFF';glo='rgba(0,186,255,0.5)'}
+  else if(h<9){color=''+_ORB_HEX()+'';glo='rgba('+_ORB_AC()+',0.5)'}
   if(wf==='gaming'){color='#FF4444';glo='rgba(255,68,68,0.4)'}
   else if(wf==='streaming'){color='#FF6B00';glo='rgba(255,107,0,0.4)'}
   if(_energyState==='observing'||_energyState==='dreaming'||_energyState==='idle'){
@@ -4059,9 +4063,9 @@ function initOrb() {
     // Glow
     var g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1)
     var alpha = state==='thinking' ? 0.22 : state==='speaking' ? 0.18 : 0.12
-    g.addColorStop(0, 'rgba(0,186,255,'+alpha+')')
-    g.addColorStop(0.5, 'rgba(0,186,255,'+(alpha*0.4)+')')
-    g.addColorStop(1, 'rgba(0,186,255,0)')
+    g.addColorStop(0, 'rgba('+_ORB_AC()+','+alpha+')')
+    g.addColorStop(0.5, 'rgba('+_ORB_AC()+','+(alpha*0.4)+')')
+    g.addColorStop(1, 'rgba('+_ORB_AC()+',0)')
     ctx.fillStyle = g
     ctx.beginPath(); ctx.arc(cx,cy,R*1.1,0,Math.PI*2); ctx.fill()
 
@@ -4076,7 +4080,7 @@ function initOrb() {
       var sc = (z1+1.6)/2.6 * pls
       var alpha2 = Math.max(0.1, sc*0.8+0.05)
       ctx.globalAlpha = alpha2
-      ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : '#00BAFF'
+      ctx.fillStyle = state==='thinking' ? '#4499FF' : state==='speaking' ? '#44FFAA' : ''+_ORB_HEX()+''
       var r = Math.max(1, d.r*sc)
       ctx.fillRect(cx+x1*R*sc-r/2, cy+y0*R*sc-r/2, r, r)
     }
@@ -4216,7 +4220,7 @@ function _ambientInit() {
       var ring = document.getElementById('orbit-act-ring-outer')
       if (ring && _orbitMode === 'active') {
         ring.style.transition = 'box-shadow 600ms ease'
-        ring.style.boxShadow = '0 0 40px #00BAFF, 0 0 80px rgba(0,186,255,0.6), inset 0 0 60px rgba(0,186,255,0.2)'
+        ring.style.boxShadow = '0 0 40px '+_ORB_HEX()+', 0 0 80px rgba('+_ORB_AC()+',0.6), inset 0 0 60px rgba('+_ORB_AC()+',0.2)'
         setTimeout(function() {
           ring.style.boxShadow = ''
           ring.style.transition = ''
@@ -6335,6 +6339,15 @@ function applyTheme(name) {
     '--green': ac, '--green-mid': _mix(ac,'#000',.25), '--green-dim': _mix(ac,'#000',.55),
     '--orbit-border': 'rgba('+rgb+',.2)',
   }
+  // orb / HUD visuals follow the theme too
+  P['--orbit-blue']   = ac
+  P['--orbit-glow']   = ac
+  P['--orbit-dim']    = 'rgba('+rgb+',0.18)'
+  P['--orbit-grid']   = 'rgba('+rgb+',0.07)'
+  P['--orbit-border'] = 'rgba('+rgb+',0.22)'
+  P['--orbit-text']   = _mix(ac,'#ffffff',.78)
+  window._orbAccentRGB = rgb  // canvases read this each frame
+  window._orbAccentHEX = ac
   var root = document.documentElement
   for (var k in P) root.style.setProperty(k, P[k])
   document.body.style.background = bg
