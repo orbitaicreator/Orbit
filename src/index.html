@@ -4,6 +4,7 @@
 <meta charset="UTF-8">
 <title>Orbit</title>
 <style>
+
 *{box-sizing:border-box;margin:0;padding:0}
 :root{
 
@@ -199,15 +200,7 @@ input,select,textarea{font-family:inherit}
 /* 
 /* SETTINGS */
 /* SETTINGS */
-#sett{
-  position:fixed;top:0;
-  left:0;           /* positioned dynamically by JS */
-  width:360px;bottom:0;
-  background:#0d160d;border-right:1px solid #1a2e1a;
-  display:none;flex-direction:column;z-index:500;
-  overflow-y:auto;
-  transform:translateX(-100%);  /* slides in from left */
-  transition:transform .2s ease}
+
 #
 #
 .
@@ -515,15 +508,8 @@ input,select,textarea{font-family:inherit}
 .sb-dropdown-divider { height:1px; background:#1a2e1a; margin:3px 0; }
 
 /* Settings panel */
-#sett {
-  position:fixed; top:0; right:0; width:360px; bottom:0;
-  background:#0d160d; border-left:1px solid #1a2e1a;
-  display:none; flex-direction:column; z-index:500;
-  overflow-y:auto;
-  transform:translateX(100%);
-  transition:transform .2s ease;
-}
-#sett.open { transform:translateX(0); }
+
+
 .sh {
   padding:16px 16px 12px; font-size:13px; font-weight:500;
   color:#ccffcc; border-bottom:1px solid #1a2e1a;
@@ -1370,30 +1356,12 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
 @keyframes dd-in{from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)}}
 .sb-dropdown-item{border-radius:8px}
 
-/* ── Settings panel ── */
-#sett{
-  background:linear-gradient(180deg,#0a140a,#070e07);
-  border-right:1px solid rgba(0,255,65,.1);
-  box-shadow:12px 0 40px rgba(0,0,0,.5)}
-.sh{
-  font-size:12px !important;letter-spacing:3px;text-transform:uppercase;
-  font-weight:600;color:var(--ac,#00ff41) !important;
-  background:rgba(0,255,65,.04) !important;
-  border-bottom:1px solid rgba(0,255,65,.1)}
-.sg{
-  margin:10px 12px;padding:12px 14px !important;
-  background:rgba(0,255,65,.025);
-  border:1px solid rgba(0,255,65,.07) !important;
-  border-radius:12px;border-bottom:1px solid rgba(0,255,65,.07) !important}
-.sl{font-size:11px;letter-spacing:.3px}
-.si2,.ss{
-  border-radius:8px !important;padding:7px 10px !important;
-  background:rgba(0,0,0,.35) !important;
-  border:1px solid rgba(0,255,65,.15) !important;
-  transition:border-color .15s,box-shadow .15s}
-.si2:focus,.ss:focus{
-  border-color:var(--ac,#00ff41) !important;
-  box-shadow:0 0 0 2px rgba(0,255,65,.12) !important}
+
+
+
+
+
+
 .sbt{
   border-radius:8px !important;padding:6px 12px !important;
   background:rgba(0,255,65,.06);border:1px solid rgba(0,255,65,.18);
@@ -1447,10 +1415,59 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
 #cmdpal{border-radius:14px;backdrop-filter:blur(10px);background:rgba(11,18,11,.97)}
 .cmdpal-item{transition:background .1s}
 
-/* ── Settings close button (was hardcoded green inline) ── */
-.sh button{color:var(--dim,#5aaa5a) !important}
-.sh button:hover{color:var(--ac,#00ff41) !important}
 
+
+
+/* Electron: overlays must opt out of the titlebar window-drag region */
+#sett,.sh,.sh button,#cmdpal-overlay,#cmdpal,#sc-add-modal,#orbit-prompt,.scm-box,
+.sb-dropdown,#toast{-webkit-app-region:no-drag}
+
+
+/* ══ SETTINGS — single source of truth ══ */
+#sett{
+  position:fixed;top:0;left:0;bottom:0;width:390px;max-width:92vw;
+  background:linear-gradient(165deg,#0a140a,#060c06);
+  border-right:1px solid rgba(0,255,65,.12);
+  box-shadow:16px 0 48px rgba(0,0,0,.55);
+  display:none;flex-direction:column;z-index:700;
+  transform:translateX(-100%);transition:transform .22s cubic-bezier(.3,.9,.3,1);
+  -webkit-app-region:no-drag}
+#sett.open{transform:translateX(0)}
+#sett-scroll{flex:1;overflow-y:auto;padding:4px 0 20px}
+.sh{
+  flex-shrink:0;display:flex;align-items:center;justify-content:space-between;
+  padding:0 16px;height:46px;
+  font-size:12px;letter-spacing:3px;text-transform:uppercase;font-weight:600;
+  color:var(--ac,#00ff41);background:rgba(0,255,65,.05);
+  border-bottom:1px solid rgba(0,255,65,.12)}
+.sh button{
+  background:none;border:none;width:30px;height:30px;border-radius:8px;
+  color:#5aaa5a;cursor:pointer;font-size:15px;line-height:1;
+  display:flex;align-items:center;justify-content:center;
+  transition:background .12s,color .12s}
+.sh button:hover{background:rgba(255,80,80,.12);color:#ff7777}
+.sg{
+  margin:10px 14px;padding:13px 15px;
+  background:rgba(0,255,65,.03);
+  border:1px solid rgba(0,255,65,.08);border-radius:12px}
+.sl{display:block;font-size:11px;color:#79b579;margin-bottom:7px;letter-spacing:.4px}
+.sg .sl:first-child{margin-top:0}
+.si2,.ss{
+  width:100%;box-sizing:border-box;border-radius:9px;padding:8px 11px;
+  background:rgba(0,0,0,.4);color:#d5f5d5;font-size:12.5px;
+  border:1px solid rgba(0,255,65,.16);outline:none;font-family:inherit;
+  transition:border-color .15s,box-shadow .15s}
+.si2:focus,.ss:focus{border-color:var(--ac,#00ff41);box-shadow:0 0 0 2px rgba(0,255,65,.12)}
+.ss{cursor:pointer}
+.ss option{background:#0a140a;color:#cfeecc}
+#sett input[type=checkbox]{
+  width:16px;height:16px;accent-color:var(--ac,#00ff41);cursor:pointer;flex-shrink:0}
+#sett input[type=range]{
+  width:100%;accent-color:var(--ac,#00ff41);cursor:pointer;height:18px}
+.stog{
+  display:flex;align-items:center;gap:10px;font-size:12.5px;color:#c5e5c5;
+  cursor:pointer;user-select:none}
+.sr{width:100%}
 </style>
 </head>
 <body>
@@ -1776,9 +1793,10 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
   </div>
 <!-- Settings panel -->
   <div id="sett">
-    <div class="sh">Settings
-      <button onclick="closeSett()" title="Close" style="float:right;background:none;border:none;color:#88cc88;cursor:pointer;font-size:18px;line-height:1;padding:0 4px" onmouseover="this.style.color='#00ff41'" onmouseout="this.style.color='#88cc88'">&#10005;</button>
+    <div class="sh"><span>Settings</span>
+      <button onclick="closeSett()" title="Close settings">&#10005;</button>
     </div>
+    <div id="sett-scroll">
     <div class="sg">
       <label class="sl">API Key</label>
       <input class="si2" id="sapikey" type="password" placeholder="sk-ant-..."
@@ -1917,6 +1935,7 @@ html,body{margin:0;padding:0;width:100%;height:100%;background:#070B14;overflow:
       <div id="git-status-bar" style="margin-top:6px;font-size:11px;color:#5a9a5a"></div>
     </div>
     <div style="height:16px"></div>
+    </div><!-- /sett-scroll -->
   </div>
 
 <script>
@@ -4871,6 +4890,11 @@ function updateFollowUI() {
   }
 }
 
+// FIX: initSbDrag was called during boot but never defined — the resulting
+// ReferenceError killed startApp() halfway through, so the mic never started,
+// git status never loaded and the updater UI never initialized.
+function initSbDrag() { /* sidebar uses the fixed 52px strip — no drag resize */ }
+
 function startApp() {
   el('app').style.display='flex'
   initSidebar()
@@ -5339,11 +5363,18 @@ function showTodos() {
   } catch(e) { respond('Could not load tasks.') }
 }
 function addTodo(text) {
+  // FIX: the sidebar "+" button and Enter key call addTodo() with no argument,
+  // but the function required text — so sidebar tasks could never be added.
+  if (!text) {
+    var inp = el('todo-inp')
+    if (inp && inp.value.trim()) { text = inp.value.trim(); inp.value = '' }
+  }
   if (!text) return respond('What task should I add?')
   try {
     var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     todos.push({text:text,done:false,id:Date.now()})
     localStorage.setItem('orbit_todos',JSON.stringify(todos))
+    if (typeof loadTodos === 'function') loadTodos()  // FIX: sync in-memory list + refresh sidebar
     respond('Task added: '+text)
   } catch(e) { respond('Could not add task.') }
 }
@@ -5351,9 +5382,9 @@ function completeTodo(query) {
   try {
     var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     var idx = parseInt(query)-1
-    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); return respond('Done: '+todos[idx].text) }
+    if (!isNaN(idx) && todos[idx]) { todos[idx].done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); if(typeof loadTodos==='function')loadTodos(); return respond('Done: '+todos[idx].text) }
     var found = todos.find(function(t){return t.text.toLowerCase().includes(query.toLowerCase())})
-    if (found) { found.done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); return respond('Marked done: '+found.text) }
+    if (found) { found.done=true; localStorage.setItem('orbit_todos',JSON.stringify(todos)); if(typeof loadTodos==='function')loadTodos(); return respond('Marked done: '+found.text) }
     respond('Task not found.')
   } catch(e) { respond('Could not update task.') }
 }
@@ -5361,6 +5392,7 @@ function clearDoneTodos() {
   try {
     var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]')
     localStorage.setItem('orbit_todos',JSON.stringify(todos.filter(function(t){return !t.done})))
+    if(typeof loadTodos==='function')loadTodos()
     respond('Cleared completed tasks.')
   } catch(e) {}
 }
@@ -7817,15 +7849,18 @@ function saveApiKey(){
 function openSett() {
   settOpen = true
   const s = el('sett'); if (!s) return
-  s.style.left = (_sbPinned ? 260 : 0) + 'px'
+  // FIX: clear stale inline styles from old close logic — a leftover inline
+  // transform:translateX(-100%) used to keep the panel permanently off-screen
+  s.style.transform = ''
+  s.style.left = ''
   s.style.display = 'flex'
-  requestAnimationFrame(() => s.classList.add('open'))
+  requestAnimationFrame(() => requestAnimationFrame(() => { if (settOpen) s.classList.add('open') }))
 }
 function closeSett(){
   settOpen=false
   const s=el('sett'); if(!s)return
   s.classList.remove('open')
-  setTimeout(()=>{ if(s){s.style.display='none';s.style.transform='translateX(-100%)'} },220)  // hide after animation
+  setTimeout(()=>{ if(s && !settOpen) s.style.display='none' },240)  // hide after animation, no inline transform
 }
 
 
