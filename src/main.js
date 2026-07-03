@@ -158,6 +158,10 @@ function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
     proc.on('exit', (code, signal) => {
       console.log(`[Mic] exited code=${code} signal=${signal}`)
       micProcess = null
+      // FIX: with shell:true a missing interpreter never fires ENOENT —
+      // Windows exits with 9009 ("not recognized"), Unix with 127.
+      // Try the next Python instead of restart-looping the same one forever.
+      if (code === 9009 || code === 127) { tryNext(); return }
       // Auto-restart after 3s ONLY if not deliberately killed
       if (signal !== 'SIGTERM' && signal !== 'SIGKILL') {
         setTimeout(() => { if (win && micProcess === null) startPythonMic(wakeWord, lang) }, 3000)
@@ -217,6 +221,8 @@ function startVirtualMouse() {
     proc.on('exit', (code) => {
       mouseReady = false; mouseProcess = null
       console.log('[Mouse] exited code=' + code)
+      // FIX: same shell:true issue — try next Python if interpreter missing
+      if (code === 9009 || code === 127) tryNext()
     })
 
     mouseProcess = proc
@@ -237,7 +243,9 @@ ipcMain.handle('mouse-send', (_, cmd) => {
   return mouseReady
 })
 
-ipcMain.on('cursor-cmd', (_, cmd) => sendCursor(cmd))
+// FIX: sendCursor() never existed — this would throw a ReferenceError
+// in the main process. Cursor commands now route to the virtual mouse.
+ipcMain.on('cursor-cmd', (_, cmd) => sendMouse(cmd))
 
 // ── Window ────────────────────────────────────────────
 let win  = null
@@ -452,15 +460,27 @@ ipcMain.handle('git-update',     ()         => gitManager ? gitManager.update() 
 // ── IPC: System commands ──────────────────────────────
 
 // ── AI API handler (bypasses CORS) ──────────────────────────────────────
-ipcMain.handle('ai-chat', async (_, { messages, system }) => {
+// FIX: loadApiKey() was never defined — every ai-chat call threw
+// "loadApiKey is not defined" and Orbit silently fell back to canned replies.
+function loadApiKey() {
+  for (const f of KEY_FILES) {
+    const k = readFile(f).trim()
+    if (k) return k
+  }
+  return null
+}
+
+ipcMain.handle('ai-chat', async (_, { messages, system, max_tokens }) => {
   try {
-    const apiKey = await loadApiKey()
+    const apiKey = loadApiKey()
     if (!apiKey) return { error: 'no_key' }
 
     const https = require('https')
+    // FIX: renderer sends max_tokens (perf modes) but it was hardcoded to 200
+    const tokens = Math.max(50, Math.min(1024, parseInt(max_tokens) || 300))
     const body  = JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: 200,
+      max_tokens: tokens,
       system: system || '',
       messages: messages || []
     })
@@ -784,7 +804,8 @@ ipcMain.handle('speak', (_, text, voice) => {
       exec(`${py} "${script}" "${clean}" "${v}"`,
         { windowsHide:true, timeout:30000, shell:true },
         err => {
-          if (err && (err.code==='ENOENT' || err.message.includes('not found'))) { next(); return }
+          // FIX: Windows says "is not recognized" (code 9009), not "not found"
+          if (err && (err.code==='ENOENT' || err.code===9009 || err.message.includes('not found') || err.message.includes('not recognized'))) { next(); return }
           resolve(err ? 'error:'+err.message : 'ok')
         })
     }

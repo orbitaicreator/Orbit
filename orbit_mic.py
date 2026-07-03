@@ -50,14 +50,25 @@ FIXES = {
 
 def normalize(text):
     t = text.lower().strip()
-    # Strip wake word and all variants from command text
-    for v in WAKE_VARIANTS:
-        t = t.replace(v, "").strip()
-    t = t.replace(WAKE_WORD, "").strip()
-    # Apply general fixes
+    # FIX: old code did blind substring replaces of every wake variant
+    # anywhere in the text, which corrupted commands:
+    #   "open youtube" -> "open utube"   ("yo" stripped)
+    #   "open folder"  -> "open f"       ("older" stripped)
+    # Now we only strip wake word / variants from the START, whole-word.
+    tokens = t.split()
+    strip_words = set(WAKE_VARIANTS) | {WAKE_WORD}
+    while tokens:
+        # try two-word variants like "yo da" first
+        if len(tokens) >= 2 and (tokens[0] + " " + tokens[1]) in strip_words:
+            tokens = tokens[2:]
+        elif tokens[0] in strip_words:
+            tokens = tokens[1:]
+        else:
+            break
+    t = " ".join(tokens)
+    # Apply general fixes (word-boundary safe)
     for wrong, right in FIXES.items():
-        if wrong in t:
-            t = t.replace(wrong, right)
+        t = re.sub(r"\b" + re.escape(wrong) + r"\b", right, t)
     return t.strip()
 
 def is_wake(text):
