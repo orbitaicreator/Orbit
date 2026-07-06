@@ -1493,14 +1493,15 @@ body.hide-input #inp-bar,body.hide-input #inp-trigger,body.hide-input #inp-discl
 
 
 /* ══ ORB-TOP / CHAT-BELOW LAYOUT ══ */
-#orbit-sby-orb{width:250px;height:250px}
-#orbit-active-orb{width:440px;height:440px}
+#orbit-sby-orb{width:560px;height:560px}
+#orbit-active-orb{width:560px;height:560px}
 #orbit-standby,#orbit-active{height:60%;top:0}
 body.hide-chat #orbit-standby,body.hide-chat #orbit-active{height:100%}
 #chat{top:60%;bottom:0;padding-top:8px}
 body.hide-chat #chat{display:none !important}
 body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidden */
-#orbit-clock-big{font-size:54px}
+#orbit-clock-big{font-size:44px}
+#orbit-sby-orb{margin-bottom:20px !important}
 
 
 #scroll-down-btn{
@@ -1515,6 +1516,28 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
 
 /* ══ Clean orb — no decorative text (ORBIT label, IDLE/THINKING state) ══ */
 #orbit-sby-label,#orbit-act-label,#orbit-act-state{display:none !important}
+
+
+/* ══ Single glowing ring hugging the particle sphere ══ */
+#orbit-act-ring-outer{display:none !important}
+#orbit-act-ring-inner{
+  top:4% !important;left:4% !important;width:92% !important;height:92% !important;
+  border:2.5px solid var(--orbit-glow) !important;
+  box-shadow:0 0 16px var(--orbit-glow),0 0 50px rgba(var(--ac-rgb),.35),
+             inset 0 0 30px rgba(var(--ac-rgb),.12) !important;
+  transition:filter .4s ease}
+
+
+/* ══ Orb state motion ══ */
+@keyframes orbThink{
+  0%,100%{transform:translate(-50%,-56%)}
+  50%{transform:translate(-50%,calc(-56% + 18px))}}
+@keyframes orbSpeak{
+  0%,100%{transform:translate(-50%,-56%) scale(1)}
+  50%{transform:translate(-50%,calc(-56% - 10px)) scale(1.025)}}
+#orbit-active-orb{will-change:transform}
+#orbit-active-orb.st-thinking{animation:orbThink 1.6s ease-in-out infinite}
+#orbit-active-orb.st-speaking{animation:orbSpeak 4s ease-in-out infinite}
 
 </style>
 </head>
@@ -1579,7 +1602,7 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
   <div id="orbit-standby" class="orbit-show">
     <div id="orbit-sby-orb">
       <div id="orbit-sby-ring"></div>
-      <canvas id="orbit-sby-canvas" width="250" height="250"></canvas>
+      <canvas id="orbit-sby-canvas" width="560" height="560"></canvas>
       <div id="orbit-sby-label">ORBIT</div>
     </div>
     <div id="orbit-clock-big">00:00</div>
@@ -1606,7 +1629,7 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
 
     <!-- Central orb -->
     <div id="orbit-active-orb">
-      <canvas id="orbit-act-canvas" width="440" height="440"></canvas>
+      <canvas id="orbit-act-canvas" width="560" height="560"></canvas>
       <div id="orbit-act-ring-outer">
         <div class="orbit-corner tl"></div>
         <div class="orbit-corner tr"></div>
@@ -4083,10 +4106,17 @@ function initOrb() {
     state = s
     var lbl = document.getElementById('orbit-act-state')
     if (lbl) lbl.textContent = s.toUpperCase()
-    var ring = document.getElementById('orbit-act-ring-outer')
+    var ring = document.getElementById('orbit-act-ring-inner')  // outer ring removed — single hugging ring now
     if (ring) {
       var cols = {idle:'',listening:'hue-rotate(120deg)',thinking:'hue-rotate(200deg)',speaking:'hue-rotate(150deg)'}
       ring.style.filter = cols[s] || ''
+    }
+    // Orb motion: slow float while speaking, up-down bob while thinking
+    var orbEl = document.getElementById('orbit-active-orb')
+    if (orbEl) {
+      orbEl.classList.remove('st-thinking','st-speaking')
+      if (s === 'thinking') orbEl.classList.add('st-thinking')
+      else if (s === 'speaking') orbEl.classList.add('st-speaking')
     }
     // AETHER state sync
     _aeSetState && _aeSetState(s)
@@ -4096,7 +4126,7 @@ function initOrb() {
     ctx.clearRect(0, 0, W, H)
     var cx = W/2, cy = H/2
     var R  = small ? W*0.44 : W*0.46
-    var spinSpeed = state==='thinking' ? 0.016 : state==='speaking' ? 0.011 : state==='listening' ? 0.007 : 0.004
+    var spinSpeed = state==='thinking' ? 0.016 : state==='speaking' ? 0.0055 : state==='listening' ? 0.007 : 0.004  // speaking = slow, calm spin
     var ry = frame * spinSpeed
     var pulseD = state==='thinking' ? 0.2 : state==='speaking' ? 0.15 : 0.07
     var pls = Math.sin(frame * (state==='thinking'?0.16:0.025)) * pulseD + (1 - pulseD*0.4)
@@ -4131,8 +4161,8 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 250, 250, true)
-      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 440, 440, false)
+      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 560, 560, true)
+      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 560, 560, false)
     }
     requestAnimationFrame(draw)
   }
@@ -7343,6 +7373,13 @@ async function dispatch(text) {
   if (/read clipboard/i.test(t))         return readClipboard()
   if (/improve clipboard/i.test(t))      return improveClipboard()
   if (/^(hi|hello|hey|howdy)[.!]?$/i.test(t)) return respond(getGreeting())
+
+  // ── TRANSLATE: "translate X to norwegian" / "how do you say X in spanish" /
+  //    "oversett X til engelsk" — handled by the AI, spoken back
+  var trM = t.match(/^translate\s+(.+?)\s+(?:to|into)\s+([a-zA-ZæøåÆØÅ]+)$/i) ||
+            t.match(/^how do you say\s+(.+?)\s+in\s+([a-zA-ZæøåÆØÅ]+)$/i) ||
+            t.match(/^oversett\s+(.+?)\s+til\s+([a-zA-ZæøåÆØÅ]+)$/i)
+  if (trM) { doTranslate(trM[1], trM[2]); return }
   const _app = text.match(/^(?:open|launch|start|run)\s+(.+)/i)
   if (_app)                              return launchApp(_app[1].trim())
 
@@ -7951,6 +7988,26 @@ async function _aiGreeting() {
       return t
     }).catch(function(){ return null })
   return Promise.race([req, timeout])
+}
+
+// ── Translator ────────────────────────────────────────────────────────
+async function doTranslate(text, lang) {
+  if (!window.orbit || !orbit.aiChat) return respond("Translation needs the AI connection.")
+  addMsg('s', 'Translating to ' + lang + '...')
+  try {
+    var r = await orbit.aiChat({
+      messages: [{ role:'user', content: text }],
+      system: 'Translate the user\'s text to ' + lang + '. ' +
+              'Reply with ONLY the translation — no explanations, no quotes. ' +
+              'If the target language is unclear, translate to ' + lang + ' as best you can.',
+      max_tokens: 300
+    })
+    var out = r && (r.text || (r.content && r.content[0] && r.content[0].text))
+    if (!out) return respond('Translation failed — no response.')
+    out = String(out).trim()
+    addMsg('y', out)
+    if (!whisperMode) speak(out)
+  } catch(e) { respond('Translation failed: ' + e.message) }
 }
 
 async function greet(){
@@ -9691,6 +9748,13 @@ function _cmdpalActions() {
   add('Settings', 'Ctrl+,', typeof openSett==='function' ? openSett : null, 'preferences config')
   add('Toggle whisper mode', '', typeof toggleWhisper==='function' ? toggleWhisper : null, 'mute tts voice silent')
   add('Toggle messages', '', typeof toggleMessages==='function' ? toggleMessages : null, 'chat hide show under orb')
+  add('Translate...', '', function(){
+    orbitPrompt('Translate what? (e.g. "hello to norwegian")','text to language','').then(function(v){
+      if (!v) return
+      var m = v.match(/^(.+?)\s+(?:to|into|til)\s+([a-zA-ZæøåÆØÅ]+)$/i)
+      if (m) doTranslate(m[1], m[2]); else showToast('Format: <text> to <language>')
+    })
+  }, 'oversett language spanish norwegian english')
   // System — routed through the normal command pipeline
   if (typeof ask === 'function') {
     add('Take a screenshot', '', function(){ ask('take a screenshot') }, 'capture screen')

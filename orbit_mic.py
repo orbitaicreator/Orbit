@@ -19,6 +19,9 @@ WAKE_VARIANTS = {
     "yo dog","yo dawg","orbith","iota","joda","yotta","yoder",
     "yo duh","toda","coda","older","euler","iota","orbit orbit",
     "yo","yolda","joder","yona","yoba","yoka","yopa","yora",
+    # two-token mishears of "orbit"
+    "or bit","or bid","all bit","or but","a bit","our bit",
+    "orbits","orbit's","orbed","herbert","abbot","rabbit",
 }
 
 # General mishear corrections — applied AFTER wake word check
@@ -148,7 +151,14 @@ def download_model(model_path):
         "vosk-model-en-us-0.22-lgraph" if name == BIG_MODEL else "vosk-model-small-en-us-0.15")
     zp = model_path + ".zip"
     try:
-        urllib.request.urlretrieve(url, zp)
+        last = [0]
+        def hook(blocks, bs, total):
+            if total <= 0: return
+            pct = int(blocks * bs * 100 / total)
+            if pct >= last[0] + 10:
+                last[0] = pct
+                sys.stderr.write(f"[Mic] model download {pct}%\n"); sys.stderr.flush()
+        urllib.request.urlretrieve(url, zp, reporthook=hook)
         with zipfile.ZipFile(zp, "r") as z: z.extractall(os.path.dirname(model_path))
         ext = os.path.join(os.path.dirname(model_path),
                            "vosk-model-en-us-0.22-lgraph" if name == BIG_MODEL else "vosk-model-small-en-us-0.15")

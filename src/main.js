@@ -53,6 +53,13 @@ const ps        = cmd => new Promise(resolve => {
   exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ${enc}`,
     { windowsHide:true, timeout:8000 }, (_, out) => resolve(out ? out.trim() : ''))
 })
+// Synchronous variant for the perception handlers — same crash-proof encoding
+const psSync = (cmd, timeout=5000) => {
+  const { execSync } = require('child_process')
+  const enc = Buffer.from(cmd, 'utf16le').toString('base64')
+  return execSync(`powershell -NoProfile -NonInteractive -EncodedCommand ${enc}`,
+    { encoding:'utf8', timeout, windowsHide:true }).trim()
+}
 
 // ── Local HTTP server ─────────────────────────────────
 // Serve from localhost so fetch() to Anthropic API works
@@ -586,14 +593,8 @@ ipcMain.handle('openclaw-cli', async (_, command) => {
 // Active window + foreground process
 ipcMain.handle('perception-active-window', async () => {
   try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      '$w = Get-Process | Where-Object {$_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -ne \"\"} | ' +
-      'Sort-Object CPU -Descending | Select-Object -First 1; ' +
-      '[PSCustomObject]@{Name=$w.ProcessName;Title=$w.MainWindowTitle;CPU=[math]::Round($w.CPU,1);Id=$w.Id} | ConvertTo-Json"',
-      { encoding: 'utf8', timeout: 3000 }
-    ).trim()
+    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
+    const result = psSync(`$w = Get-Process | Where-Object {$_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -ne ''} | Sort-Object CPU -Descending | Select-Object -First 1; [PSCustomObject]@{Name=$w.ProcessName;Title=$w.MainWindowTitle;CPU=[math]::Round($w.CPU,1);Id=$w.Id} | ConvertTo-Json`, 3000)
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -601,14 +602,8 @@ ipcMain.handle('perception-active-window', async () => {
 // Full process list with window titles
 ipcMain.handle('perception-processes', async () => {
   try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      'Get-Process | Where-Object {$_.MainWindowTitle -ne \"\"} | ' +
-      'Select-Object ProcessName,MainWindowTitle,@{N=\'CPU\';E={[math]::Round($_.CPU,1)}} | ' +
-      'ConvertTo-Json -Compress"',
-      { encoding: 'utf8', timeout: 5000 }
-    ).trim()
+    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
+    const result = psSync(`Get-Process | Where-Object {$_.MainWindowTitle -ne ''} | Select-Object ProcessName,MainWindowTitle,@{N='CPU';E={[math]::Round($_.CPU,1)}} | ConvertTo-Json -Compress`, 5000)
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -616,21 +611,8 @@ ipcMain.handle('perception-processes', async () => {
 // System performance snapshot
 ipcMain.handle('perception-system', async () => {
   try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      '$cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; ' +
-      '$ram = Get-CimInstance Win32_OperatingSystem; ' +
-      '$disk = Get-PSDrive C; ' +
-      '[PSCustomObject]@{' +
-      'CPU=[math]::Round($cpu,0);' +
-      'RAMUsed=[math]::Round(($ram.TotalVisibleMemorySize-$ram.FreePhysicalMemory)/1MB,1);' +
-      'RAMTotal=[math]::Round($ram.TotalVisibleMemorySize/1MB,1);' +
-      'DiskFree=[math]::Round($disk.Free/1GB,1);' +
-      'DiskTotal=[math]::Round(($disk.Free+$disk.Used)/1GB,1)' +
-      '} | ConvertTo-Json"',
-      { encoding: 'utf8', timeout: 5000 }
-    ).trim()
+    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
+    const result = psSync(`$cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; $ram = Get-CimInstance Win32_OperatingSystem; $disk = Get-PSDrive C; [PSCustomObject]@{CPU=[math]::Round($cpu,0);RAMUsed=[math]::Round(($ram.TotalVisibleMemorySize-$ram.FreePhysicalMemory)/1MB,1);RAMTotal=[math]::Round($ram.TotalVisibleMemorySize/1MB,1);DiskFree=[math]::Round($disk.Free/1GB,1);DiskTotal=[math]::Round(($disk.Free+$disk.Used)/1GB,1)} | ConvertTo-Json`, 5000)
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -660,13 +642,8 @@ ipcMain.handle('perception-clipboard', async () => {
 // Browser tabs via PowerShell window titles
 ipcMain.handle('perception-browser-tabs', async () => {
   try {
-    const { execSync } = require('child_process')
-    const result = execSync(
-      'powershell -NoProfile -Command "' +
-      'Get-Process | Where-Object {$_.ProcessName -match \'chrome|firefox|edge|zen|brave\' -and $_.MainWindowTitle -ne \"\"} | ' +
-      'Select-Object -ExpandProperty MainWindowTitle | ConvertTo-Json -Compress"',
-      { encoding: 'utf8', timeout: 3000 }
-    ).trim()
+    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
+    const result = psSync(`Get-Process | Where-Object {$_.ProcessName -match 'chrome|firefox|edge|zen|brave' -and $_.MainWindowTitle -ne ''} | Select-Object -ExpandProperty MainWindowTitle | ConvertTo-Json -Compress`, 3000)
     const tabs = JSON.parse(result)
     return { ok: true, data: Array.isArray(tabs) ? tabs : [tabs] }
   } catch(e) { return { ok: false, error: e.message } }
