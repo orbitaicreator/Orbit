@@ -772,6 +772,26 @@ if($r.Count -gt 0){Start-Process $r[0];Write-Output "FOUND:$($r[0])"}else{Start-
 })
 
 // ── IPC: TTS ──────────────────────────────────────────
+// ── Buddy overlay mode: small always-on-top companion window ────────────
+let _savedBounds = null
+ipcMain.handle('set-overlay', (_, on) => {
+  if (!win) return false
+  try {
+    if (on) {
+      _savedBounds = win.getBounds()
+      const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize
+      win.setMinimumSize(280, 340)
+      win.setBounds({ width: 330, height: 460, x: sw - 346, y: sh - 476 })
+      win.setAlwaysOnTop(true, 'screen-saver')
+    } else {
+      win.setAlwaysOnTop(false)
+      win.setMinimumSize(700, 600)
+      if (_savedBounds) win.setBounds(_savedBounds)
+    }
+    return true
+  } catch (e) { return false }
+})
+
 ipcMain.handle('speak', (_, text, voice) => {
   return new Promise(resolve => {
     const script = findPythonScript('orbit_tts.py')

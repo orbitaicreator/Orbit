@@ -30,6 +30,7 @@ contextBridge.exposeInMainWorld('orbit', {
   openClawCli: cmd    => ipcRenderer.invoke('openclaw-cli', cmd),
   speak:      (t,v)    => ipcRenderer.invoke('speak', t, v),
   startMic:   (w,l)    => ipcRenderer.invoke('start-mic', w, l),
+  setOverlay: on       => ipcRenderer.invoke('set-overlay', on),
   stopMic:    ()       => ipcRenderer.invoke('stop-mic'),
   on: (event, cb) => {
     const fn = (_, ...args) => cb(...args)
