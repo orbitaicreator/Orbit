@@ -1471,7 +1471,7 @@ body.hide-stats #tb-stats{display:none !important}
   display:flex;align-items:flex-end;gap:10px;padding:11px 12px 11px 16px;
   z-index:30;transition:bottom .28s cubic-bezier(.3,.9,.3,1),border-color .15s,box-shadow .15s;
   box-shadow:0 10px 40px rgba(0,0,0,.5)}
-#inp-bar.up{bottom:22px}
+#inp-bar.up{bottom:52px}
 #inp-bar:focus-within{
   border-color:var(--ac);
   box-shadow:0 10px 40px rgba(0,0,0,.6),0 0 0 2px rgba(var(--ac-rgb),.12)}
@@ -1487,19 +1487,34 @@ body.hide-stats #tb-stats{display:none !important}
 #inp-bar:focus-within #btn-send{opacity:1;pointer-events:all}
 #btn-send:hover{transform:translateY(-1px)}
 #inp-disclaimer{
-  position:absolute;bottom:5px;left:0;right:0;text-align:center;
+  position:absolute;bottom:30px;left:0;right:0;text-align:center;
   font-size:9.5px;color:var(--tx-faint);z-index:29;pointer-events:none;opacity:.65}
+body.hide-input #inp-bar,body.hide-input #inp-trigger,body.hide-input #inp-disclaimer{display:none !important}
 
 
 /* ══ ORB-TOP / CHAT-BELOW LAYOUT ══ */
-#orbit-sby-orb{width:190px;height:190px}
-#orbit-active-orb{width:340px;height:340px}
+#orbit-sby-orb{width:250px;height:250px}
+#orbit-active-orb{width:440px;height:440px}
 #orbit-standby,#orbit-active{height:60%;top:0}
 body.hide-chat #orbit-standby,body.hide-chat #orbit-active{height:100%}
 #chat{top:60%;bottom:0;padding-top:8px}
 body.hide-chat #chat{display:none !important}
-body.hide-chat #inp-bar{bottom:22px}  /* keep input reachable with chat hidden */
+body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidden */
 #orbit-clock-big{font-size:54px}
+
+
+#scroll-down-btn{
+  position:absolute;bottom:130px;left:50%;transform:translateX(-50%) translateY(8px);
+  z-index:25;width:34px;height:34px;border-radius:50%;border:1px solid var(--bd);
+  background:var(--bg-panel);color:var(--tx);cursor:pointer;font-size:15px;
+  opacity:0;pointer-events:none;transition:opacity .18s,transform .18s;
+  box-shadow:0 4px 16px rgba(0,0,0,.5)}
+#scroll-down-btn.show{opacity:1;pointer-events:all;transform:translateX(-50%) translateY(0)}
+#scroll-down-btn:hover{color:var(--ac);border-color:var(--ac)}
+
+
+/* ══ Clean orb — no decorative text (ORBIT label, IDLE/THINKING state) ══ */
+#orbit-sby-label,#orbit-act-label,#orbit-act-state{display:none !important}
 
 </style>
 </head>
@@ -1564,7 +1579,7 @@ body.hide-chat #inp-bar{bottom:22px}  /* keep input reachable with chat hidden *
   <div id="orbit-standby" class="orbit-show">
     <div id="orbit-sby-orb">
       <div id="orbit-sby-ring"></div>
-      <canvas id="orbit-sby-canvas" width="190" height="190"></canvas>
+      <canvas id="orbit-sby-canvas" width="250" height="250"></canvas>
       <div id="orbit-sby-label">ORBIT</div>
     </div>
     <div id="orbit-clock-big">00:00</div>
@@ -1591,7 +1606,7 @@ body.hide-chat #inp-bar{bottom:22px}  /* keep input reachable with chat hidden *
 
     <!-- Central orb -->
     <div id="orbit-active-orb">
-      <canvas id="orbit-act-canvas" width="340" height="340"></canvas>
+      <canvas id="orbit-act-canvas" width="440" height="440"></canvas>
       <div id="orbit-act-ring-outer">
         <div class="orbit-corner tl"></div>
         <div class="orbit-corner tr"></div>
@@ -1922,6 +1937,10 @@ body.hide-chat #inp-bar{bottom:22px}  /* keep input reachable with chat hidden *
       <label class="stog" style="margin-top:8px">
         <input type="checkbox" id="smsgs" onchange="saveSett('show_messages',this.checked);applyHudPrefs()">
         Show messages under the orb
+      </label>
+      <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="sinput" onchange="saveSett('show_input',this.checked);applyHudPrefs()">
+        Show input bar (off = voice only)
       </label>
       <label class="stog" style="margin-top:8px">
         <input type="checkbox" id="sautohide" onchange="saveSett('input_autohide',this.checked);applyInputMode()">
@@ -4112,8 +4131,8 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 190, 190, true)
-      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 340, 340, false)
+      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 250, 250, true)
+      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 440, 440, false)
     }
     requestAnimationFrame(draw)
   }
@@ -7902,7 +7921,45 @@ function showTranscript(){
   })
   c.scrollTop=c.scrollHeight
 }
-function greet(){ const g=getGreeting(); addMsg('y',g); if(!whisperMode) speak(g) }
+// ══ AI-GENERATED GREETING — unique every boot, procedural fallback ══
+async function _aiGreeting() {
+  if (!window.orbit || !orbit.aiChat) return null
+  var h = new Date()
+  var period = h.getHours()<12?'morning':h.getHours()<17?'afternoon':h.getHours()<22?'evening':'night'
+  var recent = []
+  try { recent = JSON.parse(localStorage.getItem('orbit_recent_greetings')||'[]') } catch(e){}
+  var ctx = 'Time: ' + h.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) +
+            ', ' + h.toLocaleDateString('en-GB',{weekday:'long'}) + ' (' + period + ').'
+  try {
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]').filter(function(t){return !t.done})
+    if (todos.length) ctx += ' Open tasks: ' + todos.length + '.'
+  } catch(e){}
+  var sys = 'You are Orbit, a JARVIS-like desktop AI with a calm, confident, slightly witty personality. ' +
+    'Write exactly ONE short boot greeting for your user (max 14 words). ' +
+    'You may wrap one brief system-style phrase in *asterisks*. No quotes, no emoji. ' +
+    'Make it feel fresh and specific to the moment. ' +
+    (recent.length ? 'Do NOT resemble these previous greetings: ' + recent.join(' | ') : '')
+  var timeout = new Promise(function(res){ setTimeout(function(){ res(null) }, 3000) })
+  var req = orbit.aiChat({ messages:[{role:'user',content:ctx}], system:sys, max_tokens:60 })
+    .then(function(r){
+      var t = r && (r.text || (r.content && r.content[0] && r.content[0].text))
+      if (!t) return null
+      t = String(t).trim().replace(/^["']|["']$/g,'')
+      if (!t || t.length > 160) return null
+      recent.push(t); if (recent.length > 6) recent = recent.slice(-6)
+      localStorage.setItem('orbit_recent_greetings', JSON.stringify(recent))
+      return t
+    }).catch(function(){ return null })
+  return Promise.race([req, timeout])
+}
+
+async function greet(){
+  var g = null
+  try { g = await _aiGreeting() } catch(e){}
+  if (!g) g = getGreeting()
+  addMsg('y', g)
+  if (!whisperMode) speak(g)
+}
 
 // ── HUD ───────────────────────────────────────────────
 async function startHUD(){
@@ -7956,6 +8013,7 @@ function applyHudPrefs() {
     document.body.classList.toggle('hud-widgets', config.show_widgets === true)
     document.body.classList.toggle('hide-stats',  config.show_stats === false)
     document.body.classList.toggle('hide-chat',   config.show_messages === false)
+    document.body.classList.toggle('hide-input',  config.show_input === false)
   } catch(e) {}
 }
 
@@ -7969,6 +8027,7 @@ function loadSettValues(){
   const sst=el('sstats');   if(sst) sst.checked = config.show_stats !== false
   const smg=el('smsgs');    if(smg) smg.checked = config.show_messages !== false
   const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
+  const sin=el('sinput');   if(sin) sin.checked = config.show_input !== false
   applyHudPrefs(); applyInputMode()
   const tbm=el('tb-msgs'); if(tbm) tbm.style.opacity = config.show_messages !== false ? '1' : '.45'
   const st=el('stheme'); if(st) st.value=config.theme||'orbit'
@@ -8839,6 +8898,9 @@ document.addEventListener('keydown',e=>{
   }
   if(e.ctrlKey&&e.key==='l'){clearChat();e.preventDefault()}
   if(e.ctrlKey&&e.key==='b'){toggleSb();e.preventDefault()}
+  if(e.ctrlKey&&e.key==='n'){if(typeof newConversation==='function')newConversation();e.preventDefault()}
+  if(e.ctrlKey&&e.key===','){settOpen?closeSett():openSett();e.preventDefault()}
+  if(e.ctrlKey&&e.key==='s'){if(typeof gitSave==='function')gitSave();e.preventDefault()}
 })
 
 
@@ -9783,9 +9845,24 @@ document.addEventListener('keydown', function(e){
   if (a && (a.tagName === 'INPUT' || a.tagName === 'TEXTAREA' || a.isContentEditable)) return
   if (document.getElementById('cmdpal-overlay') && document.getElementById('cmdpal-overlay').classList.contains('open')) return
   if (document.getElementById('orbit-prompt') || document.getElementById('sc-add-modal')) return
+  if (config.show_input === false) return  // input disabled in settings
   var t = el('inp-txt')
   if (t) { showInp(); t.focus() }
 })
+
+
+
+// ══ QOL: scroll-to-bottom button ══════════════════════════════════════════
+;(function(){
+  var c = document.getElementById('chat'); if (!c) return
+  var b = document.createElement('button')
+  b.id = 'scroll-down-btn'; b.innerHTML = '&#8595;'; b.title = 'Jump to latest'
+  b.onclick = function(){ c.scrollTo({ top:c.scrollHeight, behavior:'smooth' }) }
+  c.parentNode.appendChild(b)
+  c.addEventListener('scroll', function(){
+    b.classList.toggle('show', c.scrollHeight - c.scrollTop - c.clientHeight > 300)
+  })
+})()
 
 </script>
 </body>

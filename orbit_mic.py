@@ -83,28 +83,80 @@ def is_wake(text):
             return True
     return False
 
+# UPGRADE: the tiny 50MB model misheard almost everything. The lgraph model
+# (~128MB) is dramatically more accurate. We prefer it, auto-download it once,
+# and keep the small model as an emergency fallback.
+BIG_MODEL   = "vosk-model-en-us-0.22-lgraph"
+SMALL_MODEL = "vosk-model-small-en-us"
+
+def _dirs():
+    return [SCRIPT_DIR,
+            os.path.join(os.path.expanduser("~"), "Orbit"),
+            os.getcwd()]
+
+
+
+# ── Fuzzy command snapping ───────────────────────────────────────────────
+# When Vosk mishears a known command ("diagnostic support" -> "diagnostics
+# report"), snap it to the closest known phrase instead of passing garble on.
+import difflib
+
+KNOWN_COMMANDS = [
+    "diagnostics report", "daily briefing", "system stats", "system report",
+    "take a screenshot", "analyze my screen", "what time is it", "weather",
+    "set a timer", "set a timer for five minutes", "set a timer for ten minutes",
+    "start focus mode", "stop focus mode", "start pomodoro",
+    "new conversation", "clear chat", "export chat", "open settings",
+    "lock the pc", "go to sleep", "volume up", "volume down", "mute",
+    "next track", "previous track", "pause music", "play music",
+    "take a note", "show my notes", "add a task", "show my tasks",
+    "whisper mode", "stop talking", "repeat that", "help",
+    "open youtube", "open spotify", "open discord", "open chrome",
+    "open explorer", "open notepad", "open vscode", "check internet",
+    "battery status", "good morning", "good night", "who are you",
+]
+
+def snap_command(cmd):
+    # exact or prefix hits pass straight through
+    if cmd in KNOWN_COMMANDS: return cmd
+    for k in KNOWN_COMMANDS:
+        if cmd.startswith(k) or k.startswith(cmd): return cmd
+    # dynamic commands keep their tail intact ("open ...", "set a timer for ...")
+    first = cmd.split()[0] if cmd.split() else ""
+    if first in ("open","play","search","google","type","write","say","remind"):
+        return cmd
+    m = difflib.get_close_matches(cmd, KNOWN_COMMANDS, n=1, cutoff=0.75)
+    if m:
+        sys.stderr.write(f"[Mic] snapped {cmd!r} -> {m[0]!r}\n")
+        sys.stderr.flush()
+        return m[0]
+    return cmd
+
 def find_model():
-    candidates = [
-        os.path.join(SCRIPT_DIR, "vosk-model-small-en-us"),
-        os.path.join(os.path.expanduser("~"), "Orbit", "vosk-model-small-en-us"),
-        os.path.join(os.getcwd(), "vosk-model-small-en-us"),
-        r"C:\Users\krist\Orbit\vosk-model-small-en-us",
-    ]
-    for p in candidates:
-        if os.path.exists(p): return p
-    return candidates[0]
+    for name in (BIG_MODEL, SMALL_MODEL):          # prefer the accurate one
+        for d in _dirs():
+            p = os.path.join(d, name)
+            if os.path.exists(p): return p
+    return os.path.join(SCRIPT_DIR, BIG_MODEL)      # will trigger download
 
 def download_model(model_path):
-    sys.stdout.write("ERROR:Downloading voice model (~50MB)...\n")
-    sys.stdout.flush()
     import urllib.request, zipfile
-    url = "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip"
-    zp  = model_path + ".zip"
-    urllib.request.urlretrieve(url, zp)
-    with zipfile.ZipFile(zp,"r") as z: z.extractall(os.path.dirname(model_path))
-    ext = os.path.join(os.path.dirname(model_path),"vosk-model-small-en-us-0.15")
-    if os.path.exists(ext): os.rename(ext, model_path)
-    os.remove(zp)
+    name = os.path.basename(model_path)
+    sys.stdout.write("ERROR:Downloading voice model %s (one-time, ~128MB)...\n" % name)
+    sys.stdout.flush()
+    url = "https://alphacephei.com/vosk/models/%s.zip" % (
+        "vosk-model-en-us-0.22-lgraph" if name == BIG_MODEL else "vosk-model-small-en-us-0.15")
+    zp = model_path + ".zip"
+    try:
+        urllib.request.urlretrieve(url, zp)
+        with zipfile.ZipFile(zp, "r") as z: z.extractall(os.path.dirname(model_path))
+        ext = os.path.join(os.path.dirname(model_path),
+                           "vosk-model-en-us-0.22-lgraph" if name == BIG_MODEL else "vosk-model-small-en-us-0.15")
+        if os.path.exists(ext) and not os.path.exists(model_path):
+            os.rename(ext, model_path)
+    finally:
+        try: os.remove(zp)
+        except OSError: pass
 
 def run():
     import vosk, sounddevice as sd
@@ -119,7 +171,19 @@ def run():
         sys.stderr.write(f"[Mic] Input: {dev['name']}\n")
         sys.stderr.flush()
     except: pass
+    rec.SetWords(True)   # per-word confidence -> reject background mumble
     wake_active = False
+    wake_time   = 0.0
+    WAKE_WINDOW = 7.0    # seconds to say a command after the wake word
+    # single filler words that are never a real command (ambient audio)
+    JUNK = {"yeah","yes","no","it","what","ok","okay","oh","um","uh","the","a",
+            "huh","hey","man","see","and","but","so","well","right","like","this","that"}
+
+    def confidence(result):
+        words = result.get("result") or []
+        if not words: return 1.0
+        return sum(w.get("conf", 1.0) for w in words) / len(words)
+
     sys.stdout.write("READY\n")
     sys.stdout.flush()
     q = queue.Queue()
@@ -128,32 +192,47 @@ def run():
                            channels=1, device=None, latency="low", callback=cb):
         while True:
             try: data = q.get(timeout=1)
-            except queue.Empty: continue
+            except queue.Empty:
+                if wake_active and time.time() - wake_time > WAKE_WINDOW:
+                    wake_active = False
+                    sys.stderr.write("[Mic] wake window expired\n"); sys.stderr.flush()
+                continue
             if not rec.AcceptWaveform(data): continue
             result = json.loads(rec.Result())
             raw    = result.get("text","").strip()
             if not raw: continue
-            sys.stderr.write(f"[Mic] raw={raw!r}\n")
+            conf = confidence(result)
+            sys.stderr.write(f"[Mic] raw={raw!r} conf={conf:.2f}\n")
             sys.stderr.flush()
             if not wake_active:
-                if is_wake(raw):
+                # require decent confidence for the wake word itself
+                if conf >= 0.65 and is_wake(raw):
                     wake_active = True
-                    sys.stderr.write("[Mic] >>> WAKE DETECTED\n")
-                    sys.stderr.flush()
-                    sys.stdout.write("WAKE\n")
-                    sys.stdout.flush()
+                    wake_time   = time.time()
+                    sys.stderr.write("[Mic] >>> WAKE DETECTED\n"); sys.stderr.flush()
+                    sys.stdout.write("WAKE\n"); sys.stdout.flush()
+                # wake word + command in one breath ("orbit diagnostics report")
+                if wake_active:
+                    inline = normalize(raw)
+                    if inline and inline not in JUNK and len(inline) > 3:
+                        cmd = snap_command(inline)
+                        wake_active = False
+                        sys.stderr.write(f"[Mic] CMD={cmd!r} (inline)\n"); sys.stderr.flush()
+                        sys.stdout.write(f"CMD:{cmd}\n"); sys.stdout.flush()
             else:
-                wake_active = False
-                cmd = normalize(raw)
-                if not cmd:
-                    # Vosk sometimes gives empty after stripping wake word
-                    # Stay in wake mode briefly to catch the command
-                    wake_active = True
+                if time.time() - wake_time > WAKE_WINDOW:
+                    wake_active = False
                     continue
-                sys.stderr.write(f"[Mic] CMD={cmd!r}\n")
-                sys.stderr.flush()
-                sys.stdout.write(f"CMD:{cmd}\n")
-                sys.stdout.flush()
+                cmd = normalize(raw)
+                # low-confidence garble or filler -> keep listening, don't consume the wake
+                if not cmd or conf < 0.55 or (cmd in JUNK) or (len(cmd) <= 2):
+                    sys.stderr.write(f"[Mic] ignored ({'junk' if cmd else 'empty'})\n")
+                    sys.stderr.flush()
+                    continue
+                wake_active = False
+                cmd = snap_command(cmd)
+                sys.stderr.write(f"[Mic] CMD={cmd!r}\n"); sys.stderr.flush()
+                sys.stdout.write(f"CMD:{cmd}\n"); sys.stdout.flush()
 
 if __name__ == "__main__":
     while True:

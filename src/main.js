@@ -45,9 +45,14 @@ const readFile  = (p, fb='')  => { try { return fs.existsSync(p) ? fs.readFileSy
 const writeFile = (p, d)      => { try { fs.writeFileSync(p, d, 'utf8'); return true } catch { return false } }
 const readJSON  = (p, fb={})  => { try { const t = readFile(p); return t ? JSON.parse(t) : fb } catch { return fb } }
 const writeJSON = (p, d)      => writeFile(p, JSON.stringify(d, null, 2))
-const ps        = cmd => new Promise(resolve =>
-  exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -Command "${cmd.replace(/"/g,'\\"')}"`,
-    { windowsHide:true, timeout:8000 }, (_, out) => resolve(out ? out.trim() : '')))
+// FIX: quote-escaping broke on apostrophes/nested quotes and threw
+// "TerminatorExpectedAtEndOfString". -EncodedCommand (base64 UTF-16LE)
+// makes any command string safe — no escaping needed at all.
+const ps        = cmd => new Promise(resolve => {
+  const enc = Buffer.from(cmd, 'utf16le').toString('base64')
+  exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ${enc}`,
+    { windowsHide:true, timeout:8000 }, (_, out) => resolve(out ? out.trim() : ''))
+})
 
 // ── Local HTTP server ─────────────────────────────────
 // Serve from localhost so fetch() to Anthropic API works
