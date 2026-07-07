@@ -14,14 +14,12 @@ WAKE_WORD  = (sys.argv[1] if len(sys.argv)>1 else "orbit").lower().strip()
 SCRIPT_DIR = sys.argv[2] if len(sys.argv)>2 else os.path.dirname(os.path.abspath(__file__))
 
 # All the ways Vosk mishears "orbit" — checked BEFORE normalization
+# CLEANED: legacy wake variants removed — they caused
+# false wakes on everyday words). Only realistic mishears of "orbit" remain.
 WAKE_VARIANTS = {
-    "orbit","yo da","yo-da","yoga","euler","order","loader",
-    "yo dog","yo dawg","orbith","iota","joda","yotta","yoder",
-    "yo duh","toda","coda","older","euler","iota","orbit orbit",
-    "yo","yolda","joder","yona","yoba","yoka","yopa","yora",
-    # two-token mishears of "orbit"
-    "or bit","or bid","all bit","or but","a bit","our bit",
-    "orbits","orbit's","orbed","herbert","abbot","rabbit",
+    "orbit","orbit orbit","orbith","orbits","orbit's","orbed",
+    # two-token mishears
+    "or bit","or bid","all bit","our bit",
 }
 
 # General mishear corrections — applied AFTER wake word check
@@ -194,6 +192,8 @@ def run():
         if not words: return 1.0
         return sum(w.get("conf", 1.0) for w in words) / len(words)
 
+    sys.stderr.write("[Mic] model: " + os.path.basename(model_path) + "\n")
+    sys.stderr.flush()
     sys.stdout.write("READY\n")
     sys.stdout.flush()
     q = queue.Queue()

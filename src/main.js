@@ -679,6 +679,23 @@ ipcMain.handle('system', async (_, cmd) => {
         if (!opened) require('electron').shell.openExternal(url)
         return 'Opening.'
       }
+      case 'type-text': {
+        // Types into whatever app is focused — used by compound commands
+        // like "open notepad and write hello". SendKeys special chars escaped.
+        const txt = String(cmd.value || '').slice(0, 500)
+          .replace(/([+^%~(){}\[\]])/g, '{$1}')
+        await ps(`Start-Sleep -Milliseconds 250; (New-Object -ComObject WScript.Shell).SendKeys('${txt.replace(/'/g, "''")}')`)
+        return `Typed: ${String(cmd.value || '').slice(0, 60)}`
+      }
+      case 'press-key': {
+        const keys = { enter:'{ENTER}', tab:'{TAB}', escape:'{ESC}', space:' ',
+                       backspace:'{BACKSPACE}', delete:'{DELETE}',
+                       up:'{UP}', down:'{DOWN}', left:'{LEFT}', right:'{RIGHT}' }
+        const k = keys[String(cmd.value || '').toLowerCase()]
+        if (!k) return 'Unknown key.'
+        await ps(`Start-Sleep -Milliseconds 150; (New-Object -ComObject WScript.Shell).SendKeys('${k}')`)
+        return `Pressed ${cmd.value}.`
+      }
       case 'run-ps':   return await ps(cmd.value || 'echo ok')
       case 'check-internet':
         return await ps('Test-Connection -ComputerName 8.8.8.8 -Count 1 -Quiet')
@@ -705,9 +722,31 @@ ipcMain.handle('system', async (_, cmd) => {
         await ps(`$w=New-Object -ComObject WScript.Shell;for($i=0;$i-lt50;$i++){$w.SendKeys([char]174)};for($i=0;$i-lt${Math.floor(v/2)};$i++){$w.SendKeys([char]175)}`)
         return `Volume ${v}%.`
       }
+      case 'focus-app': {
+        const fr = await focusApp(cmd.value || '')
+        return fr.startsWith('FOCUSED:') ? `${cmd.value} is on top now.` : `${cmd.value} isn't running.`
+      }
+      case 'close-app': {
+        const cn = cleanAppName(cmd.value || '')
+        const ch = (APP_EXES[cn] || cn).replace(/'/g, "''")
+        const r = await ps(`$c=0; Get-Process -ErrorAction SilentlyContinue | Where-Object { ($_.ProcessName -like '*${ch}*' -or $_.MainWindowTitle -like '*${cn.replace(/'/g, "''")}*') -and $_.MainWindowHandle -ne 0 } | ForEach-Object { if ($_.CloseMainWindow()) { $c++ } }; Write-Output $c`)
+        const n = parseInt(r) || 0
+        return n > 0 ? `Closed ${cmd.value}.` : `${cmd.value} isn't running (or has no window to close).`
+      }
+      case 'force-close-app': {
+        const kn = cleanAppName(cmd.value || '')
+        const kh = (APP_EXES[kn] || kn).replace(/'/g, "''")
+        await ps(`Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like '*${kh}*' } | Stop-Process -Force`)
+        return `Force-closed ${cmd.value}.`
+      }
       case 'open-app': {
-        const appVal = (cmd.value || '').trim()
-        const name   = appVal.replace(/\.exe$/i, '').toLowerCase()
+        const appValRaw = (cmd.value || '').trim()
+        // Already running? Bring it over everything else instead of relaunching.
+        const focused = await focusApp(appValRaw)
+        if (focused.startsWith('FOCUSED:')) return `${appValRaw} is already open — bringing it to the front.`
+        const cleaned = cleanAppName(appValRaw)
+        const appVal  = APP_EXES[cleaned] || appValRaw
+        const name    = cleanAppName(appVal) || cleaned
         // Built-in Windows executables — run directly
         const builtins = {
           'notepad':'notepad','calc':'calc','calculator':'calc',
@@ -747,10 +786,15 @@ else{
   Write-Output "NOTFOUND"
 }`.trim()
           const result = await ps(nameSearch)
-          if (result.startsWith('OK:')) return `Opening ${appVal}.`
-          // Last resort — try shell execute with the display name
-          exec(`start "" "${appVal}"`, {shell:true}, ()=>{})
-          return `Searching for ${appVal}...`
+          if (result.startsWith('OK:')) return `Opening ${appValRaw}.`
+          // FIX: the old fallback shell-executed the raw display name, which
+          // popped Windows "cannot find 'brave browser'" error dialogs. Retry
+          // the search with the cleaned name instead, then give up politely.
+          if (cleaned && cleaned !== appVal.toLowerCase()) {
+            const retry = await ps(nameSearch.replace(`$n='${safeName}'`, `$n='${cleaned.replace(/'/g, "''")}'`))
+            if (retry.startsWith('OK:')) return `Opening ${appValRaw}.`
+          }
+          return `Couldn't find "${appValRaw}" — is it installed?`
         }
         // Search Start Menu, Desktop, Steam, AppData
         const safe = name.replace(/'/g, "''")
@@ -772,6 +816,55 @@ if($r.Count -gt 0){Start-Process $r[0];Write-Output "FOUND:$($r[0])"}else{Start-
 })
 
 // ── IPC: TTS ──────────────────────────────────────────
+
+// ── App-name intelligence ────────────────────────────────────────────────
+// "open brave browser" used to shell-execute the literal string "brave browser"
+// and Windows popped an error dialog. Now we clean the name, map aliases,
+// focus the app if it's already running, and only then search & launch.
+const APP_EXES = {
+  'brave':'brave', 'chrome':'chrome', 'google chrome':'chrome', 'edge':'msedge',
+  'microsoft edge':'msedge', 'firefox':'firefox', 'opera':'opera', 'opera gx':'opera',
+  'discord':'Discord', 'spotify':'Spotify', 'steam':'steam',
+  'obs':'obs64', 'obs studio':'obs64', 'code':'Code', 'vscode':'Code',
+  'visual studio code':'Code', 'epic games':'EpicGamesLauncher',
+  'epic games launcher':'EpicGamesLauncher', 'word':'WINWORD', 'excel':'EXCEL',
+  'powerpoint':'POWERPNT', 'outlook':'OUTLOOK', 'whatsapp':'WhatsApp',
+  'telegram':'Telegram', 'minecraft':'Minecraft', 'minecraft launcher':'Minecraft',
+  'fortnite':'FortniteClient-Win64-Shipping', 'roblox':'RobloxPlayerBeta',
+}
+const cleanAppName = v => String(v || '').toLowerCase().replace(/\.exe$/,'')
+  .replace(/\b(the|app|application|program|browser|please)\b/g, ' ')
+  .replace(/\s+/g, ' ').trim()
+
+// Bring a running app's window to the foreground (restores if minimized)
+async function focusApp(rawName) {
+  const clean = cleanAppName(rawName)
+  const hint  = APP_EXES[clean] || clean
+  const cands = [...new Set([hint, clean, String(rawName).trim()])].filter(Boolean)
+  const list  = cands.map(c => `'${c.replace(/'/g, "''")}'`).join(',')
+  const script = `
+Add-Type @"
+using System;using System.Runtime.InteropServices;
+public class W {
+  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
+  [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr h, int n);
+}
+"@
+foreach($n in @(${list})){
+  $p = Get-Process -ErrorAction SilentlyContinue | Where-Object {
+    ($_.ProcessName -like "*$n*" -or $_.MainWindowTitle -like "*$n*") -and $_.MainWindowHandle -ne 0
+  } | Select-Object -First 1
+  if ($p) {
+    [W]::ShowWindowAsync($p.MainWindowHandle, 9) | Out-Null
+    [W]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
+    Write-Output "FOCUSED:$($p.ProcessName)"
+    exit
+  }
+}
+Write-Output "NOTRUNNING"`
+  return await ps(script)
+}
+
 // ── Buddy overlay mode: small always-on-top companion window ────────────
 let _savedBounds = null
 ipcMain.handle('set-overlay', (_, on) => {
@@ -792,18 +885,20 @@ ipcMain.handle('set-overlay', (_, on) => {
   } catch (e) { return false }
 })
 
-ipcMain.handle('speak', (_, text, voice) => {
+ipcMain.handle('speak', (_, text, voice, rate, pitch) => {
   return new Promise(resolve => {
     const script = findPythonScript('orbit_tts.py')
     if (!script) { resolve('error:missing'); return }
     const clean = text.replace(/"/g, "'").replace(/\n/g, ' ').slice(0, 500)
-    const v     = voice || 'en-GB-RyanNeural'
+    const v     = voice || 'en-US-AndrewNeural'
+    const rt    = /^[+-]\d{1,2}%$/.test(rate||'')  ? rate  : '+0%'
+    const pt    = /^[+-]\d{1,2}Hz$/.test(pitch||'') ? pitch : '+0Hz'
     const pys   = ['python', 'py', 'python3']
     let t = 0
     const next = () => {
       if (t >= pys.length) { resolve('error:no_python'); return }
       const py = pys[t++]
-      exec(`${py} "${script}" "${clean}" "${v}"`,
+      exec(`${py} "${script}" "${clean}" "${v}" "${rt}" "${pt}"`,
         { windowsHide:true, timeout:30000, shell:true },
         err => {
           // FIX: Windows says "is not recognized" (code 9009), not "not found"

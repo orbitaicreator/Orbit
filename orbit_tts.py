@@ -67,16 +67,17 @@ def clean(text):
     text = re.sub(r'\s+', ' ', text)
     return text.strip()
 
-async def generate_and_play(text, voice):
+async def generate_and_play(text, voice, rate='+0%', pitch='+0Hz'):
     """Generate audio with edge-tts and play with pygame"""
     fd, tmp = tempfile.mkstemp(suffix='.mp3')
     os.close(fd)
     try:
-        # Generate with edge-tts
+        # Generate with edge-tts (rate/pitch adjustable from Orbit settings)
         communicate = edge_tts.Communicate(
             text=text,
             voice=voice,
-            rate='+5%',
+            rate=rate,
+            pitch=pitch,
             volume='+0%'
         )
         await communicate.save(tmp)
@@ -112,4 +113,6 @@ if __name__ == '__main__':
         sys.exit(0)
 
     print(f'[TTS] Speaking with {voice}: {text[:60]}...' if len(text)>60 else f'[TTS] Speaking: {text}')
-    asyncio.run(generate_and_play(text, voice))
+    rate  = sys.argv[3] if len(sys.argv) > 3 else '+0%'
+    pitch = sys.argv[4] if len(sys.argv) > 4 else '+0Hz'
+    asyncio.run(generate_and_play(text, voice, rate, pitch))

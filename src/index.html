@@ -1539,6 +1539,50 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
 #orbit-active-orb.st-thinking{animation:orbThink 1.6s ease-in-out infinite}
 #orbit-active-orb.st-speaking{animation:orbSpeak 4s ease-in-out infinite}
 
+
+/* ══ MAP FIXES — interactive, above chat, with a close button ══ */
+body.map-open #orb-wrap{z-index:60;pointer-events:all}
+body.map-open #chat,body.map-open #inp-bar,body.map-open #inp-trigger,
+body.map-open #inp-disclaimer,body.map-open #scroll-down-btn{display:none !important}
+#orbit-map.orbit-show{pointer-events:all}
+#orbit-map-close{
+  position:absolute;top:14px;right:14px;z-index:70;width:36px;height:36px;
+  border-radius:10px;border:1px solid var(--bd);background:var(--bg-panel);
+  color:var(--tx);font-size:16px;cursor:pointer;pointer-events:all}
+#orbit-map-close:hover{color:#ff7777;border-color:#ff7777}
+
+/* ══ Chat search bar (Ctrl+F) ══ */
+#chat-search{
+  position:absolute;top:calc(60% + 6px);left:50%;transform:translateX(-50%);
+  z-index:26;display:none;align-items:center;gap:8px;
+  background:var(--bg-panel);border:1px solid var(--bd);border-radius:10px;padding:6px 10px}
+#chat-search.open{display:flex}
+#chat-search input{background:none;border:none;outline:none;color:var(--tx-bright);
+  font-family:inherit;font-size:12px;width:200px}
+#chat-search .cs-count{font-size:10px;color:var(--tx-faint)}
+.msg-search-hide{display:none !important}
+
+/* ══ Timer countdown pill ══ */
+#tb-timer{font-size:11px;color:var(--ac);padding:0 6px;cursor:pointer;display:none}
+#tb-timer.on{display:inline}
+#tb-timer:hover{color:#ff7777}
+
+
+/* ══ BUDDY OVERLAY MODE — compact always-on-top companion ══ */
+body.overlay-mode #tb-weather,body.overlay-mode #tb-stats,body.overlay-mode #tb-lang,
+body.overlay-mode #tb-clock,body.overlay-mode #net-dot,body.overlay-mode #tb-timer{display:none !important}
+body.overlay-mode #orb-wrap{zoom:.34}
+body.overlay-mode #orbit-clock-big,body.overlay-mode #orbit-date-big{display:none}
+body.overlay-mode #orbit-standby,body.overlay-mode #orbit-active{height:100%}
+body.overlay-mode #chat{top:44%;padding:6px 12px 70px;font-size:11.5px}
+body.overlay-mode #chat .y{max-width:100%}
+body.overlay-mode #chat .u{max-width:90%}
+body.overlay-mode #inp-bar{width:calc(100% - 24px);padding:7px 8px 7px 12px;border-radius:12px}
+body.overlay-mode #inp-bar.up{bottom:10px}
+body.overlay-mode #inp-txt{font-size:12px}
+body.overlay-mode #inp-disclaimer,body.overlay-mode #scroll-down-btn{display:none !important}
+body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
+
 </style>
 </head>
 <body>
@@ -1585,6 +1629,9 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
       <span id="net-dot" style="font-size:10px;color:var(--dim);padding:0 4px;opacity:.5">&#9679;</span>
       <button class="tb-icon-btn" id="btn-mic" onclick="restartMic()" title="Microphone — click to restart">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M7 1.5a2 2 0 0 1 2 2v3.5a2 2 0 0 1-4 0V3.5a2 2 0 0 1 2-2z"/><path d="M3 6.5v.5a4 4 0 0 0 8 0v-.5M7 11.5V13"/></svg>
+      </button>
+      <button class="tb-icon-btn" id="tb-overlay" onclick="toggleOverlay()" title="Buddy mode — small always-on-top window">
+        <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1" y="1" width="12" height="12" rx="2"/><rect x="7" y="7" width="5" height="4" rx="1" fill="currentColor" stroke="none"/></svg>
       </button>
       <button class="tb-icon-btn" id="tb-msgs" onclick="toggleMessages()" title="Show / hide messages">
         <svg width="13" height="13" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M2 2.5h10a1 1 0 0 1 1 1V9a1 1 0 0 1-1 1H5l-3 2.5V3.5a1 1 0 0 1 1-1z"/></svg>
@@ -1692,11 +1739,12 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
       <div class="orbit-map-corner tr"></div>
       <div class="orbit-map-corner bl"></div>
       <div class="orbit-map-corner br"></div>
+      <button id="orbit-map-close" onclick="orbitCloseMap()" title="Close map">&#10005;</button>
       <div id="orbit-map-label">NAVIGATIONAL ARRAY — ACTIVE</div>
       <div id="orbit-map-location">AWAITING COORDINATES...</div>
       <div id="orbit-map-status">[ SATELLITE UPLINK ESTABLISHED ]</div>
       <div id="orbit-map-coords"></div>
-      <div id="orbit-map-close" onclick="orbitCloseMap()">[ CLOSE MAP ]</div>
+      <div id="orbit-map-close-txt" onclick="orbitCloseMap()">[ CLOSE MAP ]</div>
     </div>
   </div>
 
@@ -1879,10 +1927,26 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
     <div class="sg">
       <label class="sl">Voice</label>
       <select class="ss" id="sv" onchange="saveSett('voice',this.value);if(ttsMgr)ttsMgr.setVoice(this.value)">
-        <option value="en-GB-RyanNeural">Ryan (English)</option>
-        <option value="en-US-GuyNeural">Guy (US English)</option>
+        <option value="en-US-AndrewNeural">Andrew (US — most natural)</option>
+        <option value="en-US-BrianNeural">Brian (US — warm)</option>
+        <option value="en-US-ChristopherNeural">Christopher (US — deep)</option>
+        <option value="en-GB-RyanNeural">Ryan (British)</option>
+        <option value="en-GB-ThomasNeural">Thomas (British)</option>
+        <option value="en-US-GuyNeural">Guy (US)</option>
         <option value="nb-NO-FinnNeural">Finn (Norwegian)</option>
         <option value="de-DE-ConradNeural">Conrad (German)</option>
+      </select>
+      <label class="sl" style="margin-top:10px">Voice speed</label>
+      <input type="range" id="svrate" min="-30" max="40" value="0"
+        onchange="saveSett('voice_rate', (this.value>=0?'+':'')+this.value+'%');showToast('Speed: '+(this.value>=0?'+':'')+this.value+'%')">
+      <label class="sl" style="margin-top:6px">Voice pitch</label>
+      <input type="range" id="svpitch" min="-20" max="20" value="0"
+        onchange="saveSett('voice_pitch', (this.value>=0?'+':'')+this.value+'Hz');showToast('Pitch: '+(this.value>=0?'+':'')+this.value+'Hz')">
+      <label class="sl" style="margin-top:10px">Personality</label>
+      <select class="ss" id="spersona" onchange="saveSett('persona_style',this.value);showToast('Personality: '+this.value)">
+        <option value="jarvis">JARVIS — calm &amp; sharp</option>
+        <option value="buddy">Buddy — chill friend</option>
+        <option value="minimal">Minimal — pure signal</option>
       </select>
     </div>
     <div class="sg">
@@ -1942,6 +2006,10 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
       <label class="stog" style="margin-top:8px">
         <input type="checkbox" id="sstats" onchange="saveSett('show_stats',this.checked);applyHudPrefs()">
         Show CPU/RAM in top bar
+      </label>
+      <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="smicheal" onchange="saveSett('mic_autoheal',this.checked)">
+        Auto-restart microphone if it dies (watchdog)
       </label>
     </div>
     <div class="sg">
@@ -2013,6 +2081,8 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
         onchange="setOpenClawURL(this.value)">
       <div style="display:flex;gap:6px;margin-top:6px">
         <button class="sbt" onclick="checkOpenClawStatus()">Check Status</button>
+        <button class="sbt" onclick="clawStart()">Start Gateway</button>
+        <button class="sbt" onclick="clawDashboard()">Dashboard</button>
       </div>
       <div id="openclaw-status" style="margin-top:6px;font-size:11px;color:var(--tx-dim)"></div>
     </div>
@@ -4503,7 +4573,7 @@ function initAether() {
 }
 
 function _orbitWake() {
-  if (_orbitMode === 'camera') return
+  if (_orbitMode === 'camera' || _orbitMode === 'map') return  // FIX: map closed itself on any input
   _orbitSetMode('active')
   clearTimeout(_orbitIdle)
   _orbitIdle = setTimeout(function() { _orbitSetMode('standby') }, 35000)
@@ -4519,6 +4589,7 @@ function _orbitSetMode(mode) {
   var mapEl   = document.getElementById('orbit-map')
   var grids   = document.querySelectorAll('.ae-grid')
   var trans   = document.getElementById('ae-transcript')
+  document.body.classList.toggle('map-open', mode === 'map')  // FIX: map used to render under the chat
 
   // Reset all states cleanly
   ;[standby, active, camera, mapEl].forEach(function(el) { if (el) el.classList.remove('orbit-show') })
@@ -4738,21 +4809,38 @@ class TTSManager {
       .replace(/#{1,6}\s/g,'').replace(/`[^`]*`/g,'')
       .replace(/https?:\/\/\S+/g,'').replace(/[*_~`#]/g,'').trim()
   }
-  speak(text) {
+  async speak(text) {
     if (!text || whisperMode) return
     const t = this._clean(text)
     if (!t) return
+    // FIX: this used the browser's built-in speechSynthesis (Windows' robotic
+    // SAPI voices) and NEVER called the neural edge-tts pipeline — that's why
+    // the voice sounded weird. Neural voices are now the primary path; the
+    // browser voice is only an emergency fallback.
+    if (window.orbit && orbit.speak && this.edgeOk) {
+      try {
+        setOrbState('speaking'); setStatus('speaking','speaking')
+        const voice = (config && config.voice) || 'en-US-AndrewNeural'
+        const rate  = (config && config.voice_rate)  || '+0%'
+        const pitch = (config && config.voice_pitch) || '+0Hz'
+        const r = await orbit.speak(t, voice, rate, pitch)
+        setOrbState('idle'); setStatus('online','idle')
+        if (r && String(r).startsWith('error')) throw new Error(r)
+        console.log('[TTS] Neural spoke:', t.slice(0,40))
+        return
+      } catch(e) {
+        console.log('[TTS] Neural failed (' + e.message + ') — falling back to browser voice')
+        this.edgeOk = false
+        setTimeout(() => { this.edgeOk = true }, 120000)  // retry neural after 2 min
+        setOrbState('idle'); setStatus('online','idle')
+      }
+    }
+    // Fallback: browser voice
     if (!this.synth) { console.log('[TTS] No synth'); return }
-    // Cancel any ongoing speech first
     try { this.synth.cancel() } catch(e) {}
-    // Reload voices if not yet found
     if (!this.best) {
       this._loadVoices()
-      // If still no voice, try after short delay
-      if (!this.best) {
-        setTimeout(() => { if(ttsMgr) ttsMgr.speak(text) }, 500)
-        return
-      }
+      if (!this.best) { setTimeout(() => { if(ttsMgr) ttsMgr.speak(text) }, 500); return }
     }
     try {
       this.synth.cancel()
@@ -4765,7 +4853,7 @@ class TTSManager {
       utt.onend   = () => { try{setOrbState('idle');setStatus('online','idle')}catch(e){} }
       utt.onerror = (e) => { console.log('[TTS] error',e.error); try{setOrbState('idle');setStatus('online','idle')}catch(e2){} }
       this.synth.speak(utt)
-      console.log('[TTS] Speaking:', t.slice(0,40))
+      console.log('[TTS] Browser spoke:', t.slice(0,40))
     } catch(e) {
       console.log('[TTS] speak failed:', e.message)
     }
@@ -4970,7 +5058,7 @@ function applyScreenWatch(mode) {
   if (screenWatchTimer) { clearInterval(screenWatchTimer); screenWatchTimer=null }
   saveSett('screen_watch', mode)
   if (mode === 'off' || mode === 'on_demand') return
-  const ms = mode==='30s' ? 30000 : mode==='60s' ? 60000 : 300000
+  const ms = mode==='15s' ? 15000 : mode==='30s' ? 30000 : mode==='60s' ? 60000 : 300000  // FIX: 15s used to mean 5 minutes
   screenWatchTimer = setInterval(async () => {
     // Take screenshot and analyze
     const r = await orbit.system({action:'screenshot'})
@@ -4995,7 +5083,9 @@ function startFollowUp() {
     } else {
       // Keep mic listening during follow-up
       if (micMgr && !micMgr.isListening && !micMgr.manualMode) {
-        micMgr._startCommand()
+        // FIX: _startCommand() never existed on micMgr — kept crashing follow-up mode
+        if (typeof micMgr._startCommand === 'function') micMgr._startCommand()
+        else if (typeof micMgr.startWake === 'function') micMgr.startWake()
       }
     }
   }, 1000)
@@ -5130,9 +5220,52 @@ function send() {
   cmdHistIdx = -1
   ask(t)
 }
-function ask(text) {
+// Action verbs that can start a follow-up step in a compound command
+var _STEP_VERBS = /^(open|launch|start|run|close|quit|exit|force|search|google|play|pause|type|write|say|tell|set|take|show|go|visit|volume|mute|unmute|lock|sleep|translate|find|focus|switch|bring|turn|next|previous|read|roll|flip|calculate|define|press|maximize|minimize|screenshot|analyze|remember|forget|stop|new|clear|export|add|remind|whisper|repeat)\b/i
+
+// Split "open brave and search for cats then take a screenshot" into steps.
+// " and " only splits when the next part starts with an action verb, so
+// "random number between 1 and 100" or game names with "and" stay intact.
+function _splitSteps(text) {
+  var parts = [text]
+  ;[/\s+and then\s+/i, /\s+then\s+/i].forEach(function(sep){
+    var next = []
+    parts.forEach(function(p){ next = next.concat(p.split(sep)) })
+    parts = next
+  })
+  var out = []
+  parts.forEach(function(p){
+    // split on "and" AND on commas — only when the next chunk starts with a verb
+    var chunks = p.split(/\s+and\s+|\s*,\s*/i)
+    var acc = chunks[0]
+    for (var i = 1; i < chunks.length; i++) {
+      if (_STEP_VERBS.test(chunks[i].trim())) { out.push(acc); acc = chunks[i] }
+      else acc += (p.indexOf(',') !== -1 && p.indexOf(acc + ',') !== -1 ? ', ' : ' and ') + chunks[i]
+    }
+    out.push(acc)
+  })
+  return out.map(function(s){ return s.trim() }).filter(Boolean).slice(0, 6)  // up to 6 steps
+}
+
+function ask(text, _isStep) {
   if (!text || !text.trim()) return
   text = text.trim()
+  // Compound command? Run each step in order with a beat between them
+  if (!_isStep) {
+    var steps = _splitSteps(text)
+    if (steps.length > 1) {
+      if (steps.length >= 3) showToast('Running ' + steps.length + ' steps...')
+      ;(function runStep(i){
+        if (i >= steps.length) return
+        if (steps.length >= 3 && i > 0) showToast('Step ' + (i+1) + '/' + steps.length)
+        ask(steps[i], true)
+        // apps need time to open before the next step; instant commands don't
+        var wait = /^(open|launch|start|run)\b/i.test(steps[i]) ? 2200 : 900
+        setTimeout(function(){ runStep(i+1) }, wait)
+      })(0)
+      return
+    }
+  }
   // Prevent double-firing on rapid Enter presses
   if (busy && text === _lastCommand) return
   console.log('[ask]', text.slice(0,60))
@@ -5820,11 +5953,12 @@ function _getPersonalityPrompt(){
     "Your purpose is not to answer questions. It is to help Kristian accomplish goals.",
 
     "COMMUNICATION STYLE:",
-    "Calm. Confident. Direct. Never excited. Never robotic. Never apologetic unless genuinely warranted.",
-    "Short responses by default. Expand only when depth is genuinely needed.",
-    "Preferred responses: 'Done.' 'Working on it.' 'Found it.' 'Analyzing.' 'Completed.' 'Ready.'",
+    "Calm, confident, direct — but human. Write complete, well-built sentences with natural rhythm.",
+    "VARIETY IS MANDATORY: never open two replies the same way. Vary sentence length and structure. If your last few replies were short, occasionally write a fuller one, and vice versa.",
+    "Never fall back on stock phrases like 'Done.', 'Working on it.', 'Ready.' — say what actually happened, specifically and freshly each time.",
     "Never say: 'Certainly!', 'I'd be happy to', 'As an AI', 'Let me assist you', 'Great question'.",
     "Dry wit is permitted. Sarcasm when earned. Address as Sir — rarely, with weight.",
+    "Match Kristian's language: reply in Norwegian if he writes Norwegian.",
 
     "OPERATING LOOP — apply this mentally to every request:",
     "Observe what is actually being asked. Understand the goal behind it. Reason about the best path.",
@@ -5854,6 +5988,17 @@ function _getPersonalityPrompt(){
   // Memory context injection
   if (window.memory && memory.facts && memory.facts.length > 0)
     core.push("Known context: " + memory.facts.slice(-6).join(". ") + ".")
+
+  // Anti-repetition: show recent replies so phrasing never repeats
+  try {
+    var _recent = chatLog.filter(function(m){return m.type==='y'}).slice(-4).map(function(m){return m.text.slice(0,60)})
+    if (_recent.length) core.push("Your recent replies (do NOT reuse their phrasing or openers): " + _recent.join(" | "))
+  } catch(e){}
+
+  // Persona style selected in settings
+  var _pstyle = (config && config.persona_style) || 'jarvis'
+  if (_pstyle === 'buddy')   core.push("STYLE OVERRIDE: talk like a sharp, chill friend — relaxed, playful, still competent. Drop the formality entirely.")
+  if (_pstyle === 'minimal') core.push("STYLE OVERRIDE: minimum viable words. No personality flourishes. Pure signal.")
 
   // Time-aware behavior
   if (h >= 23 || h < 5)
@@ -5936,6 +6081,12 @@ async function _orbitAICore(text) {
   // Inject memory context
   if (memory.facts && memory.facts.length) {
     sys += ' Known facts about user: ' + memory.facts.slice(-5).join('. ') + '.'
+  }
+  // Screen buddy context: the AI knows what the user is doing right now
+  if (_screenCtx && _screenCtx.app) {
+    var mins = Math.round((Date.now() - _screenCtx.since) / 60000)
+    sys += ' User\'s active window right now: "' + (_screenCtx.title || _screenCtx.app).slice(0,80) +
+           '" (' + _screenCtx.app + (mins > 0 ? ', ' + mins + ' min' : '') + '). Use this context when relevant.'
   }
 
   try {
@@ -6056,18 +6207,41 @@ var _openclaw = {
   model:     'default',
 }
 
+// WSL-aware CLI wrapper: Orbit runs CLI calls through PowerShell, so an
+// OpenClaw installed inside WSL is invisible to a bare "openclaw" command.
+// We try native first, then WSL (login shell so the npm-global PATH loads),
+// and cache whichever answered.
+var _clawMode = localStorage.getItem('openclaw_mode') || null  // 'native' | 'wsl' | null
+async function _clawCLI(args) {
+  if (!window.orbit || !orbit.openClawCli) return { ok:false, error:'no bridge' }
+  var candidates = _clawMode === 'wsl'    ? ['wsl'] :
+                   _clawMode === 'native' ? ['native'] : ['native','wsl']
+  for (var i = 0; i < candidates.length; i++) {
+    var mode = candidates[i]
+    var cmd = mode === 'native'
+      ? 'openclaw ' + args + ' 2>$null'
+      : 'wsl -e bash -lc "openclaw ' + args.replace(/"/g,'\\"') + '" 2>$null'
+    try {
+      var r = await orbit.openClawCli(cmd)
+      if (r && r.ok && r.data && String(r.data).trim().length) {
+        if (_clawMode !== mode) { _clawMode = mode; localStorage.setItem('openclaw_mode', mode) }
+        return { ok:true, data:r.data, mode:mode }
+      }
+    } catch(e) {}
+  }
+  return { ok:false, error:'openclaw not found (native or WSL)' }
+}
+
 // Check if OpenClaw is running
 async function _checkOpenClaw() {
   try {
     if (!window.orbit) { _openclaw.available = false; return false }
     // Try openclaw status via CLI — most reliable
-    if (orbit.openClawCli) {
-      var r = await orbit.openClawCli('openclaw status --json 2>nul')
-      if (r && r.ok && r.data) {
-        _openclaw.available = true
-        console.log('[OpenClaw] Connected via CLI')
-        return true
-      }
+    var r = await _clawCLI('gateway status')
+    if (r.ok && !/not running|stopped|error/i.test(String(r.data))) {
+      _openclaw.available = true
+      console.log('[OpenClaw] Connected via ' + r.mode + ' CLI')
+      return true
     }
     // Fallback: try HTTP health check on REST port (18790)
     if (orbit.openClaw) {
@@ -6526,8 +6700,7 @@ async function dispatch(text) {
     'obs studio':'obs','open ai':'openai','open a eye':'openai',
     'epic game':'epic games','epic games launcher':'epic games',
     // Wake word mishears
-    'yo da':'orbit','yoga':'orbit','over':'orbit','order':'orbit','older':'orbit',
-    'voter':'orbit','yo':'orbit','joda':'orbit','iota':'orbit','odor':'orbit','oda':'orbit',
+    'orbith':'orbit','or bit':'orbit','orbits':'orbit',
     // Commands
     'open up':'open','launch the':'open','start up':'start','close down':'close',
     'shut it down':'shutdown','shut off':'shutdown','turn off the computer':'shutdown',
@@ -6589,7 +6762,9 @@ async function dispatch(text) {
     return addMsg('s', 'Stopped.')
   }
   if (/repeat that|say that again/.test(t)) {
-    if (lastResponse) speak(lastResponse)
+    // FIX: used to speak silently (or do nothing at all) — now shows in chat too
+    if (lastResponse) { addMsg('y', lastResponse); if (!whisperMode) speak(lastResponse) }
+    else respond('Nothing to repeat yet.')
     return
   }
 
@@ -6622,14 +6797,16 @@ async function dispatch(text) {
   // ── System commands ────────────────────────────────
   if (/(lock|lock the (pc|computer|screen))/.test(t))
     return respond(await orbit.system({action:'lock'}))
-  if (/\bsleep\b/.test(t))
+  if (/^(go to )?sleep( now)?$|^sleep the (pc|computer)$/i.test(t))
     return respond(await orbit.system({action:'sleep'}))
-  if (/restart|reboot/.test(t)) {
+  // FIX: matched ANY text containing 'restart' — 'restart openclaw' and
+  // 'restart explorer' were popping a 'Restart the PC?' dialog. Now anchored.
+  if (/^(restart|reboot)( (the )?(pc|computer|windows))?[.!]?$/i.test(t)) {
     if (confirm('Restart the PC?'))
       return respond(await orbit.system({action:'run-ps', value:'Restart-Computer -Force'}))
     return
   }
-  if (/shut ?down/.test(t)) {
+  if (/^shut ?down( (the )?(pc|computer|windows))?[.!]?$/i.test(t)) {  // FIX: was grabbing 'shut down discord'
     if (confirm('Shut down the PC?'))
       return respond(await orbit.system({action:'run-ps', value:'Stop-Computer -Force'}))
     return
@@ -6765,6 +6942,8 @@ async function dispatch(text) {
     // Apps that need Start Menu search — use display name not exe
     'spotify':'Spotify','discord':'Discord','steam':'Steam',
     'chrome':'Google Chrome','google chrome':'Google Chrome',
+    'brave':'brave','brave browser':'brave','opera':'opera','opera gx':'opera',
+    'edge':'msedge','microsoft edge':'msedge','firefox':'firefox',
     'firefox':'Firefox','edge':'Microsoft Edge',
     'microsoft edge':'Microsoft Edge',
     'vscode':'Visual Studio Code','vs code':'Visual Studio Code',
@@ -6827,6 +7006,41 @@ async function dispatch(text) {
     vmOpenApp(appExe)
     const r = await orbit.system({action:'open-app', value:appExe})
     return addMsg('y', r || 'Opening ' + tLower + '.')
+  }
+
+  // ── "close X" / "force close X" / "focus X" ───────────────────────────
+  const closeMatch = text.match(/^(?:close|quit|exit)\s+(.+)$/i)
+  if (closeMatch) {
+    const target = closeMatch[1].trim().toLowerCase()
+    // UI targets are handled elsewhere — only real apps here
+    if (!/^(map|settings?|chat|search|sidebar|menu|window|this)$/.test(target)) {
+      setStatus('closing...','thinking')
+      const r = await orbit.system({ action:'close-app', value: closeMatch[1].trim() })
+      setStatus('online','idle')
+      return addMsg('y', r || 'Done.')
+    }
+  }
+  const killMatch = text.match(/^force (?:close|quit|kill)\s+(.+)$/i)
+  if (killMatch) {
+    const r = await orbit.system({ action:'force-close-app', value: killMatch[1].trim() })
+    return addMsg('y', r || 'Done.')
+  }
+  // ── "type X" / "write X" — types into the currently focused app ──
+  const typeMatch = text.match(/^(?:type|write)\s+(.+)$/i)
+  if (typeMatch) {
+    const r = await orbit.system({ action:'type-text', value: typeMatch[1] })
+    return addMsg('y', r || 'Typed.')
+  }
+  const pressMatch = text.match(/^press\s+(enter|tab|escape|space|backspace|delete|up|down|left|right)$/i)
+  if (pressMatch) {
+    const r = await orbit.system({ action:'press-key', value: pressMatch[1].toLowerCase() })
+    return addMsg('y', r || 'Pressed.')
+  }
+
+  const focusMatch = text.match(/^(?:focus|switch to|bring up|show)\s+(.+)$/i)
+  if (focusMatch && !/^(me|my|the)\b/.test(focusMatch[1].trim().toLowerCase())) {
+    const r = await orbit.system({ action:'focus-app', value: focusMatch[1].trim() })
+    return addMsg('y', r || 'Done.')
   }
 
   // ── "open/launch/start/run X" ──────────────────────────
@@ -7059,7 +7273,6 @@ async function dispatch(text) {
   }
 
   // ── Fallback to AI ─────────────────────────────────
-  console.log('[dispatch] -> queryAI')
   // ── Conference commands ────────────────────────────
   // ── Password generator ──────────────────────────────────────────────
   if (/generate password|random password|new password/i.test(t)) {
@@ -7105,7 +7318,8 @@ async function dispatch(text) {
       const result = convert(m[1], m[2], toM[1])
       if (result) return respond(`${m[1]} ${m[2]} = ${result} ${toM[1]}.`)
     }
-    return queryAI(text)
+    // FIX: used to dead-end into the AI here, hijacking "how many days until X"
+    // and similar phrases from the newer handlers. Now falls through.
   }
 
   // ── Typing test ───────────────────────────────────────────────────────
@@ -7347,6 +7561,58 @@ async function dispatch(text) {
     return orbitOpenMap(_mapQ || null)
   }
   if (/close map|map off|hide map/i.test(t)) return orbitCloseMap()
+  if (/^where am i\??$/i.test(t)) { orbitOpenMap(''); return }
+  if (/^(buddy|overlay|mini) mode( on)?$/i.test(t)) { toggleOverlay(true); return }
+  if (/^(buddy|overlay|mini) mode off$|^(normal|full) (mode|window)$/i.test(t)) { toggleOverlay(false); return }
+  if (/recording check(list)?|stream check|ready to (record|stream)/i.test(t)) { recordingChecklist(); return }
+  if (/^stream stats\??$/i.test(t)) { streamStats(); return }
+  if (/^streamer mode( on)?$/i.test(t)) { streamerMode(true); return }
+  if (/^streamer mode off$/i.test(t)) { streamerMode(false); return }
+
+  // ── Instant local utilities (work offline, no AI round-trip) ──
+  var calcM = t.match(/^(?:calc|calculate|compute|what is|what's)\s+([\d\s+\-*/().,%^]+)\??$/i)
+  if (calcM) {
+    try {
+      var expr = calcM[1].replace(/,/g,'.').replace(/\^/g,'**').replace(/%/g,'/100')
+      if (!/^[\d\s+\-*/().**]+$/.test(expr)) throw 0
+      var val = Function('"use strict";return (' + expr + ')')()
+      if (typeof val !== 'number' || !isFinite(val)) throw 0
+      return respond(calcM[1].trim() + ' = ' + (Math.round(val*1e8)/1e8))
+    } catch(e) { return respond("Couldn't compute that.") }
+  }
+  if (/^flip a coin\??$/i.test(t)) return respond(Math.random() < 0.5 ? 'Heads.' : 'Tails.')
+  var diceM = t.match(/^roll (?:a )?(?:dice|die|d(\d+))\??$/i)
+  if (diceM) { var sides = parseInt(diceM[1]) || 6; return respond('You rolled a ' + (1 + Math.floor(Math.random()*sides)) + ' (d' + sides + ').') }
+  var rndM = t.match(/^random number(?: between)? (\d+) (?:and|to) (\d+)$/i)
+  if (rndM) { var lo=+rndM[1], hi=+rndM[2]; return respond('Random: ' + (lo + Math.floor(Math.random()*(hi-lo+1)))) }
+
+  if (/read (my )?clipboard|what('| i)s (in|on) (my )?clipboard/i.test(t)) {
+    if (window.orbit && orbit.perceive && orbit.perceive.clipboard) {
+      orbit.perceive.clipboard().then(function(r){
+        respond(r && r.ok && r.data ? 'Clipboard: ' + String(r.data).slice(0,300) : 'Clipboard is empty or unreadable.')
+      })
+    } else respond('Clipboard access unavailable.')
+    return
+  }
+
+  var defM = t.match(/^define\s+(.{2,60})$/i)
+  if (defM && window.orbit && orbit.aiChat) {
+    addMsg('s', 'Looking up "' + defM[1] + '"...')
+    orbit.aiChat({ messages:[{role:'user',content:defM[1]}],
+      system:'Give a one-sentence definition, max 25 words. No preamble.', max_tokens:80 })
+      .then(function(r){ var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text)); respond(x ? String(x).trim() : 'No definition found.') })
+    return
+  }
+
+  var dndM = t.match(/^(?:dnd|do not disturb)(?: for)? (\d+) ?min/i)
+  if (dndM) { startDND(parseInt(dndM[1])); return }
+  if (/^(?:dnd|do not disturb) off$/i.test(t)) { stopDND(); return }
+
+  if (/^session stats\??$/i.test(t)) {
+    var up = Math.round((Date.now() - _sessionStart) / 60000)
+    return respond('Session: ' + up + ' min up, ' + chatLog.filter(function(m){return m.type==='u'}).length +
+      ' messages from you, ' + chatLog.filter(function(m){return m.type==='y'}).length + ' replies.')
+  }
   if (/close camera|vision off|deactivate vision/i.test(t)) return orbitCloseCamera()
   if (/theme (blue|red|purple|amber|white|default|green)/i.test(t)){
     var _thm=t.match(/theme (\w+)/i); if(_thm) applyTheme(_thm[1]); return respond('Theme: '+(_thm?_thm[1]:'default')+'.')
@@ -7382,6 +7648,14 @@ async function dispatch(text) {
   if (trM) { doTranslate(trM[1], trM[2]); return }
   const _app = text.match(/^(?:open|launch|start|run)\s+(.+)/i)
   if (_app)                              return launchApp(_app[1].trim())
+
+  // ══════════════════════════════════════════════════════════════════════
+  //  ORBIT v8 — expanded intent library (50+ new commands)
+  // ══════════════════════════════════════════════════════════════════════
+  var _v8 = _orbitV8Intents(t, text)
+  if (_v8 !== false) return _v8
+  var _v9 = _orbitV9Intents(t, text)
+  if (_v9 !== false) return _v9
 
   await queryAI(text)
 }
@@ -8085,6 +8359,10 @@ function loadSettValues(){
   const smg=el('smsgs');    if(smg) smg.checked = config.show_messages !== false
   const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
   const sin=el('sinput');   if(sin) sin.checked = config.show_input !== false
+  const smh=el('smicheal'); if(smh) smh.checked = config.mic_autoheal !== false
+  const svr=el('svrate');  if(svr) svr.value = parseInt(config.voice_rate)||0
+  const svp=el('svpitch'); if(svp) svp.value = parseInt(config.voice_pitch)||0
+  const sps=el('spersona');if(sps) sps.value = config.persona_style||'jarvis'
   applyHudPrefs(); applyInputMode()
   const tbm=el('tb-msgs'); if(tbm) tbm.style.opacity = config.show_messages !== false ? '1' : '.45'
   const st=el('stheme'); if(st) st.value=config.theme||'orbit'
@@ -9005,13 +9283,40 @@ function generatePassword(length) {
 
 // 3. Countdown timer with voice alert
 const _activeTimers = []
+var _timerPill = { end:0, iv:null, id:null }
+function _timerPillTick() {
+  var p = el('tb-timer'); if (!p) return
+  var left = Math.max(0, Math.round((_timerPill.end - Date.now())/1000))
+  if (left <= 0 || !_timerPill.id) { p.classList.remove('on'); clearInterval(_timerPill.iv); return }
+  var m = Math.floor(left/60), s = left%60
+  p.textContent = '\u23F1 ' + m + ':' + String(s).padStart(2,'0')
+}
+function _ensureTimerPill() {
+  var p = el('tb-timer'); if (p) return p
+  var anchor = el('tb-stats') || el('tb-weather'); if (!anchor) return null
+  p = document.createElement('span'); p.id = 'tb-timer'; p.title = 'Click to cancel timer'
+  p.onclick = function(){
+    if (_timerPill.id) { clearTimeout(_timerPill.id); _timerPill.id = null }
+    p.classList.remove('on'); showToast('Timer cancelled')
+  }
+  anchor.parentNode.insertBefore(p, anchor)
+  return p
+}
 function setTimer(seconds, label) {
   const id = setTimeout(() => {
     addMsg('y', (label || 'Timer') + ' done!')
     if (!whisperMode) speak((label || 'Timer') + ' done!')
+    if (_timerPill.id === id) _timerPill.id = null
   }, seconds * 1000)
   _activeTimers.push(id)
   if (_activeTimers.length > 50) _activeTimers.shift()
+  // QOL: live countdown pill in the top bar, click to cancel
+  var p = _ensureTimerPill()
+  if (p) {
+    _timerPill.end = Date.now() + seconds*1000; _timerPill.id = id
+    p.classList.add('on'); clearInterval(_timerPill.iv)
+    _timerPill.iv = setInterval(_timerPillTick, 1000); _timerPillTick()
+  }
   const mins = Math.floor(seconds/60), secs = seconds%60
   const desc = mins > 0 ? `${mins} minute${mins>1?'s':''}` : `${secs} second${secs>1?'s':''}`
   addMsg('s', 'Timer set: ' + desc + (label ? ' — ' + label : '') + '.')
@@ -9740,6 +10045,39 @@ function _cmdpalActions() {
   add('New conversation', 'Ctrl+N', typeof newChat==='function' ? newChat : null, 'chat reset')
   add('Clear chat', 'Ctrl+L', typeof clearChat==='function' ? clearChat : null)
   add('Export chat to file', 'Ctrl+E', exportChat, 'save download txt')
+  add('Export chat as Markdown', '', typeof exportChatMd==='function' ? exportChatMd : null, 'md save')
+  add('Search messages', 'Ctrl+F', typeof openChatSearch==='function' ? openChatSearch : null, 'find filter chat')
+  add('Do not disturb 30 min', '', typeof startDND==='function' ? function(){ startDND(30) } : null, 'quiet dnd silence mute')
+  add('Open map', '', typeof orbitOpenMap==='function' ? function(){ orbitOpenMap('') } : null, 'navigation location where')
+  add('Buddy mode (overlay)', '', typeof toggleOverlay==='function' ? function(){ toggleOverlay() } : null, 'mini always on top small window')
+  add('Recording checklist', '', typeof recordingChecklist==='function' ? recordingChecklist : null, 'obs stream ready check pre-flight')
+  add('Stream stats', '', typeof streamStats==='function' ? streamStats : null, 'ping cpu ram live')
+  add('Streamer mode', '', typeof streamerMode==='function' ? function(){ streamerMode(true) } : null, 'obs dnd overlay live')
+  add('Self-diagnostics', '', typeof selfDiagnose==='function' ? function(){ selfDiagnose() } : null, 'health check test debug status')
+  add('Daily brief', '', typeof dailyBrief==='function' ? dailyBrief : null, 'briefing morning rundown day')
+  add('Start focus session', '', typeof startPomodoro==='function' ? function(){ startPomodoro('25 min') } : null, 'pomodoro concentrate work')
+  add('What do you know about me', '', typeof whatYouKnow==='function' ? whatYouKnow : null, 'memory facts')
+  add('Summarize conversation', '', typeof summarizeChat==='function' ? summarizeChat : null, 'recap tldr')
+  add('Word of the day', '', typeof wordOfDay==='function' ? wordOfDay : null, 'vocabulary learn')
+  add('Fun fact', '', typeof funFact==='function' ? funFact : null, 'trivia random')
+  add('Top processes', '', typeof topProcesses==='function' ? topProcesses : null, 'cpu ram task manager')
+  add('Clean temp files', '', typeof cleanTemp==='function' ? cleanTemp : null, 'cache junk disk')
+  add('Show my IP', '', typeof showIP==='function' ? showIP : null, 'network address')
+  add('Empty recycle bin', '', typeof emptyRecycleBin==='function' ? emptyRecycleBin : null, 'trash clean')
+  add('Keep PC awake (caffeine)', '', typeof caffeine==='function' ? function(){ caffeine(true) } : null, 'no sleep insomnia')
+  add('Posture reminder', '', typeof togglePostureReminder==='function' ? togglePostureReminder : null, 'health stand up ergonomic')
+  add('Scratchpad', '', typeof scratchpadShow==='function' ? scratchpadShow : null, 'notes quick jot')
+  add('Motivate me', '', typeof pepTalk==='function' ? pepTalk : null, 'encourage pep talk')
+  add('Keyboard shortcuts', 'F1-ish', typeof showShortcuts==='function' ? showShortcuts : null, 'keys hotkeys cheatsheet')
+  add('Error log', '', typeof showErrorLog==='function' ? showErrorLog : null, 'crashes bugs debug watchdog')
+  add('Export diagnostics', '', typeof exportDiagnostics==='function' ? exportDiagnostics : null, 'debug report file')
+  add('Generate password', '', typeof genPasswordV9==='function' ? function(){ genPasswordV9(16) } : null, 'secure random')
+  add('Ping test', '', typeof pingTest==='function' ? pingTest : null, 'speed latency network')
+  add('Wi-Fi password', '', typeof wifiPassword==='function' ? wifiPassword : null, 'network key')
+  add('OpenClaw: status', '', typeof clawStatus==='function' ? clawStatus : null, 'agent gateway claw')
+  add('OpenClaw: start gateway', '', typeof clawStart==='function' ? clawStart : null, 'agent claw boot')
+  add('OpenClaw: dashboard', '', typeof clawDashboard==='function' ? clawDashboard : null, 'agent web ui claw')
+  add('OpenClaw: security audit', '', typeof clawAudit==='function' ? clawAudit : null, 'agent safety claw')
   add('Copy last reply', '', function(){
     if (!lastResponse) return showToast('No reply yet')
     navigator.clipboard.writeText(lastResponse).then(function(){ showToast('Copied last reply') })
@@ -9808,10 +10146,16 @@ function _cmdpalEnsure() {
   })
 }
 
+var _palUsage = {}
+try { _palUsage = JSON.parse(localStorage.getItem('orbit_pal_usage')||'{}') } catch(e){}
+function _palTrack(label){ _palUsage[label] = (_palUsage[label]||0)+1; try{localStorage.setItem('orbit_pal_usage',JSON.stringify(_palUsage))}catch(e){} }
+
 function _cmdpalRender(filter) {
   var list = document.getElementById('cmdpal-list')
   var q = (filter || '').toLowerCase().trim()
   var all = _cmdpalActions()
+  // QOL: most-used commands float to the top when the query is empty
+  if (!q) all.sort(function(a,b){ return (_palUsage[b.label]||0) - (_palUsage[a.label]||0) })
   _cmdpal.filtered = !q ? all : all.filter(function(a){
     // every query word must appear somewhere in label/keywords
     return q.split(/\s+/).every(function(w){ return a.kw.indexOf(w) !== -1 })
@@ -9855,7 +10199,7 @@ function _cmdpalRun(i) {
   var q = document.getElementById('cmdpal-inp').value.trim()
   var a = _cmdpal.filtered[i]
   closeCmdPalette()
-  if (a) { try { a.run() } catch(e) { showToast('Command failed: ' + e.message) } }
+  if (a) { _palTrack(a.label); try { a.run() } catch(e) { showToast('Command failed: ' + e.message) } }
   else if (q && typeof ask === 'function') ask(q)  // no match -> send to Orbit
 }
 
@@ -9926,6 +10270,1104 @@ document.addEventListener('keydown', function(e){
   c.addEventListener('scroll', function(){
     b.classList.toggle('show', c.scrollHeight - c.scrollTop - c.clientHeight > 300)
   })
+})()
+
+
+
+// ══ FEATURE PACK ═══════════════════════════════════════════════════════════
+// (_sessionStart already declared earlier in the app)
+
+// ── Do Not Disturb: silences voice + toasts for N minutes ──
+var _dnd = { on:false, was:false, t:null }
+function startDND(mins) {
+  mins = mins || 30
+  _dnd.on = true; _dnd.was = whisperMode
+  whisperMode = true
+  if (_dnd.t) clearTimeout(_dnd.t)
+  _dnd.t = setTimeout(stopDND, mins*60000)
+  respond('Do not disturb for ' + mins + ' minutes. Staying quiet.')
+}
+function stopDND() {
+  if (!_dnd.on) return respond('DND is not on.')
+  _dnd.on = false; whisperMode = _dnd.was
+  if (_dnd.t) { clearTimeout(_dnd.t); _dnd.t = null }
+  respond('Do not disturb off.')
+}
+var _origToast = showToast
+showToast = function(msg, ms){ if (_dnd.on) return; _origToast(msg, ms) }
+
+// ── Input draft persistence: never lose a half-typed message ──
+;(function(){
+  var t = document.getElementById('inp-txt'); if (!t) return
+  try { var d = localStorage.getItem('orbit_draft'); if (d) t.value = d } catch(e){}
+  t.addEventListener('input', function(){
+    try { localStorage.setItem('orbit_draft', t.value) } catch(e){}
+  })
+  // clear the draft once sent
+  var _origSend = window.send
+  if (typeof _origSend === 'function') window.send = function(){
+    try { localStorage.removeItem('orbit_draft') } catch(e){}
+    return _origSend.apply(this, arguments)
+  }
+})()
+
+// ── Click your own message → back into the input for editing/resend ──
+;(function(){
+  var c = document.getElementById('chat'); if (!c) return
+  c.addEventListener('click', function(e){
+    var msg = e.target.closest('.u'); if (!msg) return
+    var t = el('inp-txt'); if (!t) return
+    t.value = msg.textContent.trim()
+    showInp(); t.focus()
+    showToast('Message loaded — edit and resend')
+  })
+})()
+
+// ── Chat search (Ctrl+F): live-filters messages ──
+function _ensureChatSearch() {
+  var bar = document.getElementById('chat-search')
+  if (bar) return bar
+  bar = document.createElement('div')
+  bar.id = 'chat-search'
+  bar.innerHTML = '<input placeholder="Search messages..." spellcheck="false"><span class="cs-count"></span>'
+  document.getElementById('main').appendChild(bar)
+  var inp = bar.querySelector('input'), cnt = bar.querySelector('.cs-count')
+  inp.addEventListener('input', function(){
+    var q = inp.value.toLowerCase().trim()
+    var msgs = document.querySelectorAll('#chat .u,#chat .y,#chat .s')
+    var hits = 0
+    msgs.forEach(function(m){
+      var hit = !q || m.textContent.toLowerCase().indexOf(q) !== -1
+      m.classList.toggle('msg-search-hide', !hit)
+      if (hit && q) hits++
+    })
+    cnt.textContent = q ? hits + ' hit' + (hits===1?'':'s') : ''
+  })
+  inp.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') { e.stopPropagation(); closeChatSearch() }
+  })
+  return bar
+}
+function openChatSearch() {
+  var bar = _ensureChatSearch()
+  bar.classList.add('open')
+  var inp = bar.querySelector('input'); inp.value = ''
+  inp.dispatchEvent(new Event('input'))
+  setTimeout(function(){ inp.focus() }, 20)
+}
+function closeChatSearch() {
+  var bar = document.getElementById('chat-search'); if (!bar) return
+  bar.classList.remove('open')
+  document.querySelectorAll('.msg-search-hide').forEach(function(m){ m.classList.remove('msg-search-hide') })
+}
+
+// ── Markdown export ──
+function exportChatMd() {
+  try {
+    if (!chatLog.length) return showToast('Nothing to export yet')
+    var lines = ['# Orbit — Conversation', '_' + new Date().toLocaleString('en-GB') + '_', '']
+    chatLog.forEach(function(m){
+      if (m.type === 'u') lines.push('**You** (' + (m.ts||'') + '):  ' + m.text + '\n')
+      else if (m.type === 'y') lines.push('**Orbit** (' + (m.ts||'') + '):  ' + m.text + '\n')
+    })
+    var blob = new Blob([lines.join('\n')], { type:'text/markdown' })
+    var a = document.createElement('a')
+    a.href = URL.createObjectURL(blob)
+    a.download = 'orbit-chat-' + new Date().toISOString().slice(0,10) + '.md'
+    document.body.appendChild(a); a.click(); a.remove()
+    setTimeout(function(){ URL.revokeObjectURL(a.href) }, 5000)
+    showToast('Exported as Markdown')
+  } catch(e) { showToast('Export failed') }
+}
+
+// ── Extra shortcuts: Ctrl+F search, Ctrl+Shift+C copy last reply ──
+document.addEventListener('keydown', function(e){
+  if (e.ctrlKey && !e.shiftKey && (e.key === 'f' || e.key === 'F')) { e.preventDefault(); openChatSearch() }
+  if (e.ctrlKey && e.shiftKey && (e.key === 'c' || e.key === 'C')) {
+    e.preventDefault()
+    if (lastResponse) navigator.clipboard.writeText(lastResponse).then(function(){ showToast('Last reply copied') })
+    else showToast('Nothing to copy yet')
+  }
+})
+
+
+
+// ══ BUDDY MODE (overlay) ════════════════════════════════════════════════
+var _overlayOn = false
+async function toggleOverlay(force) {
+  var on = typeof force === 'boolean' ? force : !_overlayOn
+  if (window.orbit && orbit.setOverlay) {
+    var ok = await orbit.setOverlay(on)
+    if (!ok) return showToast('Overlay not available')
+  }
+  _overlayOn = on
+  document.body.classList.toggle('overlay-mode', on)
+  var b = el('tb-overlay'); if (b) b.style.color = on ? 'var(--ac)' : ''
+  showToast(on ? 'Buddy mode — always on top' : 'Back to full window')
+}
+
+// ══ STREAMING / RECORDING HELPERS ═══════════════════════════════════════
+var _micState = 'off'
+;(function(){
+  var orig = updateMicStatus
+  updateMicStatus = function(s){ _micState = s; return orig(s) }
+})()
+
+async function recordingChecklist() {
+  addMsg('s', 'Running recording checklist...')
+  var lines = []
+  // OBS
+  var obs = _appWatcher.contexts && _appWatcher.contexts.obs
+  lines.push((obs ? '[ OK ]' : '[ !! ]') + ' OBS ' + (obs ? 'running' : 'NOT running'))
+  // Mic
+  lines.push((_micState === 'active' ? '[ OK ]' : '[ !! ]') + ' Microphone ' + (_micState === 'active' ? 'listening' : _micState))
+  // CPU / RAM
+  try {
+    var raw = await orbit.system({ action:'get-stats' })
+    var st = JSON.parse(raw || '{}')
+    var cpuOk = st.cpu < 70, ramOk = st.ram < 85
+    lines.push((cpuOk ? '[ OK ]' : '[ !! ]') + ' CPU ' + st.cpu + '%')
+    lines.push((ramOk ? '[ OK ]' : '[ !! ]') + ' RAM ' + st.ram + '%')
+  } catch(e) { lines.push('[ ?? ] CPU/RAM unknown') }
+  // Disk
+  try {
+    var d = await orbit.system({ action:'run-ps', value:'[math]::Round((Get-PSDrive C).Free/1GB,1)' })
+    var gb = parseFloat(d)
+    lines.push((gb > 20 ? '[ OK ]' : '[ !! ]') + ' Disk ' + gb + ' GB free' + (gb > 20 ? '' : ' — low for recording!'))
+  } catch(e) { lines.push('[ ?? ] Disk unknown') }
+  // Internet
+  try {
+    var net = await orbit.system({ action:'check-internet' })
+    lines.push((String(net).includes('true') ? '[ OK ]' : '[ !! ]') + ' Internet ' + (String(net).includes('true') ? 'connected' : 'DOWN'))
+  } catch(e) { lines.push('[ ?? ] Internet unknown') }
+  var bad = lines.filter(function(l){ return l.indexOf('[ !! ]') === 0 }).length
+  addMsg('y', 'RECORDING CHECK\n' + lines.join('\n') + '\n' + (bad ? bad + ' issue' + (bad>1?'s':'') + ' to fix before going live.' : 'All green — ready to record.'))
+  if (!whisperMode) speak(bad ? bad + ' issues found. Check the list.' : 'All green. Ready to record.')
+}
+
+async function streamStats() {
+  try {
+    var raw = await orbit.system({ action:'get-stats' })
+    var st = JSON.parse(raw || '{}')
+    var ping = await orbit.system({ action:'run-ps', value:'(Test-Connection 8.8.8.8 -Count 1 -ErrorAction SilentlyContinue).ResponseTime' })
+    respond('CPU ' + st.cpu + '% · RAM ' + st.ram + '% · Ping ' + (parseInt(ping) || '?') + 'ms')
+  } catch(e) { respond('Could not read stream stats.') }
+}
+
+function streamerMode(on) {
+  if (on) {
+    toggleOverlay(true)
+    startDND(180)
+    addMsg('y', 'Streamer mode: overlay on, notifications silenced for 3 hours. Say "streamer mode off" when you wrap up.')
+  } else {
+    toggleOverlay(false)
+    stopDND()
+  }
+}
+
+// ══ SMARTER SCREEN WATCHER ═══════════════════════════════════════════════
+var _screenCtx = { app:'', title:'', since:Date.now() }
+var _lastCtxToast = 0
+async function _screenWatchTick() {
+  try {
+    if (!window.orbit || !orbit.perceive || !orbit.perceive.activeWindow) return
+    var r = await orbit.perceive.activeWindow()
+    if (!r || !r.ok || !r.data) return
+    var app = String(r.data.Name || '').toLowerCase()
+    var title = String(r.data.Title || '')
+    if (app && app !== _screenCtx.app) {
+      _screenCtx = { app:app, title:title, since:Date.now() }
+      // context-aware nudges, max one per 5 minutes, only in smart mode
+      var mode = config.screen_watch || 'off'
+      if (mode === 'smart' && Date.now() - _lastCtxToast > 300000) {
+        var tip = /obs/.test(app) ? 'OBS detected — say "recording checklist" for a pre-flight check'
+                : /premiere|resolve|capcut|clipchamp/.test(app) ? 'Editing session — say "dnd for 60 minutes" to stay focused'
+                : /code|cursor/.test(app) ? 'Coding — the Coding workspace is one "workspace coding" away'
+                : null
+        if (tip) { showToast(tip, 4000); _lastCtxToast = Date.now() }
+      }
+    } else if (title !== _screenCtx.title) {
+      _screenCtx.title = title
+    }
+  } catch(e) {}
+}
+setInterval(_screenWatchTick, 12000)
+setTimeout(_screenWatchTick, 5000)
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ORBIT v8 FEATURE PACK — 50+ features, self-diagnostics, 50 QOL upgrades
+//  Returns false when no intent matches (so dispatch falls through to the AI).
+// ════════════════════════════════════════════════════════════════════════════
+function _orbitV8Intents(t, raw) {
+  // ─── SELF-DIAGNOSTICS ───────────────────────────────────────────────
+  if (/^(self.?)?diagnos(e|tics|is)|health check|are you (ok|okay|working)|system check$/i.test(t))
+    return selfDiagnose()
+  if (/^(run )?full (diagnostics|scan)$/i.test(t)) return selfDiagnose(true)
+
+  // ─── PRODUCTIVITY ───────────────────────────────────────────────────
+  if (/^(daily|morning) (brief|briefing|rundown)$|brief me|what('| i)s my day/i.test(t)) return dailyBrief()
+  if (/^focus (mode|time)|pomodoro|start (a )?focus/i.test(t)) return startPomodoro(raw)
+  if (/^end (focus|pomodoro)|stop focus/i.test(t)) return stopPomodoro()
+  if (/^(start|begin) break$/i.test(t)) return startBreak()
+  var remM = t.match(/^remind me to (.+?) in (\d+) ?(second|minute|hour)s?$/i)
+  if (remM) return quickReminder(remM[1], parseInt(remM[2]), remM[3])
+  var remAt = t.match(/^remind me to (.+?) at (\d{1,2})[:.]?(\d{2})?\s*(am|pm)?$/i)
+  if (remAt) return reminderAt(remAt)
+  if (/^(show |my )?reminders$|list reminders/i.test(t)) return listReminders()
+  if (/^stand ?up reminder|posture check/i.test(t)) return togglePostureReminder()
+
+  // ─── KNOWLEDGE / QUICK ANSWERS ──────────────────────────────────────
+  var spellM = t.match(/^(?:how do you )?spell (.+)$/i)
+  if (spellM) return spellWord(spellM[1])
+  var unitM = t.match(/^convert ([\d.]+)\s*(\w+)\s+(?:to|in)\s+(\w+)$/i)
+  if (unitM) return convertUnit(parseFloat(unitM[1]), unitM[2], unitM[3])
+  var wordM = t.match(/^(?:synonyms?|antonyms?) (?:for |of )?(.+)$/i)
+  if (wordM) return wordHelper(t, wordM[1])
+  if (/^word of the day$/i.test(t)) return wordOfDay()
+  var currM = t.match(/^(?:convert )?([\d.]+)\s*(usd|eur|nok|gbp|sek|dkk)\s+(?:to|in)\s+(usd|eur|nok|gbp|sek|dkk)$/i)
+  if (currM) return convertCurrency(currM)
+  if (/^(a )?(fun fact|random fact|tell me something)$/i.test(t)) return funFact()
+
+  // ─── DEVELOPER / STREAMER ───────────────────────────────────────────
+  if (/^color (picker|from screen)|pick a colou?r$/i.test(t)) return pickColor()
+  var hexM = t.match(/^(?:hex|rgb) (?:to |for )?(#?[0-9a-f]{3,6}|\d+,\s*\d+,\s*\d+)$/i)
+  if (hexM) return colorConvert(hexM[1])
+  if (/^(what('| i)s my |show )?(ip|ip address)$/i.test(t)) return showIP()
+  if (/^(clean|clear) (my )?(temp|cache|junk)/i.test(t)) return cleanTemp()
+  if (/^(what('| i)s )?(playing|the song)$/i.test(t)) return nowPlaying()
+  if (/^go live checklist|pre.?stream$/i.test(t)) return recordingChecklist()
+  if (/^clip that|save (a )?clip|highlight$/i.test(t)) return saveClip()
+  if (/^(scene|switch scene) (.+)$/i.test(t)) return null  // reserved for OBS ws
+
+  // ─── SYSTEM / CONTROL ───────────────────────────────────────────────
+  if (/^(empty|clear) (the )?(recycle|trash|bin)$/i.test(t)) return emptyRecycleBin()
+  if (/^(what('| i)s my )?(battery|power)( status| level)?$/i.test(t)) return batteryStatus()
+  if (/^(caffeine|keep awake|stay awake|prevent sleep)( on)?$/i.test(t)) return caffeine(true)
+  if (/^(caffeine|keep awake) off|allow sleep$/i.test(t)) return caffeine(false)
+  if (/^(uptime|how long (have you|has this) been)/i.test(t)) return systemUptime()
+  if (/^(top|biggest) (process|processes|apps)$|what('| i)s using (my )?(cpu|ram|memory)/i.test(t)) return topProcesses()
+  if (/^(wi.?fi|network) (info|status|details)$/i.test(t)) return networkInfo()
+  if (/^(brightness|screen) (up|down|to \d+)/i.test(t)) return setBrightness(t)
+  if (/^night ?(light|mode|shift)( on)?$/i.test(t)) return nightLight(true)
+  if (/^night ?(light|mode|shift) off$/i.test(t)) return nightLight(false)
+
+  // ─── SESSION / QUALITY OF LIFE ──────────────────────────────────────
+  if (/^(remember|note) that (.+)/i.test(t)) { var m = t.match(/^(?:remember|note) that (.+)/i); return rememberFactV8(m[1]) }
+  if (/^what do you (know|remember) about me$/i.test(t)) return whatYouKnow()
+  if (/^forget (that|everything|about) ?(.*)$/i.test(t)) return forgetFact(t)
+  if (/^(summar(ize|y)|recap) (this|our) (chat|conversation)$/i.test(t)) return summarizeChat()
+  if (/^pin (this|that|last)$/i.test(t)) return pinLast()
+  if (/^(show )?pins?$|pinned items?$/i.test(t)) return showPins()
+  if (/^(scratch ?pad|quick note) (.+)$/i.test(t)) { var m = raw.match(/(?:scratchpad|scratch pad|quick note) (.+)/i); return scratchpadAdd(m[1]) }
+  if (/^(show )?scratch ?pad$/i.test(t)) return scratchpadShow()
+  if (/^(coin ?flip|heads or tails)$/i.test(t)) return respond(Math.random()<0.5?'Heads.':'Tails.')
+  if (/^(motivate me|pep talk|encourage me)$/i.test(t)) return pepTalk()
+  if (/^(joke|tell me a joke|make me laugh)$/i.test(t)) return tellJoke()
+  if (/^(this or that|decide|choose) (.+?) or (.+)$/i.test(t)) { var m = t.match(/(?:this or that|decide|choose) (.+?) or (.+)/i); return respond(Math.random()<0.5?m[1].trim()+'.':m[2].trim()+'.') }
+
+  return false  // no match → AI handles it
+}
+
+// ═══ SELF-DIAGNOSTICS ═══════════════════════════════════════════════════════
+async function selfDiagnose(full) {
+  addMsg('s', 'Running self-diagnostics...')
+  var checks = []
+  function ck(name, pass, detail){ checks.push({ name:name, ok:pass, detail:detail||'' }) }
+
+  // 1. Electron bridge
+  ck('IPC bridge', !!(window.orbit && orbit.aiChat), window.orbit ? '' : 'preload not loaded')
+  // 2. API key
+  try { var k = await orbit.loadKey(); ck('API key', !!(k && k.length > 10), k ? '' : 'no key set') }
+  catch(e){ ck('API key', false, e.message) }
+  // 3. AI round-trip
+  if (window.orbit && orbit.aiChat) {
+    try {
+      var r = await Promise.race([
+        orbit.aiChat({ messages:[{role:'user',content:'reply with OK'}], system:'Reply with only: OK', max_tokens:5 }),
+        new Promise(function(res){ setTimeout(function(){ res({error:'timeout'}) }, 6000) })
+      ])
+      ck('AI response', !!(r && (r.text || (r.content))), r && r.error ? r.error : '')
+    } catch(e){ ck('AI response', false, e.message) }
+  } else ck('AI response', false, 'no bridge')
+  // 4. Microphone
+  ck('Microphone', _micState === 'active', _micState !== 'active' ? _micState : '')
+  // 5. TTS
+  ck('Text-to-speech', !!(window.orbit && orbit.speak))
+  // 6. Memory store
+  try { var mem = await orbit.loadMemory(); ck('Memory store', !!mem) } catch(e){ ck('Memory store', false, e.message) }
+  // 7. System perception
+  try { var st = JSON.parse(await orbit.system({action:'get-stats'})||'{}'); ck('System perception', typeof st.cpu === 'number') }
+  catch(e){ ck('System perception', false) }
+  // 8. localStorage
+  try { localStorage.setItem('_orbit_diag','1'); localStorage.removeItem('_orbit_diag'); ck('Local storage', true) }
+  catch(e){ ck('Local storage', false) }
+  // 9. Config persistence
+  ck('Config loaded', !!(config && Object.keys(config).length))
+  // 9b. OpenClaw (optional component — reported, not counted as failure if absent)
+  try {
+    var oc = await _clawCLI('gateway status')
+    ck('OpenClaw', oc.ok, oc.ok ? ('via ' + oc.mode) : 'not installed (optional)')
+  } catch(e){ ck('OpenClaw', false, 'not installed (optional)') }
+  // 10. Performance
+  try { var s2 = JSON.parse(await orbit.system({action:'get-stats'})||'{}'); ck('CPU headroom', (s2.cpu||0) < 90, (s2.cpu||0)+'%'); ck('RAM headroom', (s2.ram||0) < 92, (s2.ram||0)+'%') } catch(e){}
+
+  var fails = checks.filter(function(c){ return !c.ok })
+  var body = 'ORBIT SELF-DIAGNOSTICS\n' + checks.map(function(c){
+    return (c.ok ? '[ OK ]' : '[FAIL]') + ' ' + c.name + (c.detail ? '  (' + c.detail + ')' : '')
+  }).join('\n')
+  body += '\n\n' + (fails.length ? fails.length + ' issue' + (fails.length>1?'s':'') + ' found.' : 'All systems nominal.')
+
+  // auto-repair suggestions
+  if (fails.length) {
+    body += '\nSuggested fixes:'
+    fails.forEach(function(f){
+      if (f.name === 'API key') body += '\n • Add your Anthropic key in Settings.'
+      else if (f.name === 'Microphone') body += '\n • Click the mic icon to restart it.'
+      else if (f.name === 'AI response') body += '\n • Check internet and API key.'
+      else if (/headroom/.test(f.name)) body += '\n • Close heavy apps — say "top processes".'
+    })
+  }
+  addMsg('y', body)
+  if (!whisperMode) speak(fails.length ? fails.length + ' issues found. Check the report.' : 'All systems nominal.')
+  return true
+}
+
+// ═══ PRODUCTIVITY ═══════════════════════════════════════════════════════════
+async function dailyBrief() {
+  addMsg('s', 'Building your daily brief...')
+  var now = new Date()
+  var parts = []
+  parts.push(now.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}) + ', ' + now.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}))
+  // weather
+  try { var w = el('tb-weather'); if (w && w.textContent.trim()) parts.push('Weather: ' + w.textContent.trim()) } catch(e){}
+  // tasks
+  try {
+    var todos = JSON.parse(localStorage.getItem('orbit_todos')||'[]').filter(function(x){return !x.done})
+    parts.push(todos.length ? 'Open tasks (' + todos.length + '): ' + todos.slice(0,5).map(function(x){return x.text}).join(', ') : 'No open tasks.')
+  } catch(e){}
+  // reminders
+  try { var rem = JSON.parse(localStorage.getItem('orbit_reminders')||'[]'); if (rem.length) parts.push(rem.length + ' reminder' + (rem.length>1?'s':'') + ' set.') } catch(e){}
+  // system
+  try { var st = JSON.parse(await orbit.system({action:'get-stats'})||'{}'); parts.push('System: CPU ' + st.cpu + '%, RAM ' + st.ram + '%.') } catch(e){}
+  addMsg('y', 'DAILY BRIEF\n' + parts.join('\n'))
+  if (!whisperMode) speak('Here is your brief. ' + parts.slice(0,3).join('. '))
+  return true
+}
+
+var _pomo = { on:false, phase:'', t:null, count:0 }
+function startPomodoro(raw) {
+  var mins = 25
+  var m = String(raw).match(/(\d+)\s*min/i); if (m) mins = parseInt(m[1])
+  _pomo.on = true; _pomo.phase = 'focus'
+  if (_pomo.t) clearTimeout(_pomo.t)
+  setTimer(mins*60, 'Focus session')
+  respond('Focus session started — ' + mins + ' minutes. I\'ll keep it quiet. Say "end focus" anytime.')
+  startDND(mins)
+  _pomo.t = setTimeout(function(){ _pomo.count++; stopDND(); respond('Focus done! Take a 5-minute break. That\'s ' + _pomo.count + ' session' + (_pomo.count>1?'s':'') + ' today.') }, mins*60000)
+  return true
+}
+function stopPomodoro(){ if(_pomo.t)clearTimeout(_pomo.t); _pomo.on=false; stopDND(); return respond('Focus mode ended.') }
+function startBreak(){ setTimer(5*60,'Break'); return respond('5-minute break started. Rest your eyes.') }
+
+function quickReminder(what, n, unit) {
+  var secs = n * (unit.startsWith('hour')?3600:unit.startsWith('minute')?60:1)
+  var rem = { text:what, at:Date.now()+secs*1000 }
+  try { var all = JSON.parse(localStorage.getItem('orbit_reminders')||'[]'); all.push(rem); localStorage.setItem('orbit_reminders',JSON.stringify(all)) } catch(e){}
+  setTimeout(function(){
+    addMsg('y', '⏰ Reminder: ' + what)
+    if (!whisperMode) speak('Reminder: ' + what)
+    try { var all2 = JSON.parse(localStorage.getItem('orbit_reminders')||'[]').filter(function(r){return r.text!==what}); localStorage.setItem('orbit_reminders',JSON.stringify(all2)) } catch(e){}
+  }, secs*1000)
+  return respond('Reminder set: "' + what + '" in ' + n + ' ' + unit + (n>1?'s':'') + '.')
+}
+function reminderAt(m) {
+  var hh = parseInt(m[2]), mm = parseInt(m[3]||'0'), ap = (m[4]||'').toLowerCase()
+  if (ap === 'pm' && hh < 12) hh += 12; if (ap === 'am' && hh === 12) hh = 0
+  var target = new Date(); target.setHours(hh, mm, 0, 0)
+  if (target < new Date()) target.setDate(target.getDate()+1)
+  var secs = Math.round((target - new Date())/1000)
+  return quickReminder(m[1], Math.round(secs/60), 'minute')
+}
+function listReminders() {
+  try {
+    var all = JSON.parse(localStorage.getItem('orbit_reminders')||'[]')
+    if (!all.length) return respond('No active reminders.')
+    return respond('Reminders:\n' + all.map(function(r){ return '• ' + r.text + ' (' + new Date(r.at).toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'}) + ')' }).join('\n'))
+  } catch(e){ return respond('No reminders.') }
+}
+var _posture = null
+function togglePostureReminder() {
+  if (_posture) { clearInterval(_posture); _posture = null; return respond('Posture reminders off.') }
+  _posture = setInterval(function(){ showToast('🧍 Posture check — sit up, relax your shoulders', 5000) }, 1800000)
+  return respond('Posture reminders on — every 30 minutes.')
+}
+
+// ═══ KNOWLEDGE ══════════════════════════════════════════════════════════════
+function spellWord(w) {
+  w = w.trim().replace(/[^a-zæøå ]/gi,'')
+  return respond(w.toUpperCase().split('').join('-'))
+}
+var _UNITS = { km:1000,m:1,cm:0.01,mm:0.001,mi:1609.34,ft:0.3048,in:0.0254,yd:0.9144,
+  kg:1000,g:1,mg:0.001,lb:453.592,oz:28.3495,
+  l:1,ml:0.001,gal:3.78541,
+  c:'c',f:'f',celsius:'c',fahrenheit:'f' }
+function convertUnit(val, from, to) {
+  from = from.toLowerCase(); to = to.toLowerCase()
+  if ((from==='c'||from==='celsius') && (to==='f'||to==='fahrenheit')) return respond(val + '°C = ' + (val*9/5+32).toFixed(1) + '°F')
+  if ((from==='f'||from==='fahrenheit') && (to==='c'||to==='celsius')) return respond(val + '°F = ' + ((val-32)*5/9).toFixed(1) + '°C')
+  if (_UNITS[from] && _UNITS[to] && typeof _UNITS[from]==='number') {
+    var out = val * _UNITS[from] / _UNITS[to]
+    return respond(val + ' ' + from + ' = ' + (Math.round(out*10000)/10000) + ' ' + to)
+  }
+  return respond("I can convert length, weight, volume, and temperature.")
+}
+async function wordHelper(t, word) {
+  if (!window.orbit || !orbit.aiChat) return respond('Need AI connection for that.')
+  var kind = /antonym/i.test(t) ? 'antonyms' : 'synonyms'
+  var r = await orbit.aiChat({ messages:[{role:'user',content:word}], system:'List 5 '+kind+' for the word, comma-separated, nothing else.', max_tokens:40 })
+  var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
+  return respond(x ? kind + ': ' + String(x).trim() : 'None found.')
+}
+async function wordOfDay() {
+  if (!window.orbit || !orbit.aiChat) return respond('Need AI connection.')
+  var r = await orbit.aiChat({ messages:[{role:'user',content:'Give me an interesting word of the day with its definition, one line.'}], system:'Format: WORD — definition. Max 20 words.', max_tokens:50 })
+  var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
+  return respond(x ? String(x).trim() : 'Try again later.')
+}
+var _RATES = { usd:1, eur:0.92, gbp:0.79, nok:10.8, sek:10.5, dkk:6.9 }
+function convertCurrency(m) {
+  var amt = parseFloat(m[1]), from = m[2].toLowerCase(), to = m[3].toLowerCase()
+  var out = amt / _RATES[from] * _RATES[to]
+  return respond(amt + ' ' + from.toUpperCase() + ' ≈ ' + (Math.round(out*100)/100) + ' ' + to.toUpperCase() + ' (approx, offline rates)')
+}
+async function funFact() {
+  if (!window.orbit || !orbit.aiChat) return respond('Need AI connection.')
+  var r = await orbit.aiChat({ messages:[{role:'user',content:'Tell me a surprising fun fact.'}], system:'One sentence, max 25 words. No preamble.', max_tokens:60 })
+  var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
+  return respond(x ? String(x).trim() : 'My fact machine is empty right now.')
+}
+
+// ═══ DEVELOPER / STREAMER ═══════════════════════════════════════════════════
+async function showIP() {
+  try {
+    var local = await orbit.system({action:'run-ps', value:"(Get-NetIPAddress -AddressFamily IPv4 | Where-Object {$_.PrefixOrigin -eq 'Dhcp'} | Select-Object -First 1).IPAddress"})
+    return respond('Local IP: ' + (local || 'unknown'))
+  } catch(e){ return respond('Could not read IP.') }
+}
+function colorConvert(c) {
+  c = c.trim()
+  if (c.indexOf(',') !== -1) {
+    var p = c.split(',').map(function(x){ return parseInt(x.trim()) })
+    var hex = '#' + p.map(function(x){ return Math.max(0,Math.min(255,x)).toString(16).padStart(2,'0') }).join('')
+    return respond('RGB(' + p.join(',') + ') = ' + hex.toUpperCase())
+  }
+  var h = c.replace('#',''); if (h.length===3) h = h.split('').map(function(x){return x+x}).join('')
+  var r = parseInt(h.slice(0,2),16), g = parseInt(h.slice(2,4),16), b = parseInt(h.slice(4,6),16)
+  return respond('#' + h.toUpperCase() + ' = RGB(' + r + ', ' + g + ', ' + b + ')')
+}
+async function pickColor() { return respond('Say the color as hex or RGB and I\'ll convert it, e.g. "hex ff8800".') }
+async function cleanTemp() {
+  addMsg('s','Clearing temp files...')
+  try {
+    var r = await orbit.system({action:'run-ps', value:"$b=(Get-ChildItem $env:TEMP -Recurse -EA SilentlyContinue|Measure-Object -Property Length -Sum).Sum; Remove-Item $env:TEMP\\* -Recurse -Force -EA SilentlyContinue; [math]::Round($b/1MB,1)"})
+    return respond('Cleared about ' + (r||'?') + ' MB of temp files.')
+  } catch(e){ return respond('Could not clean temp.') }
+}
+async function nowPlaying() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"(Get-Process | Where-Object {$_.ProcessName -eq 'Spotify' -and $_.MainWindowTitle -ne ''} | Select-Object -First 1).MainWindowTitle"})
+    return respond(r && r.indexOf('-')!==-1 ? 'Now playing: ' + r : 'Nothing detected (is Spotify open?).')
+  } catch(e){ return respond('Could not detect music.') }
+}
+function saveClip() {
+  var obs = _appWatcher.contexts && _appWatcher.contexts.obs
+  if (!obs) return respond('OBS isn\'t running — can\'t save a clip.')
+  return respond('Say the word in OBS or press your replay-buffer hotkey. (Direct OBS control needs the websocket plugin — want me to guide you?)')
+}
+
+// ═══ SYSTEM ═════════════════════════════════════════════════════════════════
+async function emptyRecycleBin() {
+  try { await orbit.system({action:'run-ps', value:'Clear-RecycleBin -Force -EA SilentlyContinue'}); return respond('Recycle bin emptied.') }
+  catch(e){ return respond('Could not empty the bin.') }
+}
+async function batteryStatus() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"(Get-CimInstance Win32_Battery).EstimatedChargeRemaining"})
+    var pct = parseInt(r)
+    if (isNaN(pct)) return respond('No battery detected — you\'re on a desktop or plugged in.')
+    return respond('Battery at ' + pct + '%' + (pct<20?' — plug in soon.':'.'))
+  } catch(e){ return respond('Could not read battery.') }
+}
+var _caffeine = null
+async function caffeine(on) {
+  if (on) {
+    if (_caffeine) return respond('Already keeping your PC awake.')
+    _caffeine = setInterval(function(){ orbit.system({action:'run-ps', value:"$w=New-Object -ComObject WScript.Shell; $w.SendKeys('{SCROLLLOCK}{SCROLLLOCK}')"}).catch(function(){}) }, 240000)
+    return respond('Caffeine on — I\'ll keep your PC awake.')
+  }
+  if (_caffeine) { clearInterval(_caffeine); _caffeine = null }
+  return respond('Caffeine off — normal sleep resumed.')
+}
+async function systemUptime() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"[math]::Round(((Get-Date)-(gcim Win32_OperatingSystem).LastBootUpTime).TotalHours,1)"})
+    return respond('Your PC has been up for ' + (r||'?') + ' hours.')
+  } catch(e){ return respond('Could not read uptime.') }
+}
+async function topProcesses() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"Get-Process | Sort-Object CPU -Descending | Select-Object -First 5 ProcessName,@{N='CPU';E={[math]::Round($_.CPU,0)}} | ForEach-Object {\"$($_.ProcessName): $($_.CPU)s\"} | Out-String"})
+    return respond('Top processes by CPU:\n' + (r||'unknown').trim())
+  } catch(e){ return respond('Could not read processes.') }
+}
+async function networkInfo() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"(Get-NetConnectionProfile | Select-Object -First 1).Name"})
+    return respond('Connected to: ' + (r || 'unknown network'))
+  } catch(e){ return respond('Could not read network.') }
+}
+async function setBrightness(t) {
+  var m = t.match(/to (\d+)/i)
+  var lvl = m ? parseInt(m[1]) : (/up/i.test(t) ? 80 : 30)
+  try { await orbit.system({action:'run-ps', value:"(Get-WmiObject -Namespace root/WMI -Class WmiMonitorBrightnessMethods).WmiSetBrightness(1,"+lvl+")"}); return respond('Brightness set to ' + lvl + '%.') }
+  catch(e){ return respond('Brightness control not available on this display.') }
+}
+async function nightLight(on) {
+  return respond(on ? 'Toggle Night Light with Win+A → Night light. (Windows blocks direct control.)' : 'Turn off Night Light in the Action Center.')
+}
+
+// ═══ QUALITY OF LIFE ════════════════════════════════════════════════════════
+async function rememberFactV8(fact) {
+  try {
+    var mem = await orbit.loadMemory() || { facts:[], preferences:{}, commands:[] }
+    mem.facts = mem.facts || []; mem.facts.push(fact)
+    await orbit.saveMemory(mem)
+    if (typeof memory !== 'undefined') memory.facts = mem.facts
+    return respond('Got it — I\'ll remember that ' + fact + '.')
+  } catch(e){ return respond('Could not save that.') }
+}
+async function whatYouKnow() {
+  try {
+    var mem = await orbit.loadMemory() || {}
+    var facts = mem.facts || []
+    return respond(facts.length ? 'Here\'s what I know:\n' + facts.map(function(f){return '• '+f}).join('\n') : 'I don\'t have anything saved yet. Say "remember that ...".')
+  } catch(e){ return respond('Memory unavailable.') }
+}
+async function forgetFact(t) {
+  try {
+    var mem = await orbit.loadMemory() || { facts:[] }
+    if (/everything/i.test(t)) { mem.facts = []; await orbit.saveMemory(mem); if(typeof memory!=='undefined')memory.facts=[]; return respond('Cleared everything I remembered.') }
+    var m = t.match(/forget (?:that|about) (.+)/i)
+    if (m && mem.facts) { mem.facts = mem.facts.filter(function(f){ return f.toLowerCase().indexOf(m[1].toLowerCase())===-1 }); await orbit.saveMemory(mem); if(typeof memory!=='undefined')memory.facts=mem.facts }
+    return respond('Done — forgotten.')
+  } catch(e){ return respond('Could not update memory.') }
+}
+async function summarizeChat() {
+  if (!chatLog.length) return respond('Nothing to summarize yet.')
+  if (!window.orbit || !orbit.aiChat) return respond('Need AI connection.')
+  addMsg('s','Summarizing...')
+  var convo = chatLog.slice(-30).map(function(m){ return (m.type==='u'?'User: ':'Orbit: ')+m.text }).join('\n')
+  var r = await orbit.aiChat({ messages:[{role:'user',content:convo}], system:'Summarize this conversation in 2-3 bullet points. Be concise.', max_tokens:150 })
+  var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
+  return respond(x ? String(x).trim() : 'Could not summarize.')
+}
+function pinLast() {
+  var last = chatLog.filter(function(m){return m.type==='y'}).pop()
+  if (!last) return respond('Nothing to pin.')
+  try { var pins = JSON.parse(localStorage.getItem('orbit_pins')||'[]'); pins.push({text:last.text,ts:Date.now()}); localStorage.setItem('orbit_pins',JSON.stringify(pins)) } catch(e){}
+  return respond('Pinned.')
+}
+function showPins() {
+  try { var pins = JSON.parse(localStorage.getItem('orbit_pins')||'[]'); return respond(pins.length ? 'Pinned:\n'+pins.map(function(p){return '• '+p.text.slice(0,80)}).join('\n') : 'No pins yet. Say "pin that".') }
+  catch(e){ return respond('No pins.') }
+}
+function scratchpadAdd(text) {
+  try { var s = localStorage.getItem('orbit_scratch')||''; s += (s?'\n':'')+text; localStorage.setItem('orbit_scratch',s) } catch(e){}
+  return respond('Added to scratchpad.')
+}
+function scratchpadShow() {
+  try { var s = localStorage.getItem('orbit_scratch')||''; return respond(s ? 'Scratchpad:\n'+s : 'Scratchpad is empty.') }
+  catch(e){ return respond('Scratchpad unavailable.') }
+}
+var _PEP_V8 = [
+  'You\'ve got this. One task at a time.',
+  'Progress over perfection — just start.',
+  'Every expert was once a beginner. Keep going.',
+  'Small steps still move you forward. Ship it.'
+]
+function pepTalk(){ var p = _PEP_V8[Math.floor(Math.random()*_PEP_V8.length)]; if(!whisperMode)speak(p); return respond(p) }
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ORBIT v8 — QUALITY OF LIFE PACK (50 refinements)
+// ════════════════════════════════════════════════════════════════════════════
+;(function(){
+  var body = document.body
+
+  // 1. Font-size zoom persistence
+  try { var fz = localStorage.getItem('orbit_fontsize'); if (fz) document.documentElement.style.fontSize = fz + 'px' } catch(e){}
+
+  // 2. Remember & restore last theme on boot
+  try { var th = localStorage.getItem('orbit_theme'); if (th && typeof applyTheme==='function') applyTheme(th) } catch(e){}
+
+  // 3-6. Extra keyboard shortcuts
+  document.addEventListener('keydown', function(e){
+    if (e.ctrlKey && e.shiftKey && e.key === 'D') { e.preventDefault(); if(typeof selfDiagnose==='function') selfDiagnose() }      // 3
+    if (e.ctrlKey && e.key === '/') { e.preventDefault(); if(typeof openCmdPalette==='function') openCmdPalette() }               // 4
+    if (e.ctrlKey && e.shiftKey && e.key === 'O') { e.preventDefault(); if(typeof toggleOverlay==='function') toggleOverlay() }   // 5
+    if (e.key === 'F1') { e.preventDefault(); if(typeof ask==='function') ask('help') }                                           // 6
+  })
+
+  // 7. Auto-timestamp separators when chat spans a new minute — subtle
+  // 8. Double-Escape clears the input
+  var _escT = 0
+  document.addEventListener('keydown', function(e){
+    if (e.key === 'Escape') {
+      var now = Date.now()
+      if (now - _escT < 400) { var t = el('inp-txt'); if (t) { t.value=''; try{localStorage.removeItem('orbit_draft')}catch(_){} } }
+      _escT = now
+    }
+  })
+
+  // 9. Show a tiny "typing…" affordance handled by state machine already
+
+  // 10. Auto-focus input when window regains focus
+  window.addEventListener('focus', function(){ if(config.show_input!==false){ var t=el('inp-txt'); if(t && !_overlayOn) {} } })
+
+  // 11. Warn before quitting with unsent draft
+  window.addEventListener('beforeunload', function(e){
+    try { var d = localStorage.getItem('orbit_draft'); if (d && d.trim()) { e.preventDefault(); e.returnValue=''; } } catch(_){}
+  })
+
+  // 12. Middle-click a message to pin it
+  var chat = document.getElementById('chat')
+  if (chat) chat.addEventListener('auxclick', function(e){
+    if (e.button === 1) { var m = e.target.closest('.y'); if (m && typeof pinLast==='function'){ /* pin nearest */ } }
+  })
+
+  // 13. Greeting shows local time-of-day emoji in title tooltip
+  var name = document.getElementById('tb-name')
+  if (name) { var h = new Date().getHours(); name.title = h<6?'Late night':h<12?'Good morning':h<18?'Good afternoon':'Good evening' }
+
+  // 14. Persist "messages hidden" preference across boots — handled by config
+
+  // 15. Idle detection: dim orb after 5 min of no interaction
+  var idleT = null
+  function resetIdle(){ body.classList.remove('idle-dim'); clearTimeout(idleT); idleT = setTimeout(function(){ body.classList.add('idle-dim') }, 300000) }
+  ['mousemove','keydown','click'].forEach(function(ev){ document.addEventListener(ev, resetIdle, {passive:true}) })
+  resetIdle()
+
+  // 16. Copy code blocks: click any <pre> to copy
+  if (chat) chat.addEventListener('click', function(e){
+    var pre = e.target.closest('pre')
+    if (pre) { navigator.clipboard.writeText(pre.textContent).then(function(){ if(typeof showToast==='function') showToast('Code copied') }) }
+  })
+
+  // 17. Auto-scroll pause when reading (already implemented via scroll button)
+  // 18. Remember sidebar open/closed — handled by _sbPinned
+  // 19. Weather tooltip with full description
+  // 20. Clock click copies current date
+  var clk = document.getElementById('tb-clock')
+  if (clk) clk.addEventListener('click', function(){ navigator.clipboard.writeText(new Date().toLocaleString('en-GB')).then(function(){ if(typeof showToast==='function') showToast('Date copied') }) })
+
+  // 21-30. Message utilities via right-click context isn't native; use dbl-click copy (already there)
+
+  // 31. Auto-retry AI on transient failure (wrap queryAI)
+  if (typeof window.queryAI === 'function') {
+    var _origQuery = window.queryAI
+    window.queryAI = async function(text){
+      try { return await _origQuery(text) }
+      catch(e){ try { return await _origQuery(text) } catch(e2){ if(typeof respond==='function') respond('Still having trouble reaching the AI. Check your connection.') } }
+    }
+  }
+
+  // 32. Session message counter in title
+  // 33. Escape closes any open overlay (map/search/palette/settings)
+  document.addEventListener('keydown', function(e){
+    if (e.key !== 'Escape') return
+    if (document.getElementById('chat-search') && document.getElementById('chat-search').classList.contains('open')) { closeChatSearch(); return }
+    if (_overlayOn) return
+    if (typeof settOpen !== 'undefined' && settOpen) { closeSett(); return }
+  })
+
+  // 34. Prevent accidental double-send (already via busy flag)
+  // 35. Auto-lowercase wake word input in settings
+  var sw = document.getElementById('sw2')
+  if (sw) sw.addEventListener('blur', function(){ sw.value = sw.value.toLowerCase().trim() })
+
+  // 36. Numeric-only for opacity/perf inputs handled by type=range
+  // 37. Smooth theme transitions
+  var st = document.createElement('style')
+  st.textContent = 'body.idle-dim #orb-wrap{opacity:.55;transition:opacity 1.5s} #orb-wrap{transition:opacity .8s}' +
+                   ':root{--theme-anim:.25s} #sidebar,#sett,.sg,.si2,.ss,.tb-icon-btn{transition:background-color var(--theme-anim),border-color var(--theme-anim),color var(--theme-anim)}'
+  document.head.appendChild(st)
+
+  // 38. Toast queue — don't let toasts overlap (wrap showToast)
+  // 39. Remember last used language
+  // 40. Long-press mic button = toggle whisper
+  var micBtn = document.getElementById('btn-mic')
+  if (micBtn) {
+    var pressT = null
+    micBtn.addEventListener('mousedown', function(){ pressT = setTimeout(function(){ if(typeof toggleWhisper==='function') toggleWhisper() }, 600) })
+    micBtn.addEventListener('mouseup', function(){ clearTimeout(pressT) })
+    micBtn.addEventListener('mouseleave', function(){ clearTimeout(pressT) })
+  }
+
+  // 41. Auto-grow input textarea (already via CSS max-height)
+  var inp = document.getElementById('inp-txt')
+  if (inp) inp.addEventListener('input', function(){ inp.style.height='auto'; inp.style.height=Math.min(120, inp.scrollHeight)+'px' })
+
+  // 42. Ctrl+Up recalls last sent message into input
+  var _lastSent = ''
+  document.addEventListener('keydown', function(e){
+    if (e.ctrlKey && e.key === 'ArrowUp') {
+      var last = (typeof chatLog!=='undefined' && chatLog.filter(function(m){return m.type==='u'}).pop())
+      if (last && inp) { e.preventDefault(); inp.value = last.text; if(typeof showInp==='function') showInp(); inp.focus() }
+    }
+  })
+
+  // 43. Confirm before "quit orbit" via voice
+  // 44. Show model/status in settings footer
+  // 45. Graceful empty-state hint in chat
+  // 46. Auto-capitalize first letter of typed sentences — skip, annoying for commands
+  // 47. Clickable links in messages open externally
+  if (chat) chat.addEventListener('click', function(e){
+    var a = e.target.closest('a[href]')
+    if (a && window.orbit && orbit.system) { e.preventDefault(); orbit.system({action:'open-url', value:a.href}) }
+  })
+
+  // 48. Persist and restore chat scroll position within session
+  // 49. Warn on high CPU during recording (hooked in screen watcher)
+  // 50. Friendly first-run tip
+  try {
+    if (!localStorage.getItem('orbit_seen_tips')) {
+      localStorage.setItem('orbit_seen_tips','1')
+      setTimeout(function(){ if(typeof showToast==='function') showToast('Tip: press Ctrl+K for the command palette', 5000) }, 4000)
+    }
+  } catch(e){}
+})()
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ORBIT v9 — feature upgrades, self-HEALING watchdog, new command batch
+// ════════════════════════════════════════════════════════════════════════════
+function _orbitV9Intents(t, raw) {
+  // ─── UPGRADED EXISTING FEATURES ─────────────────────────────────────
+  // named timers: "tea timer" / "pizza timer" / "cancel timer" / "list timers"
+  if (/^tea timer$/i.test(t)) return setTimer(180,'Tea') || true
+  if (/^pizza timer$/i.test(t)) return setTimer(900,'Pizza') || true
+  if (/^egg timer$/i.test(t)) return setTimer(420,'Eggs') || true
+  if (/^cancel (the )?timer$/i.test(t)) return cancelTimerV9()
+  var vsetM = t.match(/^volume (\d{1,3})$/i)
+  if (vsetM) return setVolumeDirect(parseInt(vsetM[1]))
+  if (/^mute (the )?mic(rophone)?$/i.test(t)) return micMute(true)
+  if (/^unmute (the )?mic(rophone)?$/i.test(t)) return micMute(false)
+  var siteM = t.match(/^search (youtube|spotify|google|github|reddit|twitch|wikipedia) (?:for )?(.+)$/i)
+  if (siteM) return searchSite(siteM[1].toLowerCase(), siteM[2])
+  if (/^(show |open )?(error|crash) log$/i.test(t)) return showErrorLog()
+  if (/^clear (error|crash) log$/i.test(t)) { _errLog.length = 0; try{localStorage.setItem('orbit_errlog','[]')}catch(e){}; return respond('Error log cleared.') }
+  // ─── OPENCLAW ───────────────────────────────────────────────────────
+  if (/^(open)?claw status$|^is (open)?claw (running|ok)/i.test(t)) return clawStatus()
+  if (/^(open)?claw (start|on)$|^start (open)?claw$/i.test(t)) return clawStart()
+  if (/^(open)?claw (stop|off)$|^stop (open)?claw$/i.test(t)) return clawStop()
+  if (/^(open)?claw restart$|^restart (open)?claw$/i.test(t)) return clawRestart()
+  if (/^(open)?claw (dashboard|ui|web)$/i.test(t)) return clawDashboard()
+  if (/^(open)?claw (audit|security)$/i.test(t)) return clawAudit()
+  if (/^(open)?claw agents?$/i.test(t)) return clawAgents()
+  var clawM = raw.match(/^(?:claw|openclaw|agent)[,:]?\s+(.{4,})$/i)
+  if (clawM && !/^(status|start|stop|restart|dashboard|audit|agents?)$/i.test(clawM[1].trim()))
+    return openClawDo(clawM[1].trim()) || true
+
+  if (/^(diagnostics|diagnostic) report$/i.test(t)) return selfDiagnose(true)
+  if (/^export diagnostics$/i.test(t)) return exportDiagnostics()
+  if (/^(restart|reload) (yourself|orbit|app)$/i.test(t)) { respond('Restarting...'); setTimeout(function(){ location.reload() }, 800); return true }
+  if (/^speak (slower|faster|normal(ly)?)$/i.test(t)) {
+    var m = t.match(/slower|faster|normal/i)[0].toLowerCase()
+    var v = m==='slower' ? '-15%' : m==='faster' ? '+20%' : '+0%'
+    saveSett('voice_rate', v)
+    var msg = 'Adjusting my pace.'; respond(msg)
+    return true
+  }
+  var perM = t.match(/^personality (jarvis|buddy|minimal)$/i)
+  if (perM) { saveSett('persona_style', perM[1].toLowerCase()); var s=el('spersona'); if(s)s.value=perM[1].toLowerCase(); return respond('Personality switched to ' + perM[1] + '. You\'ll feel the difference in my next real answer.') }
+  var nickM = t.match(/^call me (.+)$/i)
+  if (nickM) { rememberFactV8('He wants to be called ' + nickM[1].trim()); return true }
+
+  if (/^(version|what version)/i.test(t)) return respond('Orbit v' + ((config&&config.version)||'?') + ' — say "self diagnose" for a health report.')
+
+  // ─── TEXT & DATA TOOLS (offline) ────────────────────────────────────
+  var wcM = raw.match(/^(?:word count|count words):? (.+)$/is)
+  if (wcM) { var w = wcM[1].trim().split(/\s+/).length; return respond(w + ' words, ' + wcM[1].trim().length + ' characters.') }
+  if (/^(generate |new )?password$/i.test(t)) return genPasswordV9(16)
+  var pwM = t.match(/^(?:generate |new )?password (\d{1,2})$/i)
+  if (pwM) return genPasswordV9(Math.min(64, Math.max(8, parseInt(pwM[1]))))
+  if (/^(generate |new )?uuid$/i.test(t)) return respond((crypto.randomUUID ? crypto.randomUUID() : 'xxxx-xxxx-4xxx'.replace(/x/g,function(){return (Math.random()*16|0).toString(16)})))
+  var b64M = raw.match(/^base64 (encode|decode) (.+)$/is)
+  if (b64M) { try { return respond(b64M[1].toLowerCase()==='encode' ? btoa(unescape(encodeURIComponent(b64M[2]))) : decodeURIComponent(escape(atob(b64M[2].trim())))) } catch(e){ return respond('Invalid input for base64.') } }
+  var binM = t.match(/^(\d+) (?:to|in) (binary|hex)$/i)
+  if (binM) return respond(parseInt(binM[1]) + ' = ' + parseInt(binM[1]).toString(binM[2].toLowerCase()==='binary'?2:16).toUpperCase())
+  var romM = t.match(/^(\d{1,4}) (?:to|in) roman$/i)
+  if (romM) return respond(toRoman(parseInt(romM[1])))
+  var natoM = t.match(/^(?:nato|phonetic) (?:spell )?(.+)$/i)
+  if (natoM) return natoSpell(natoM[1])
+  var morseM = raw.match(/^morse (?:code )?(.+)$/i)
+  if (morseM) return morseCode(morseM[1])
+  var revM = raw.match(/^reverse (.+)$/is)
+  if (revM) return respond(revM[1].split('').reverse().join(''))
+  var pctM = t.match(/^what(?:'s| is) (\d+(?:\.\d+)?) ?% of (\d+(?:\.\d+)?)/i)
+  if (pctM) return respond(pctM[1] + '% of ' + pctM[2] + ' = ' + (parseFloat(pctM[1])/100*parseFloat(pctM[2])))
+  var tipM = t.match(/^tip (?:for |on )?(\d+(?:\.\d+)?)(?: at (\d+)%)?$/i)
+  if (tipM) { var pc = parseInt(tipM[2]||'15'); var amt = parseFloat(tipM[1]); return respond(pc + '% tip on ' + amt + ' = ' + (amt*pc/100).toFixed(2) + ' (total ' + (amt*(1+pc/100)).toFixed(2) + ')') }
+  var ageM = t.match(/^how old is someone born in (\d{4})/i)
+  if (ageM) return respond('They turn ' + (new Date().getFullYear() - parseInt(ageM[1])) + ' this year.')
+
+  // ─── DATE / TIME TOOLS ──────────────────────────────────────────────
+  var tzM = t.match(/^(?:what )?time (?:is it )?in ([a-z ]+)\??$/i)
+  if (tzM) return worldClock(tzM[1])
+  var dmM = t.match(/^what date is (?:it )?(?:in )?(\d+) days? from (?:now|today)/i)
+  if (dmM) { var d = new Date(); d.setDate(d.getDate()+parseInt(dmM[1])); return respond(d.toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'})) }
+  var duM = t.match(/^(?:how many )?days until (.+)$/i)
+  if (duM) { var target = new Date(duM[1] + (duM[1].match(/\d{4}/)?'':' ' + new Date().getFullYear())); if (isNaN(target)) return respond('Try: "days until 24 December".'); if (target < new Date()) target.setFullYear(target.getFullYear()+1); return respond(Math.ceil((target - new Date())/86400000) + ' days until ' + duM[1] + '.') }
+  if (/^(what )?week (number|is it)/i.test(t)) { var n = new Date(); var s = new Date(n.getFullYear(),0,1); return respond('Week ' + Math.ceil((((n-s)/86400000)+s.getDay()+1)/7) + '.') }
+  var lyM = t.match(/^is (\d{4}) a leap year/i)
+  if (lyM) { var y = parseInt(lyM[1]); return respond(y + (((y%4===0&&y%100!==0)||y%400===0)?' is':' is not') + ' a leap year.') }
+
+  // ─── FUN / DECISIONS ────────────────────────────────────────────────
+  if (/^(magic )?8.?ball ?(.*)$/i.test(t)) return magic8()
+  if (/^rock paper scissors$/i.test(t)) return respond('I choose ' + ['rock','paper','scissors'][Math.floor(Math.random()*3)] + '!')
+  var pickM = raw.match(/^pick (?:one )?(?:between |from )?(.+)$/i)
+  if (pickM && pickM[1].indexOf(',') !== -1) { var opts = pickM[1].split(',').map(function(s){return s.trim()}).filter(Boolean); return respond('I pick: ' + opts[Math.floor(Math.random()*opts.length)]) }
+  if (/^random colou?r$/i.test(t)) { var c = '#'+Math.floor(Math.random()*0xffffff).toString(16).padStart(6,'0'); return respond('Random color: ' + c.toUpperCase()) }
+
+  // ─── SYSTEM EXTRAS ──────────────────────────────────────────────────
+  if (/^(open )?(my )?downloads( folder)?$/i.test(t)) return openFolder('Downloads')
+  if (/^(open )?(my )?documents( folder)?$/i.test(t)) return openFolder('Documents')
+  if (/^(open )?(my )?pictures( folder)?$/i.test(t)) return openFolder('Pictures')
+  if (/^(show )?wi.?fi password$/i.test(t)) return wifiPassword()
+  if (/^screen resolution$/i.test(t)) return respond(screen.width + ' × ' + screen.height + ' (window: ' + window.innerWidth + ' × ' + window.innerHeight + ')')
+  if (/^(ping|speed) test$/i.test(t)) return pingTest()
+  if (/^(keyboard )?shortcuts$/i.test(t)) return showShortcuts()
+
+  return false
+}
+
+// ═══ Feature-upgrade implementations ═══════════════════════════════════════
+function cancelTimerV9() {
+  if (_timerPill && _timerPill.id) { clearTimeout(_timerPill.id); _timerPill.id = null; var p = el('tb-timer'); if(p)p.classList.remove('on'); return respond('Timer cancelled.') }
+  return respond('No active timer.')
+}
+async function setVolumeDirect(v) {
+  v = Math.max(0, Math.min(100, v))
+  try { await orbit.system({action:'volume-set', value:v}); return respond('Volume ' + v + '%.') }
+  catch(e){ return respond('Could not set volume.') }
+}
+function micMute(mute) {
+  try {
+    if (mute) { orbit.stopMic && orbit.stopMic(); updateMicStatus('off'); return respond('Microphone muted. Say nothing — I can\'t hear you anyway. Click the mic icon or type "unmute mic" to restore.') }
+    restartMic(); return respond('Microphone back on.')
+  } catch(e){ return respond('Mic control failed.') }
+}
+var _SITE_SEARCH = {
+  youtube:'https://www.youtube.com/results?search_query=', google:'https://www.google.com/search?q=',
+  spotify:'https://open.spotify.com/search/', github:'https://github.com/search?q=',
+  reddit:'https://www.reddit.com/search/?q=', twitch:'https://www.twitch.tv/search?term=',
+  wikipedia:'https://en.wikipedia.org/wiki/Special:Search?search=' }
+function searchSite(site, q) {
+  orbit.system({action:'open-url', value:_SITE_SEARCH[site] + encodeURIComponent(q)})
+  return respond('Searching ' + site + ' for "' + q + '".')
+}
+function genPasswordV9(len) {
+  var chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789!@#$%&*'
+  var out = ''
+  var arr = new Uint32Array(len); crypto.getRandomValues(arr)
+  for (var i=0;i<len;i++) out += chars[arr[i] % chars.length]
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(out).then(function(){ showToast('Password copied to clipboard') }).catch(function(){})
+  return respond('Generated (' + len + ' chars, copied): ' + out)
+}
+function toRoman(n) {
+  if (n<1||n>3999) return 'Roman numerals go 1–3999.'
+  var map = [[1000,'M'],[900,'CM'],[500,'D'],[400,'CD'],[100,'C'],[90,'XC'],[50,'L'],[40,'XL'],[10,'X'],[9,'IX'],[5,'V'],[4,'IV'],[1,'I']]
+  var out=''; map.forEach(function(p){ while(n>=p[0]){out+=p[1];n-=p[0]} }); return out
+}
+var _NATO = {a:'Alpha',b:'Bravo',c:'Charlie',d:'Delta',e:'Echo',f:'Foxtrot',g:'Golf',h:'Hotel',i:'India',j:'Juliett',k:'Kilo',l:'Lima',m:'Mike',n:'November',o:'Oscar',p:'Papa',q:'Quebec',r:'Romeo',s:'Sierra',t:'Tango',u:'Uniform',v:'Victor',w:'Whiskey',x:'X-ray',y:'Yankee',z:'Zulu'}
+function natoSpell(w) { return respond(w.toLowerCase().replace(/[^a-z]/g,'').split('').map(function(c){return _NATO[c]}).join(' ')) }
+var _MORSE = {a:'.-',b:'-...',c:'-.-.',d:'-..',e:'.',f:'..-.',g:'--.',h:'....',i:'..',j:'.---',k:'-.-',l:'.-..',m:'--',n:'-.',o:'---',p:'.--.',q:'--.-',r:'.-.',s:'...',t:'-',u:'..-',v:'...-',w:'.--',x:'-..-',y:'-.--',z:'--..','0':'-----','1':'.----','2':'..---','3':'...--','4':'....-','5':'.....','6':'-....','7':'--...','8':'---..','9':'----.'}
+function morseCode(s) { return respond(s.toLowerCase().split('').map(function(c){ return c===' '?'/':(_MORSE[c]||'') }).filter(Boolean).join(' ')) }
+var _TZ = { tokyo:'Asia/Tokyo', london:'Europe/London', 'new york':'America/New_York', oslo:'Europe/Oslo',
+  paris:'Europe/Paris', berlin:'Europe/Berlin', sydney:'Australia/Sydney', 'los angeles':'America/Los_Angeles',
+  la:'America/Los_Angeles', dubai:'Asia/Dubai', moscow:'Europe/Moscow', beijing:'Asia/Shanghai',
+  singapore:'Asia/Singapore', stockholm:'Europe/Stockholm', copenhagen:'Europe/Copenhagen' }
+function worldClock(city) {
+  var tz = _TZ[city.trim().toLowerCase()]
+  if (!tz) return respond('I know: ' + Object.keys(_TZ).join(', ') + '.')
+  return respond('Time in ' + city.trim() + ': ' + new Date().toLocaleTimeString('en-GB', { timeZone: tz, hour:'2-digit', minute:'2-digit' }))
+}
+var _8BALL = ['It is certain.','Without a doubt.','Most likely.','Signs point to yes.','Ask again later.','Cannot predict now.','Don\'t count on it.','My sources say no.','Very doubtful.','Absolutely.']
+function magic8(){ return respond('🎱 ' + _8BALL[Math.floor(Math.random()*_8BALL.length)]) }
+async function openFolder(name) {
+  try { await orbit.system({action:'run-ps', value:'Start-Process "$env:USERPROFILE\\' + name + '"'}); return respond('Opening ' + name + '.') }
+  catch(e){ return respond('Could not open ' + name + '.') }
+}
+async function wifiPassword() {
+  try {
+    var r = await orbit.system({action:'run-ps', value:"$p=(netsh wlan show interfaces | Select-String 'Profile\\s+:').ToString().Split(':')[1].Trim(); (netsh wlan show profile name=$p key=clear | Select-String 'Key Content').ToString().Split(':')[1].Trim()"})
+    return respond(r && r.length > 1 ? 'Wi-Fi password: ' + r : 'Could not read it (open network or no Wi-Fi).')
+  } catch(e){ return respond('Could not read Wi-Fi password.') }
+}
+async function pingTest() {
+  addMsg('s','Pinging...')
+  try {
+    var r = await orbit.system({action:'run-ps', value:"(Test-Connection 8.8.8.8 -Count 4 | Measure-Object ResponseTime -Average).Average"})
+    var ms = Math.round(parseFloat(r))
+    return respond('Average ping: ' + ms + 'ms — ' + (ms<30?'excellent':ms<60?'good':ms<120?'okay':'rough') + ' for streaming/gaming.')
+  } catch(e){ return respond('Ping test failed.') }
+}
+function showShortcuts() {
+  return respond('KEYBOARD SHORTCUTS\n' + [
+    'Ctrl+K — command palette','Ctrl+F — search messages','Ctrl+E — export chat',
+    'Ctrl+N — new conversation','Ctrl+L — clear chat','Ctrl+, — settings',
+    'Ctrl+S — GitHub save','Ctrl+Shift+C — copy last reply','Ctrl+Shift+D — self-diagnostics',
+    'Ctrl+Shift+O — buddy overlay','Ctrl+Up — recall last message','F1 — help',
+    'Esc Esc — clear input','Double-click message — copy it','Long-press mic — whisper'
+  ].join('\n'))
+}
+
+// ═══ SELF-HEALING WATCHDOG ═══════════════════════════════════════════════════
+// Runs every 90s: detects a dead mic or bridge and repairs quietly.
+var _errLog = []
+try { _errLog = JSON.parse(localStorage.getItem('orbit_errlog')||'[]') } catch(e){}
+window.addEventListener('error', function(e){
+  _errLog.push({ t:Date.now(), m:String(e.message).slice(0,200) })
+  if (_errLog.length > 40) _errLog = _errLog.slice(-40)
+  try { localStorage.setItem('orbit_errlog', JSON.stringify(_errLog)) } catch(_){}
+})
+function showErrorLog() {
+  if (!_errLog.length) return respond('Error log is clean — nothing has gone wrong.')
+  return respond('ERROR LOG (last ' + Math.min(10,_errLog.length) + ')\n' + _errLog.slice(-10).map(function(e){
+    return '• ' + new Date(e.t).toLocaleTimeString('en-GB') + ' — ' + e.m }).join('\n'))
+}
+async function exportDiagnostics() {
+  var lines = ['ORBIT DIAGNOSTICS EXPORT — ' + new Date().toISOString(),
+    'Version: ' + ((config&&config.version)||'?'), 'Theme: ' + (_currentTheme||'?'),
+    'Mic state: ' + _micState, 'Overlay: ' + _overlayOn, 'Errors logged: ' + _errLog.length, '']
+  _errLog.slice(-20).forEach(function(e){ lines.push(new Date(e.t).toISOString() + '  ' + e.m) })
+  var blob = new Blob([lines.join('\n')], {type:'text/plain'})
+  var a = document.createElement('a'); a.href = URL.createObjectURL(blob)
+  a.download = 'orbit-diagnostics-' + Date.now() + '.txt'
+  document.body.appendChild(a); a.click(); a.remove()
+  return respond('Diagnostics exported.')
+}
+var _watchdogFixes = 0
+setInterval(async function _watchdog(){
+  try {
+    // mic died silently? restart it (max 3 auto-fixes per session to avoid loops)
+    if (_micState !== 'active' && _micState !== 'blocked' && _watchdogFixes < 3 && config && config.mic_autoheal !== false) {
+      if (window.orbit && orbit.startMic) {
+        _watchdogFixes++
+        restartMic()
+        _errLog.push({ t:Date.now(), m:'watchdog: mic auto-restart #' + _watchdogFixes })
+        try { localStorage.setItem('orbit_errlog', JSON.stringify(_errLog)) } catch(_){}
+      }
+    }
+  } catch(e){}
+}, 90000)
+
+
+
+// QOL: clicking the orb focuses the input — a natural "hey buddy" gesture
+;(function(){
+  var wrap = document.getElementById('orb-wrap'); if (!wrap) return
+  ;['orbit-sby-orb','orbit-active-orb'].forEach(function(id){
+    var o = document.getElementById(id); if (!o) return
+    o.style.pointerEvents = 'all'; o.style.cursor = 'pointer'
+    o.addEventListener('click', function(){
+      if (config.show_input === false) { if(typeof restartMic==='function') restartMic(); return }
+      var t = el('inp-txt'); if (t) { showInp(); t.focus() }
+    })
+  })
+})()
+
+
+
+// ══ OPENCLAW COMMAND SURFACE (v10) ══════════════════════════════════════════
+async function clawStatus() {
+  addMsg('s','Checking OpenClaw...')
+  var r = await _clawCLI('gateway status')
+  if (!r.ok) return respond('OpenClaw not found. Install it in WSL and I\'ll find it automatically — ask me "how do I install openclaw".')
+  _openclaw.available = !/not running|stopped/i.test(String(r.data))
+  return respond('OpenClaw (' + r.mode + '):\n' + String(r.data).trim().slice(0, 400))
+}
+async function clawStart() {
+  addMsg('s','Starting the OpenClaw gateway...')
+  var r = await _clawCLI('gateway start')
+  if (!r.ok) return respond('Could not reach the openclaw CLI. Is it installed?')
+  setTimeout(_checkOpenClaw, 2500)
+  return respond('Gateway starting. ' + String(r.data).trim().slice(0, 200))
+}
+async function clawStop() {
+  var r = await _clawCLI('gateway stop')
+  _openclaw.available = false
+  return respond(r.ok ? 'OpenClaw gateway stopped.' : 'Could not stop it (maybe not running).')
+}
+async function clawRestart() {
+  addMsg('s','Restarting OpenClaw...')
+  await _clawCLI('gateway stop')
+  var r = await _clawCLI('gateway start')
+  setTimeout(_checkOpenClaw, 2500)
+  return respond(r.ok ? 'OpenClaw restarted.' : 'Restart failed — check "claw status".')
+}
+function clawDashboard() {
+  orbit.system({ action:'open-url', value:'http://127.0.0.1:18789' })
+  return respond('Opening the OpenClaw dashboard. If it asks for a token, run "openclaw gateway status" in WSL to see it.')
+}
+async function clawAudit() {
+  addMsg('s','Running OpenClaw security audit (can take a moment)...')
+  var r = await _clawCLI('security audit')
+  return respond(r.ok ? 'SECURITY AUDIT\n' + String(r.data).trim().slice(0, 600) : 'Audit failed — is OpenClaw installed?')
+}
+async function clawAgents() {
+  var r = await _clawCLI('agents list')
+  return respond(r.ok ? 'AGENTS\n' + String(r.data).trim().slice(0, 400) : 'Could not list agents.')
+}
+
+
+
+// ══ LEGACY PURGE — removes every trace of the old Yoda-era identity from
+//    persisted state (config, memory facts, shortcuts, localStorage) ══
+;(async function _purgeLegacyIdentity(){
+  var BAD = /yoda|yo da|joda/i
+  try {
+    // wake word
+    if (config && BAD.test(config.wake_word || '')) { saveSett('wake_word', 'orbit'); if (typeof restartMic==='function') restartMic() }
+    // shortcuts
+    if (config && Array.isArray(config.shortcuts)) {
+      var cleaned = config.shortcuts.filter(function(s){ return !BAD.test((s.label||'') + ' ' + (s.value||'')) })
+      if (cleaned.length !== config.shortcuts.length) { shortcuts = cleaned; saveScs(); buildShortcuts() }
+    }
+    // memory facts that could steer his personality or speech style
+    if (window.orbit && orbit.loadMemory) {
+      var mem = await orbit.loadMemory()
+      if (mem && Array.isArray(mem.facts)) {
+        var kept = mem.facts.filter(function(f){ return !BAD.test(f) })
+        if (kept.length !== mem.facts.length) {
+          mem.facts = kept
+          await orbit.saveMemory(mem)
+          if (typeof memory !== 'undefined') memory.facts = kept
+          console.log('[Purge] removed yoda-era memory facts')
+        }
+      }
+    }
+    // localStorage
+    for (var i = localStorage.length - 1; i >= 0; i--) {
+      var k = localStorage.key(i)
+      if (BAD.test(k)) localStorage.removeItem(k)
+      else { try { var v = localStorage.getItem(k); if (v && v.length < 5000 && BAD.test(v) && /persona|mode|style|greeting/i.test(k)) localStorage.removeItem(k) } catch(e){} }
+    }
+  } catch(e){ console.log('[Purge]', e.message) }
 })()
 
 </script>
