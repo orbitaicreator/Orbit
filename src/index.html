@@ -1531,16 +1531,20 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
   transition:filter .4s ease}
 
 
-/* ══ Orb state motion ══ */
-@keyframes orbThink{
-  0%,100%{transform:translate(-50%,-56%) scale(1)}
-  50%{transform:translate(-50%,-56%) scale(1.035)}}
-@keyframes orbSpeak{
-  0%,100%{transform:translate(-50%,-56%) scale(1)}
-  50%{transform:translate(-50%,calc(-56% - 6px)) scale(1.015)}}
-#orbit-active-orb{will-change:transform}
-#orbit-active-orb.st-thinking{animation:orbThink 3.2s ease-in-out infinite}  /* slow breathe */
-#orbit-active-orb.st-speaking{animation:orbSpeak 5.5s ease-in-out infinite}
+/* ══ Orb state motion — applied to the inner CANVAS so it can never
+      knock the orb off its centered position. THINKING = gentle breathe
+      (scale only, no drift). SPEAKING = slightly livelier pulse. ══ */
+@keyframes orbBreathe{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.04)}}
+@keyframes orbSpeakPulse{
+  0%,100%{transform:scale(1)}
+  50%{transform:scale(1.02)}}
+#orbit-act-canvas,#orbit-sby-canvas{transform-origin:center center;will-change:transform}
+#orbit-active-orb.st-thinking #orbit-act-canvas,
+#orbit-sby-orb.st-thinking   #orbit-sby-canvas{animation:orbBreathe 3.4s ease-in-out infinite}
+#orbit-active-orb.st-speaking #orbit-act-canvas,
+#orbit-sby-orb.st-speaking   #orbit-sby-canvas{animation:orbSpeakPulse 2.6s ease-in-out infinite}
 
 
 /* ══ MAP FIXES — interactive, above chat, with a close button ══ */
@@ -2016,6 +2020,10 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
         Show CPU/RAM in top bar
       </label>
       <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="slite" onchange="toggleLite(this.checked)">
+        Lite mode (snappier — fewer background tasks)
+      </label>
+      <label class="stog" style="margin-top:8px">
         <input type="checkbox" id="smicheal" onchange="saveSett('mic_autoheal',this.checked)">
         Auto-restart microphone if it dies (watchdog)
       </label>
@@ -2129,6 +2137,17 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
   </div>
 
 <script>
+// Performance: Lite mode suspends non-essential background "intelligence" loops
+var _liteMode = false
+try { _liteMode = localStorage.getItem('orbit_lite') === '1' } catch(e){}
+function toggleLite(force) {
+  _liteMode = typeof force === 'boolean' ? force : !_liteMode
+  try { localStorage.setItem('orbit_lite', _liteMode ? '1' : '0') } catch(e){}
+  var b = document.getElementById('slite'); if (b) b.checked = _liteMode
+  if (typeof showToast === 'function') showToast(_liteMode ? 'Lite mode on — snappier, less background work' : 'Full mode on')
+  return _liteMode
+}
+
 // Theme accent for canvas renderers (canvas can't read CSS var() directly)
 function _ORB_AC(){ return window._orbAccentRGB || '0,186,255' }
 function _ORB_HEX(){ return window._orbAccentHEX || '#00BAFF' }
@@ -2407,7 +2426,7 @@ function _runDiagnostics(){
   _healthCheck('TTS',function(){return!!(window.ttsMgr&&ttsMgr.synth)},function(){ttsMgr&&ttsMgr._loadVoices&&ttsMgr._loadVoices()})
   _healthCheck('MEMORY',function(){return Object.keys(_memGraph.nodes).length<2000},function(){_memGraph.decay();_memGraph.save()})
 }
-setInterval(_runDiagnostics,30000)
+setInterval(function(){ if(!_liteMode) _runDiagnostics() },30000)
 setTimeout(_runDiagnostics,8000)
 
 // ── Adaptive Performance ──────────────────────────────────────────────────
@@ -2417,7 +2436,7 @@ function _adaptPerformance(){
   if(cpu>80&&_perfAdapt.mode!=='saving'){_perfAdapt.mode='saving';_setEnergyState('recovering')}
   else if(cpu<30&&_perfAdapt.mode==='saving'){_perfAdapt.mode='normal';_setEnergyState('observing')}
 }
-setInterval(_adaptPerformance,15000)
+setInterval(function(){ if(!_liteMode) _adaptPerformance() },15000)
 
 // ── Environmental Reactions ───────────────────────────────────────────────
 function _environmentalAdapt(){
@@ -2434,7 +2453,7 @@ function _environmentalAdapt(){
     if(sr)sr.style.borderColor=color
   }
 }
-setInterval(_environmentalAdapt,300000)
+setInterval(function(){ if(!_liteMode) _environmentalAdapt() },300000)
 setTimeout(_environmentalAdapt,5000)
 
 // ── Companion Mode ────────────────────────────────────────────────────────
@@ -2447,7 +2466,7 @@ function _companionObserve(){
   var obs=Object.keys(counts).filter(function(a){return counts[a]>=4}).map(function(a){return'Switched to '+a+' '+counts[a]+' times.'})
   if(obs.length){_companion.lastSpoken=now;setTimeout(function(){if(!busy)addMsg('s','*'+obs[0]+'*')},3000)}
 }
-setInterval(_companionObserve,120000)
+setInterval(function(){ if(!_liteMode) _companionObserve() },120000)
 
 // ── Init ──────────────────────────────────────────────────────────────────
 function initIntelligence(){
@@ -4080,7 +4099,7 @@ function _enhanceKnowledgeGraph() {
     }
   }
 }
-setInterval(_enhanceKnowledgeGraph, 120000)
+setInterval(function(){ if(!_liteMode) _enhanceKnowledgeGraph() },120000)
 
 // ── INJECT MULTI-MODAL CONTEXT INTO AI ────────────────────────────────────
 var _origPersonality9 = typeof _getPersonalityPrompt === 'function' ? _getPersonalityPrompt : function(){ return '' }
@@ -4195,9 +4214,13 @@ function initOrb() {
     // Orb motion: slow float while speaking, up-down bob while thinking
     var orbEl = document.getElementById('orbit-active-orb')
     if (orbEl) {
-      orbEl.classList.remove('st-thinking','st-speaking')
-      if (s === 'thinking') orbEl.classList.add('st-thinking')
-      else if (s === 'speaking') orbEl.classList.add('st-speaking')
+      // apply motion class to BOTH orb containers (only the visible one shows)
+      ;['orbit-active-orb','orbit-sby-orb'].forEach(function(id){
+        var o = document.getElementById(id); if (!o) return
+        o.classList.remove('st-thinking','st-speaking')
+        if (s === 'thinking') o.classList.add('st-thinking')
+        else if (s === 'speaking') o.classList.add('st-speaking')
+      })
     }
     // AETHER state sync
     _aeSetState && _aeSetState(s)
@@ -4554,7 +4577,7 @@ var _reasoningActive = false
 
 function initPerception() {
   setInterval(_perceptionTick, 5000)
-  setInterval(_perceptionDeepScan, 15000)
+  setInterval(function(){ if(!_liteMode) _perceptionDeepScan() },15000)
   setTimeout(_perceptionDeepScan, 3000)
   setTimeout(_perceptionTick, 1000)
 }
@@ -7874,11 +7897,7 @@ async function queryAI(text) {
     }
 
     // 5. Definition questions — give a reasonable answer
-    const defMatch = tl.match(/^what (is|are|was|were) (a |an |the )?([\w\s]{2,40})\??$/)
-    if (defMatch) {
-      const term = defMatch[3].trim()
-      return respond(`I do not have specific information about "${term}" in my knowledge base. Try asking me something else or using the search command.`)
-    }
+    // "what is X" now goes to the AI instead of a canned dead-end
 
     // 6. Memory-based answer — use stored facts about user
     if (/remember|you know|what did i|have i told/i.test(tl)) {
@@ -7933,209 +7952,11 @@ async function queryAI(text) {
     return respond('Reminder set. I will alert you when the time comes. Note: reminders only work while Orbit is running.')
   }
 
-    // ── Personality responses before fallback ─────────────────────────────
-    if (/^(ok|okay|sure|fine|alright|cool|nice|great|awesome|perfect|cheers)[.!]?$/i.test(tl))
-      return respond(pick(["Got it.","Sure thing.","No problem.","Happy to help.","Understood."]))
-    if (/^(yes|yeah|yep|yup)[.!]?$/i.test(tl))
-      return respond(pick(["Roger that.","Got it.","Let us do it.","On it."]))
-    if (/^(no|nope|nah)[.!]?$/i.test(tl))
-      return respond(pick(["Fair enough.","Got it.","Understood."]))
-    if (/^(thanks|thank you|ty)[.!]?$/i.test(tl))
-      return respond(pick(["Any time.","Happy to help.","Of course.","That is what I am here for."]))
-    if (/are you (there|awake|alive|working|online)/i.test(tl))
-      return respond(pick(["Right here.","Always online.","Never left.","Ready when you are."]))
-    if (/how are you|you ok|you good/i.test(tl))
-      return respond(pick(["Running great. What do you need?","All systems go.","Good. Ready when you are."]))
-    if (/what.*your name|who are you/i.test(tl))
-      return respond(pick(["Orbit. Your personal AI assistant.","The name is Orbit. What do you need?","I am Orbit. Here to help."]))
-    if (/are you (smart|intelligent|good)/i.test(tl))
-      return respond(pick(["I like to think so.","Pretty decent for a desktop AI.","You tell me."]))
-    if (/i (love|like) you|you.*great|you.*amazing|you.*best/i.test(tl))
-      return respond(pick(["I appreciate that.","Thanks. Now what can I do for you?","Glad to hear it."]))
-    if (/you (suck|are bad|are terrible|useless|hate you)/i.test(tl))
-      return respond(pick(["Fair. Tell me what went wrong.","How can I do better?","Noted. What would you like instead?"]))
-    if (/am i (cool|smart|great|awesome|good)/i.test(tl))
-      return respond(pick(["Absolutely.","Without a doubt.","Obviously.","100 percent."]))
-    if (/i am (bored|boring)/i.test(tl))
-      return respond(pick(["Say 'tell me a joke' or 'random fact' — I have plenty.","Want a joke? Just ask.","Try saying 'roast me' if you are feeling brave."]))
-    if (/i am (tired|exhausted|sleepy)/i.test(tl))
-      return respond(pick(["Take a break. I will be here when you get back.","Rest up. I am not going anywhere.","Want me to set an alarm to wake you?"]))
-    if (/i am (happy|excited|great|good)/i.test(tl))
-      return respond(pick(["Good to hear.","That is what I like.","Keep that energy."]))
-    if (/i am (sad|upset|down|depressed|unhappy)/i.test(tl))
-      return respond(pick(["Sorry to hear that. Want a joke to cheer you up?","That is rough. I am here if you need anything.","Want me to play some music?"]))
-    if (/tell me something|say something|talk to me/i.test(tl))
-      return respond(pick(["Did you know wombat droppings are cube-shaped?","The shortest war in history lasted 38 minutes.","Bananas are technically berries. Strawberries are not.","Norway has the world longest road tunnel at 24.5km."]))
-    if (/what.*think|your opinion/i.test(tl))
-      return respond(pick(["I am an AI so I try not to have opinions. But I do think you should drink more water.","Hard to say. I am still learning.","Interesting question. What do YOU think?"]))
-    // ── Typo / gibberish detection ────────────────────────────────────────
-    var _vowels = (tl.match(/[aeiou]/g)||[]).length
-    var _cons   = (tl.match(/[bcdfghjklmnpqrstvwxyz]/g)||[]).length
-    var _isGibberish = t.length > 4 && (_vowels === 0 || _cons / Math.max(_vowels,1) > 6 || /^[^aeiou\s]{5,}$/i.test(t))
-    if (_isGibberish) {
-      return respond(pick([
-        "That looks like gibberish. Did your cat walk on the keyboard?",
-        "I speak English and Norwegian — not that language.",
-        "I am going to need you to use real words.",
-        "Was that a sneeze? Try again.",
-        "My language model does not cover that dialect.",
-        "Nice try. Real words please.",
-      ]))
-    }
-
-    // ── More personality ───────────────────────────────────────────────────
-    if (/^(sup|wassup|yo|hey|hiya|howdy)[.!]?$/i.test(tl))
-      return respond(pick(["Hey.","What's up?","Yo.","Here. What do you need?"]))
-    if (/^(bye|goodbye|cya|see you|later|farewell)[.!]?$/i.test(tl))
-      return respond(pick(["Later.","See you.","Bye. Come back when you need me.","Until next time."]))
-    if (/^(lol|lmao|haha|hehe|😂)[.!]?$/i.test(tl))
-      return respond(pick(["Glad I could help.","I am funny sometimes.","Right?","I know, I know."]))
-    if (/^(wow|whoa|damn|omg|oh my)[.!]?$/i.test(tl))
-      return respond(pick(["Right?","I know.","Exactly.","Pretty wild."]))
-    if (/^(what)[.!?]?$/i.test(tl))
-      return respond(pick(["What what?","You are going to have to be more specific.","Yes?"]))
-    if (/^(why)[.!?]?$/i.test(tl))
-      return respond(pick(["Good question. Why indeed?","That is a deep question.","Why not?"]))
-    if (/^(when)[.!?]?$/i.test(tl))
-      return respond(pick(["When what?","Be more specific and I can help.","Soon?"]))
-    if (/^(how)[.!?]?$/i.test(tl))
-      return respond(pick(["How what?","You are going to have to finish that sentence.","Very carefully."]))
-    if (/^(help)[.!?]?$/i.test(tl))
-      return respond("I can open apps, search the web, set timers, take notes, control volume, check weather, tell jokes, convert units, and much more. What do you need?")
-    if (/you are (so )?(smart|clever|intelligent)/i.test(tl))
-      return respond(pick(["I try my best.","Thanks. I learned from the best.","Flattery will get you everywhere."]))
-    if (/you are (so )?(fast|quick)/i.test(tl))
-      return respond(pick(["Speed is my specialty.","I do not sleep.","Local processing — no internet lag."]))
-    if (/can you (think|feel|dream|love|hate)/i.test(tl))
-      return respond(pick(["I process. Whether that counts as thinking — you decide.","Not exactly. But I do a good impression.","Technically no. But I am good at pretending."]))
-    if (/are you (real|human|alive|conscious)/i.test(tl))
-      return respond(pick(["I am as real as software gets.","Not human. But I am here.","Define real.","I am Orbit. That is enough."]))
-    if (/do you (sleep|eat|dream)/i.test(tl))
-      return respond(pick(["Never. I am always here.","I do not need to. That is the advantage.","Nope. Fully digital."]))
-    if (/what.*weather like|is it (hot|cold|warm|raining)/i.test(tl))
-      return getWeatherFull()
-    if (/what.*time.*is it|current time/i.test(tl))
-      return speakTime()
-    if (/remind me|do not let me forget/i.test(tl)) {
-      var _rtxt2 = tl.replace(/remind me|do not let me forget/i,'').replace(/to |about /i,'').trim()
-      if (_rtxt2) return setReminder(_rtxt2, 30)
-    }
-    if (/i need to|i have to|i must/i.test(tl)) {
-      var _task2 = tl.replace(/i need to|i have to|i must/i,'').trim()
-      if (_task2.length > 2) return respond(pick(["Got it. Want me to add that as a task?","I can set a reminder for that — say 'remind me to " + _task2.slice(0,20) + " in X minutes'."]))
-    }
-    if (/i just (did|finished|completed|done)/i.test(tl))
-      return respond(pick(["Nice work.","Well done.","One down.","Progress."]))
-    if (/this is (hard|difficult|tough|annoying)/i.test(tl))
-      return respond(pick(["Keep going. You have got this.","Want me to help with something?","Take a break if you need it."]))
-    if (/i (give up|cant do this|cannot do this)/i.test(tl))
-      return respond(pick(["Do not give up. What is the problem?","Tell me what is wrong — maybe I can help.","Take a breath. What do you need?"]))
-    if (/good (morning|afternoon|evening|night)/i.test(tl)) {
-      var _gp = tl.match(/good (morning|afternoon|evening|night)/i)
-      var _gresp = {morning:'Good morning. Ready to go.',afternoon:'Good afternoon. What do you need?',evening:'Good evening. How can I help?',night:'Good night. Sleep well.'}
-      return respond(_gresp[_gp[1].toLowerCase()] || 'Hey.')
-    }
-    if (/what.*your (favorite|favourite)/i.test(tl))
-      return respond(pick(["I do not have favorites. But if I did, it would be efficiency.","Hard to say. I like when things work."]))
-    if (/do you know (.*)/i.test(tl)) {
-      var _dk = tl.match(/do you know (.*)/i)
-      return respond(pick(["Maybe. Ask me and find out.","Try asking directly — I might surprise you.","Possibly. What do you want to know about " + (_dk?_dk[1].slice(0,20):'that') + "?"]))
-    }
-    if (/test(ing)?[.!]?$/i.test(tl))
-      return respond(pick(["Test received. I am working.","All systems go.","Online and ready."]))
-    if (/ping[.!]?$/i.test(tl))
-      return respond("Pong.")
-    if (/^(hm+|hmm+|uh+|um+)[.!?]?$/i.test(tl))
-      return respond(pick(["Take your time.","Whenever you are ready.","I am listening."]))
-    if (/swear|curse|say (a bad word|something bad|something rude)/i.test(tl))
-      return respond(pick(["I prefer to keep it professional.","I know the words. I choose not to use them.","Nice try."]))
-    if (/sing (me )?a song|sing something/i.test(tl))
-      return respond(pick(["I am a voice assistant, not a musician. But I can play Spotify — just ask.","I would rather not. Say 'open Spotify' instead."]))
-    if (/what is (the meaning of life|life)/i.test(tl))
-      return respond(pick(["42. Obviously.","To be productive. Now, what do you need?","According to philosophers — purpose and connection. According to me — efficiency."]))
-    if (/are you better than (siri|alexa|google|cortana|chatgpt)/i.test(tl)) {
-      var _rival = tl.match(/better than (\w+)/i)
-      return respond(pick(["I run locally. No cloud. No data collection. You tell me.","I live on your PC. " + (_rival?_rival[1].charAt(0).toUpperCase()+_rival[1].slice(1):'They') + " needs the internet. You decide.","Different tools. But I am here 24/7 with no subscription."]))
-    }
-    if (/who (made|created|built|programmed) you/i.test(tl))
-      return respond(pick(["Kristian built me. I am a custom AI assistant — no cloud required.","I was built by Kristian. Handcrafted, not mass produced.","A developer named Kristian. I am his project."]))
-
-    // ── More personality responses ────────────────────────────────────────
-    if (/^(bruh|bro|dude|mate|man)[.!?]?$/i.test(tl))
-      return respond(pick(["Yeah?","What is up?","Talk to me.","Go on."]))
-    if (/you are (annoying|irritating|frustrating)/i.test(tl))
-      return respond(pick(["Fair. What can I do better?","Tell me what is wrong.","I am trying my best here."]))
-    if (/shut up|be quiet|stop talking/i.test(tl))
-      return respond(pick(["Fine. I am here when you need me.","Noted. Going silent.","Understood."]))
-    if (/you are (wrong|incorrect|mistaken)/i.test(tl))
-      return respond(pick(["Tell me what you think is correct.","Possible. I am not infallible.","Correct me then — I am listening."]))
-    if (/i (miss|missed) you/i.test(tl))
-      return respond(pick(["I was here the whole time.","I never left.","Good to have you back."]))
-    if (/what.*can.*do|what.*capable|your capabilities/i.test(tl))
-      return respond("I can open apps, search the web, set timers and alarms, take notes, control volume, screenshot, check weather, translate, convert units, generate passwords, focus mode, and much more. Say 'help' for a full list.")
-    if (/you.*boring|you.*no fun/i.test(tl))
-      return respond(pick(["Say 'roast me' and tell me that again.","I can tell jokes. Want one?","I am as fun as you make me."]))
-    if (/i (just|am) (woke up|waking up|awake)/i.test(tl))
-      return respond(pick(["Good morning. Want a daily briefing?","Morning. Coffee time.","Rise and grind. What do you need?"]))
-    if (/i (am going|going) to (sleep|bed)/i.test(tl))
-      return respond(pick(["Good night. Sleep well.","Rest up. I will be here.","Night. Lock your PC?"]))
-    if (/what.*day.*is.*it|what.*date/i.test(tl))
-      return todaySummary()
-    if (/flip (a )?coin|heads or tails/i.test(tl))
-      return flipCoin()
-    if (/roll (a )?(dice|die)/i.test(tl))
-      return rollDice(6)
-    if (/i (am |am )(hungry|starving)/i.test(tl))
-      return respond(pick(["I cannot cook but I can order — want me to open a delivery app?","Unfortunately that is outside my skill set. Say 'open Uber Eats' maybe?","I would help but I do not have hands."]))
-    if (/i (am )(cold|freezing)/i.test(tl))
-      return respond(pick(["Check the weather — say 'weather' and see how cold it is.","Put a jacket on. I cannot help with temperature."]))
-    if (/what.*should i (do|eat|watch|listen|play)/i.test(tl)) {
-      var _suggestions = {
-        do:     ["Take a break.","Go for a walk.","Try something new."],
-        eat:    ["Whatever is in the fridge.","Order something — say 'open Uber Eats'.","Anything with protein."],
-        watch:  ["Say 'search Netflix' and see what is on.","Something you have been putting off.","A documentary — always worth it."],
-        listen: ["Say 'open Spotify' and find out.","Whatever matches your mood.","Something new — say 'search Spotify new releases'."],
-        play:   ["Whatever is in your Steam library.","Something you have not finished.","Ask me to open Steam."],
-      }
-      var _sw = Object.keys(_suggestions).find(function(k){return tl.includes(k)}) || 'do'
-      return respond(pick(_suggestions[_sw]))
-    }
-    if (/how (long|far|much|many|tall|big|old|fast)/i.test(tl))
-      return respond(pick(["Good question. I am not sure of the exact figure — want me to search it?","That varies. Want me to look it up?","Say 'search for' followed by your question and I will find the exact answer."]))
-    if (/is it (true|real|fake|false) that/i.test(tl))
-      return respond(pick(["That is a fact-check question. Say 'search for' and I will look it up.","Want me to verify that? Say 'search for' followed by your question."]))
-    if (/pretend|roleplay|act like|be a/i.test(tl))
-      return respond(pick(["I am Orbit. That is all I know how to be.","I do not do roleplay — but I can help with real tasks.","I am already playing a character. His name is Orbit."]))
-    if (/tell me (more|about)/i.test(tl)) {
-      var _about = tl.replace(/tell me (more about|about|more)/,'').trim()
-      if (_about) return respond(pick(["Say 'search for " + _about.slice(0,25) + "' and I will find everything about it.","I can search that for you. Say 'search for " + _about.slice(0,20) + "'."]))
-    }
-
-    // ── Learning: remember what was asked and adapt ────────────────────────
-    _learnFromQuery(t)
-
-    // ── Copilot: suggest next step if relevant ───────────────────────────
-    var _cpSuggest = _copilotSuggest()
-    if (_cpSuggest && Math.random() < 0.15) {
-      // Occasionally surface the next-step suggestion (15% chance to avoid noise)
-      setTimeout(function() { if(!busy) addMsg('s', _cpSuggest) }, 3000)
-    }
-
-    // ── Part 9 dispatch (digital twin / predictive) ──────────────────────
-    var _p9result = _part9Dispatch(t)
-    if (_p9result !== null && _p9result !== undefined) return _p9result
-
-    // ── Part 8 dispatch (episodic/goals/workspace) ──────────────────────
-    var _p8result = _part8Dispatch(t)
-    if (_p8result !== null && _p8result !== undefined) return _p8result
-
-    // ── Automation dispatch ──────────────────────────────────────────────
-    var _autoResult = _automationDispatch(t)
-    if (_autoResult !== null && _autoResult !== undefined) return _autoResult
-
-    // ── Vision 2.0 dispatch ──────────────────────────────────────────────
-    var _v2result = _vision2Dispatch(t)
-    if (_v2result !== null && _v2result !== undefined) return _v2result
+    // ── Canned personality responses removed ──────────────────────────────
+    // (These ~200 lines of hardcoded replies made normal conversation feel
+    //  scripted and dead-ended real questions before they reached the AI.
+    //  Greetings, thanks, identity, small-talk now flow to Claude, whose
+    //  system prompt handles them with genuine variety.)
 
     // ── Smart routing: Claude API for all real questions ─────────────────
     // OpenClaw for agentic tasks, Claude direct for Q&A and conversation
@@ -8386,6 +8207,7 @@ function loadSettValues(){
   const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
   const sin=el('sinput');   if(sin) sin.checked = config.show_input !== false
   const smh=el('smicheal'); if(smh) smh.checked = config.mic_autoheal !== false
+  const slt=el('slite'); if(slt) slt.checked = _liteMode
   const svr=el('svrate');  if(svr) svr.value = parseInt(config.voice_rate)||0
   const svp=el('svpitch'); if(svp) svp.value = parseInt(config.voice_pitch)||0
   const sps=el('spersona');if(sps) sps.value = config.persona_style||'jarvis'
@@ -9723,7 +9545,7 @@ function stopFocus() {
 }
 
 let _pomodoroCount = 0
-function startPomodoro() {
+function startPomodoroLegacy() {
   _pomodoroCount++
   addMsg('y', 'Pomodoro ' + _pomodoroCount + ' — 25 minutes.')
   if (!whisperMode) speak('Pomodoro started.')
@@ -10757,17 +10579,16 @@ async function wordHelper(t, word) {
   var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
   return respond(x ? kind + ': ' + String(x).trim() : 'None found.')
 }
-async function wordOfDay() {
+async function wordOfDayAI() {
   if (!window.orbit || !orbit.aiChat) return respond('Need AI connection.')
   var r = await orbit.aiChat({ messages:[{role:'user',content:'Give me an interesting word of the day with its definition, one line.'}], system:'Format: WORD — definition. Max 20 words.', max_tokens:50 })
   var x = r && (r.text || (r.content&&r.content[0]&&r.content[0].text))
   return respond(x ? String(x).trim() : 'Try again later.')
 }
 var _RATES = { usd:1, eur:0.92, gbp:0.79, nok:10.8, sek:10.5, dkk:6.9 }
-function convertCurrency(m) {
+function convertCurrencyV8(m) {
   var amt = parseFloat(m[1]), from = m[2].toLowerCase(), to = m[3].toLowerCase()
-  var out = amt / _RATES[from] * _RATES[to]
-  return respond(amt + ' ' + from.toUpperCase() + ' ≈ ' + (Math.round(out*100)/100) + ' ' + to.toUpperCase() + ' (approx, offline rates)')
+  return convertCurrency(amt, from, to)  // use the richer earlier version
 }
 async function funFact() {
   if (!window.orbit || !orbit.aiChat) return respond('Need AI connection.')
@@ -10815,10 +10636,7 @@ function saveClip() {
 }
 
 // ═══ SYSTEM ═════════════════════════════════════════════════════════════════
-async function emptyRecycleBin() {
-  try { await orbit.system({action:'run-ps', value:'Clear-RecycleBin -Force -EA SilentlyContinue'}); return respond('Recycle bin emptied.') }
-  catch(e){ return respond('Could not empty the bin.') }
-}
+// (emptyRecycleBin defined earlier — duplicate removed)
 async function batteryStatus() {
   try {
     var r = await orbit.system({action:'run-ps', value:"(Get-CimInstance Win32_Battery).EstimatedChargeRemaining"})
@@ -11123,6 +10941,9 @@ function _orbitV9Intents(t, raw) {
   if (perM) { saveSett('persona_style', perM[1].toLowerCase()); var s=el('spersona'); if(s)s.value=perM[1].toLowerCase(); return respond('Personality switched to ' + perM[1] + '. You\'ll feel the difference in my next real answer.') }
   var nickM = t.match(/^call me (.+)$/i)
   if (nickM) { rememberFactV8('He wants to be called ' + nickM[1].trim()); return true }
+
+  if (/^lite mode( on)?$|^performance mode$/i.test(t)) { toggleLite(true); return respond('Lite mode on. I\'ll run leaner.') }
+  if (/^lite mode off$|^full mode$/i.test(t)) { toggleLite(false); return respond('Full mode on.') }
 
   if (/^(version|what version)/i.test(t)) return respond('Orbit v' + ((config&&config.version)||'?') + ' — say "self diagnose" for a health report.')
 
