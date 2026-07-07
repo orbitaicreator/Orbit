@@ -690,6 +690,30 @@ ipcMain.handle('system', async (_, cmd) => {
         await ps(`Start-Sleep -Milliseconds 250; (New-Object -ComObject WScript.Shell).SendKeys('${txt.replace(/'/g, "''")}')`)
         return `Typed: ${String(cmd.value || '').slice(0, 60)}`
       }
+      case 'key-hold': case 'key-release': {
+        // Real key press/release (SendKeys can't HOLD a key). Uses Win32 keybd_event.
+        const VK = { w:0x57,a:0x41,s:0x53,d:0x44,space:0x20,shift:0x10,ctrl:0x11,
+          e:0x45,q:0x51,r:0x52,f:0x46,tab:0x09,enter:0x0D,up:0x26,down:0x28,left:0x25,right:0x27,
+          '1':0x31,'2':0x32,'3':0x33,'4':0x34,'5':0x35 }
+        const vk = VK[String(cmd.value||'').toLowerCase()]
+        if (!vk) return 'Unknown key.'
+        const flag = cmd.action === 'key-release' ? 0x0002 : 0x0000
+        await ps(`Add-Type @"
+using System;using System.Runtime.InteropServices;
+public class K{[DllImport("user32.dll")]public static extern void keybd_event(byte b,byte s,uint f,int e);}
+"@
+[K]::keybd_event(${vk},0,${flag},0)`)
+        return (cmd.action==='key-hold'?'Holding ':'Released ') + cmd.value
+      }
+      case 'click-at': {
+        // Left-click at the current cursor position (auto-clicker). No move.
+        await ps(`Add-Type @"
+using System;using System.Runtime.InteropServices;
+public class M{[DllImport(""user32.dll"")]public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);}
+"@
+[M]::mouse_event(0x02,0,0,0,0);[M]::mouse_event(0x04,0,0,0,0)`)
+        return 'clicked'
+      }
       case 'press-key': {
         const keys = { enter:'{ENTER}', tab:'{TAB}', escape:'{ESC}', space:' ',
                        backspace:'{BACKSPACE}', delete:'{DELETE}',
