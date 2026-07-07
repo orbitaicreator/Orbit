@@ -1586,6 +1586,11 @@ body.overlay-mode #inp-txt{font-size:12px}
 body.overlay-mode #inp-disclaimer,body.overlay-mode #scroll-down-btn{display:none !important}
 body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
 
+
+/* GitHub UI hidden from the app — the repo tooling in main/git_manager is untouched */
+#git-status-bar,[onclick*="gitSave"],[onclick*="gitPublish"],[onclick*="gitPull"],
+#sett .sg:has(> .sl[data-git]),.sg-github{display:none !important}
+
 </style>
 </head>
 <body>
@@ -2029,6 +2034,12 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
         <input type="checkbox" id="sring" onchange="saveSett('show_ring',this.checked);applyHudPrefs()">
         Glowing ring around the orb
       </label>
+      <label class="sl" style="margin-top:10px">Orb size</label>
+      <input type="range" id="sorbsize" min="280" max="760" step="20" value="560"
+        oninput="setOrbSize(this.value)">
+      <label class="sl" style="margin-top:6px">Particles inside the orb</label>
+      <input type="range" id="sorbdots" min="60" max="800" step="20" value="340"
+        oninput="setOrbDots(this.value)">
     </div>
     <div class="sg">
       <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">CHAT</label>
@@ -2112,22 +2123,7 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
         <button class="sbt" id="theme-custom" onclick="setCustomColor(document.getElementById('custom-color-picker').value)">Apply Custom</button>
       </div>
     </div>
-    <div class="sg">
-      <label class="sl" style="font-size:11px;letter-spacing:1px;color:#888">GITHUB</label>
-      <label class="sl" style="margin-top:8px">Repository URL</label>
-      <input class="si2" id="setting-git-url" placeholder="https://github.com/user/repo.git"
-        onchange="saveGitSettings()">
-      <label class="sl" style="margin-top:6px">Access Token</label>
-      <input class="si2" id="setting-git-token" type="password" placeholder="ghp_..."
-        onchange="saveGitSettings()">
-      <div style="display:flex;gap:6px;margin-top:8px;flex-wrap:wrap">
-        <button class="sbt" onclick="setupGitFromSettings()">Connect</button>
-        <button class="sbt" onclick="gitSave()">Save + Release</button>
-        <button class="sbt" onclick="gitPublish()">Publish</button>
-        <button class="sbt" onclick="gitPull()">Pull</button>
-      </div>
-      <div id="git-status-bar" style="margin-top:6px;font-size:11px;color:var(--tx-dim)"></div>
-    </div>
+    <!-- GitHub settings removed from the UI; repo tooling in main/git_manager untouched -->
     <div style="height:16px"></div>
     </div><!-- /sett-scroll -->
   </div>
@@ -4165,16 +4161,24 @@ function initOrb() {
   var state = 'idle'
   var paused = false
 
-  // Generate particle dots for sphere illusion
-  var N = 340  // denser particle field
-  var dots = Array.from({length: N}, function(_, i) {
-    return {
-      phi:   Math.acos(1 - 2*(i+0.5)/N),
-      theta: Math.PI * (1 + Math.sqrt(5)) * i,
-      r:     1.5 + Math.random() * 2,
-      sp:    0.002 + Math.random() * 0.003,
-    }
-  })
+  // Generate particle dots for sphere illusion — count is user-adjustable
+  var N = parseInt(localStorage.getItem('orbit_dots')) || 340
+  function _buildDots(n) {
+    return Array.from({length: n}, function(_, i) {
+      return {
+        phi:   Math.acos(1 - 2*(i+0.5)/n),
+        theta: Math.PI * (1 + Math.sqrt(5)) * i,
+        r:     1.5 + Math.random() * 2,
+        sp:    0.002 + Math.random() * 0.003,
+      }
+    })
+  }
+  var dots = _buildDots(N)
+  window.setOrbDots = function(n) {
+    N = Math.max(60, Math.min(800, parseInt(n) || 340))
+    dots = _buildDots(N)
+    localStorage.setItem('orbit_dots', N)
+  }
 
   // Chain _setOrb — don't override, extend
   var _initOrbPrev = window._setOrb || function(){}
@@ -4238,8 +4242,9 @@ function initOrb() {
   function draw() {
     if (!paused) {
       frame++
-      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, 560, 560, true)
-      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, 560, 560, false)
+      var _os = window._orbSize || 560
+      if (sbyCx && _orbitMode === 'standby') drawSphere(sbyCx, _os, _os, true)
+      if (actCtx && _orbitMode === 'active') drawSphere(actCtx, _os, _os, false)
     }
     requestAnimationFrame(draw)
   }
@@ -4831,6 +4836,8 @@ class TTSManager {
         // when the 'tts-playing' event confirms audio is actually coming out.
         window._ttsAwaiting = true
         setOrbState('thinking'); setStatus('speaking','thinking')
+        // Guarantee the speaking motion even if the playback event is missed:
+        setTimeout(function(){ if (window._ttsAwaiting) { try { setOrbState('speaking'); setStatus('speaking','speaking') } catch(e){} } }, 2200)
         const voice = (config && config.voice) || 'en-US-AndrewNeural'
         const rate  = (config && config.voice_rate)  || '+0%'
         const pitch = (config && config.voice_pitch) || '+0Hz'
@@ -6622,7 +6629,7 @@ function applyTheme(name) {
 function setCustomColor(hex) {
   _customColor = hex
   localStorage.setItem('orbit_custom_color', hex)
-  _themes.custom = { ac: hex, bg: _mix(hex,'#000000',.93) }
+  _themes.custom = { ac: hex, bg: _mix(hex,'#000000',.88) }  // more visible hue in the background
   applyTheme('custom')
 }
 
@@ -8370,6 +8377,8 @@ function loadSettValues(){
   const sg2=el('sgrid');    if(sg2) sg2.checked = config.show_grid === true
   const swd=el('swidgets'); if(swd) swd.checked = config.show_widgets === true
   const srg=el('sring');    if(srg) srg.checked = config.show_ring !== false
+  const sos=el('sorbsize'); if(sos) sos.value = window._orbSize || 560
+  const sod=el('sorbdots'); if(sod) sod.value = parseInt(localStorage.getItem('orbit_dots'))||340
   const sst=el('sstats');   if(sst) sst.checked = config.show_stats !== false
   const smg=el('smsgs');    if(smg) smg.checked = config.show_messages !== false
   const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
@@ -9250,7 +9259,7 @@ document.addEventListener('keydown',e=>{
   if(e.ctrlKey&&e.key==='b'){toggleSb();e.preventDefault()}
   if(e.ctrlKey&&e.key==='n'){if(typeof newConversation==='function')newConversation();e.preventDefault()}
   if(e.ctrlKey&&e.key===','){settOpen?closeSett():openSett();e.preventDefault()}
-  if(e.ctrlKey&&e.key==='s'){if(typeof gitSave==='function')gitSave();e.preventDefault()}
+  // Ctrl+S GitHub binding removed — GitHub UI hidden per user request
 })
 
 
@@ -10131,9 +10140,6 @@ function _cmdpalActions() {
     })
   }
   // GitHub
-  add('GitHub: Save', 'Ctrl+S', typeof gitSave==='function' ? gitSave : null, 'commit push')
-  add('GitHub: Publish release', '', typeof gitPublish==='function' ? gitPublish : null, 'version deploy')
-  add('GitHub: Pull', '', typeof gitPull==='function' ? gitPull : null, 'update fetch')
   // Danger
   add('Quit Orbit', '', function(){ if (window.orbit) orbit.quit() }, 'exit close')
   return A
@@ -11395,6 +11401,23 @@ async function clawAgents() {
     })
   }
 })()
+
+
+
+// ══ Adjustable orb size ══════════════════════════════════════════════════
+window._orbSize = parseInt(localStorage.getItem('orbit_size')) || 560
+function setOrbSize(px) {
+  px = Math.max(280, Math.min(760, parseInt(px) || 560))
+  window._orbSize = px
+  localStorage.setItem('orbit_size', px)
+  ;['orbit-sby-orb','orbit-active-orb'].forEach(function(id){
+    var o = document.getElementById(id); if (o) { o.style.width = px+'px'; o.style.height = px+'px' }
+  })
+  ;['orbit-sby-canvas','orbit-act-canvas'].forEach(function(id){
+    var c = document.getElementById(id); if (c) { c.width = px; c.height = px }
+  })
+}
+setOrbSize(window._orbSize)  // apply persisted size at boot
 
 </script>
 </body>
