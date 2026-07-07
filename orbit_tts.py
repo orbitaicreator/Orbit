@@ -89,6 +89,7 @@ async def generate_and_play(text, voice, rate='+0%', pitch='+0Hz'):
 
         # Play with pygame
         pygame.mixer.music.load(tmp)
+        print('[TTS] PLAYING', flush=True)  # Orbit's orb waits for this to start moving
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
             time.sleep(0.05)

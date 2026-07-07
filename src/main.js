@@ -48,17 +48,20 @@ const writeJSON = (p, d)      => writeFile(p, JSON.stringify(d, null, 2))
 // FIX: quote-escaping broke on apostrophes/nested quotes and threw
 // "TerminatorExpectedAtEndOfString". -EncodedCommand (base64 UTF-16LE)
 // makes any command string safe — no escaping needed at all.
+const _stripCLIXML = s => String(s || '').replace(/#<\s*CLIXML[\s\S]*?<\/Objs>/g, '').trim()
 const ps        = cmd => new Promise(resolve => {
-  const enc = Buffer.from(cmd, 'utf16le').toString('base64')
+  // $ProgressPreference silences the "Preparing modules for first use" progress
+  // records that PowerShell serializes as CLIXML garbage into the output.
+  const enc = Buffer.from("$ProgressPreference='SilentlyContinue';" + cmd, 'utf16le').toString('base64')
   exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ${enc}`,
-    { windowsHide:true, timeout:8000 }, (_, out) => resolve(out ? out.trim() : ''))
+    { windowsHide:true, timeout:8000 }, (_, out) => resolve(_stripCLIXML(out)))
 })
 // Synchronous variant for the perception handlers — same crash-proof encoding
 const psSync = (cmd, timeout=5000) => {
   const { execSync } = require('child_process')
-  const enc = Buffer.from(cmd, 'utf16le').toString('base64')
-  return execSync(`powershell -NoProfile -NonInteractive -EncodedCommand ${enc}`,
-    { encoding:'utf8', timeout, windowsHide:true }).trim()
+  const enc = Buffer.from("$ProgressPreference='SilentlyContinue';" + cmd, 'utf16le').toString('base64')
+  return _stripCLIXML(execSync(`powershell -NoProfile -NonInteractive -EncodedCommand ${enc}`,
+    { encoding:'utf8', timeout, windowsHide:true }))
 }
 
 // ── Local HTTP server ─────────────────────────────────
@@ -898,6 +901,23 @@ ipcMain.handle('speak', (_, text, voice, rate, pitch) => {
     const next = () => {
       if (t >= pys.length) { resolve('error:no_python'); return }
       const py = pys[t++]
+      // notify the renderer the moment playback actually begins (PLAYING marker)
+      const { spawn } = require('child_process')
+      try {
+        const proc = spawn(py, [script, clean, v, rt, pt], { windowsHide:true, shell:false })
+        let notified = false
+        const watch = d => {
+          if (!notified && String(d).includes('PLAYING')) {
+            notified = true
+            try { if (win) win.webContents.send('tts-playing') } catch(e){}
+          }
+        }
+        proc.stdout.on('data', watch); proc.stderr.on('data', watch)
+        const killT = setTimeout(() => { try { proc.kill() } catch(e){}; resolve('error:timeout') }, 30000)
+        proc.on('close', code => { clearTimeout(killT); resolve(code === 0 ? 'ok' : 'error:' + code) })
+        proc.on('error', () => { clearTimeout(killT); next() })
+        return
+      } catch(e) { next(); return }
       exec(`${py} "${script}" "${clean}" "${v}" "${rt}" "${pt}"`,
         { windowsHide:true, timeout:30000, shell:true },
         err => {

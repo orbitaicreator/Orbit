@@ -1443,6 +1443,9 @@ body.hud-grid #orbit-bracket{display:block !important}
 .ae-grid{display:none !important}
 body.hud-widgets .ae-grid{display:block !important}
 body.hide-stats #tb-stats{display:none !important}
+body.hide-ring #orbit-act-ring-inner,body.hide-ring #orbit-sby-ring,
+body.hide-ring #orbit-sby-ring2{display:none !important;box-shadow:none !important}
+
 .orbit-corner{display:none !important}
 
 /* ══ Centering ══ */
@@ -1521,7 +1524,7 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
 /* ══ Single glowing ring hugging the particle sphere ══ */
 #orbit-act-ring-outer{display:none !important}
 #orbit-act-ring-inner{
-  top:4% !important;left:4% !important;width:92% !important;height:92% !important;
+  top:2.5% !important;left:2.5% !important;width:95% !important;height:95% !important;
   border:2.5px solid var(--orbit-glow) !important;
   box-shadow:0 0 16px var(--orbit-glow),0 0 50px rgba(var(--ac-rgb),.35),
              inset 0 0 30px rgba(var(--ac-rgb),.12) !important;
@@ -1530,14 +1533,14 @@ body.hide-chat #inp-bar.up{bottom:52px}  /* keep input reachable with chat hidde
 
 /* ══ Orb state motion ══ */
 @keyframes orbThink{
-  0%,100%{transform:translate(-50%,-56%)}
-  50%{transform:translate(-50%,calc(-56% + 18px))}}
+  0%,100%{transform:translate(-50%,-56%) scale(1)}
+  50%{transform:translate(-50%,-56%) scale(1.035)}}
 @keyframes orbSpeak{
   0%,100%{transform:translate(-50%,-56%) scale(1)}
-  50%{transform:translate(-50%,calc(-56% - 10px)) scale(1.025)}}
+  50%{transform:translate(-50%,calc(-56% - 6px)) scale(1.015)}}
 #orbit-active-orb{will-change:transform}
-#orbit-active-orb.st-thinking{animation:orbThink 1.6s ease-in-out infinite}
-#orbit-active-orb.st-speaking{animation:orbSpeak 4s ease-in-out infinite}
+#orbit-active-orb.st-thinking{animation:orbThink 3.2s ease-in-out infinite}  /* slow breathe */
+#orbit-active-orb.st-speaking{animation:orbSpeak 5.5s ease-in-out infinite}
 
 
 /* ══ MAP FIXES — interactive, above chat, with a close button ══ */
@@ -2021,6 +2024,10 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
       <label class="stog" style="margin-top:8px">
         <input type="checkbox" id="swidgets" onchange="saveSett('show_widgets',this.checked);applyHudPrefs()">
         Corner info widgets
+      </label>
+      <label class="stog" style="margin-top:8px">
+        <input type="checkbox" id="sring" onchange="saveSett('show_ring',this.checked);applyHudPrefs()">
+        Glowing ring around the orb
       </label>
     </div>
     <div class="sg">
@@ -4159,7 +4166,7 @@ function initOrb() {
   var paused = false
 
   // Generate particle dots for sphere illusion
-  var N = 180
+  var N = 340  // denser particle field
   var dots = Array.from({length: N}, function(_, i) {
     return {
       phi:   Math.acos(1 - 2*(i+0.5)/N),
@@ -4196,10 +4203,10 @@ function initOrb() {
     ctx.clearRect(0, 0, W, H)
     var cx = W/2, cy = H/2
     var R  = small ? W*0.44 : W*0.46
-    var spinSpeed = state==='thinking' ? 0.016 : state==='speaking' ? 0.0055 : state==='listening' ? 0.007 : 0.004  // speaking = slow, calm spin
+    var spinSpeed = state==='thinking' ? 0.008 : state==='speaking' ? 0.0055 : state==='listening' ? 0.007 : 0.004  // calmer thinking  // speaking = slow, calm spin
     var ry = frame * spinSpeed
     var pulseD = state==='thinking' ? 0.2 : state==='speaking' ? 0.15 : 0.07
-    var pls = Math.sin(frame * (state==='thinking'?0.16:0.025)) * pulseD + (1 - pulseD*0.4)
+    var pls = Math.sin(frame * (state==='thinking'?0.05:0.025)) * pulseD + (1 - pulseD*0.4)  // breathe, don't flicker
 
     // Glow
     var g = ctx.createRadialGradient(cx,cy,0,cx,cy,R*1.1)
@@ -4819,17 +4826,23 @@ class TTSManager {
     // browser voice is only an emergency fallback.
     if (window.orbit && orbit.speak && this.edgeOk) {
       try {
-        setOrbState('speaking'); setStatus('speaking','speaking')
+        // FIX: the orb used to start its speaking motion during audio GENERATION
+        // (1-3s before any sound). Now: thinking while generating, speaking only
+        // when the 'tts-playing' event confirms audio is actually coming out.
+        window._ttsAwaiting = true
+        setOrbState('thinking'); setStatus('speaking','thinking')
         const voice = (config && config.voice) || 'en-US-AndrewNeural'
         const rate  = (config && config.voice_rate)  || '+0%'
         const pitch = (config && config.voice_pitch) || '+0Hz'
         const r = await orbit.speak(t, voice, rate, pitch)
+        window._ttsAwaiting = false
         setOrbState('idle'); setStatus('online','idle')
         if (r && String(r).startsWith('error')) throw new Error(r)
         console.log('[TTS] Neural spoke:', t.slice(0,40))
         return
       } catch(e) {
         console.log('[TTS] Neural failed (' + e.message + ') — falling back to browser voice')
+        window._ttsAwaiting = false
         this.edgeOk = false
         setTimeout(() => { this.edgeOk = true }, 120000)  // retry neural after 2 min
         setOrbState('idle'); setStatus('online','idle')
@@ -8345,6 +8358,7 @@ function applyHudPrefs() {
     document.body.classList.toggle('hide-stats',  config.show_stats === false)
     document.body.classList.toggle('hide-chat',   config.show_messages === false)
     document.body.classList.toggle('hide-input',  config.show_input === false)
+    document.body.classList.toggle('hide-ring',   config.show_ring === false)
   } catch(e) {}
 }
 
@@ -8355,6 +8369,7 @@ function loadSettValues(){
   // HUD / interface prefs
   const sg2=el('sgrid');    if(sg2) sg2.checked = config.show_grid === true
   const swd=el('swidgets'); if(swd) swd.checked = config.show_widgets === true
+  const srg=el('sring');    if(srg) srg.checked = config.show_ring !== false
   const sst=el('sstats');   if(sst) sst.checked = config.show_stats !== false
   const smg=el('smsgs');    if(smg) smg.checked = config.show_messages !== false
   const sih=el('sautohide');if(sih) sih.checked = config.input_autohide === true
@@ -11368,6 +11383,17 @@ async function clawAgents() {
       else { try { var v = localStorage.getItem(k); if (v && v.length < 5000 && BAD.test(v) && /persona|mode|style|greeting/i.test(k)) localStorage.removeItem(k) } catch(e){} }
     }
   } catch(e){ console.log('[Purge]', e.message) }
+})()
+
+
+
+// Orb motion starts only when audio truly plays (see main.js tts-playing)
+;(function(){
+  if (window.orbit && orbit.on) {
+    orbit.on('tts-playing', function(){
+      if (window._ttsAwaiting) { try { setOrbState('speaking'); setStatus('speaking','speaking') } catch(e){} }
+    })
+  }
 })()
 
 </script>
