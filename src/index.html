@@ -1595,6 +1595,149 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
 #git-status-bar,[onclick*="gitSave"],[onclick*="gitPublish"],[onclick*="gitPull"],
 #sett .sg:has(> .sl[data-git]),.sg-github{display:none !important}
 
+
+/* ════════════════════════════════════════════════════════════════════════
+   ORBIT — LOOK & FEEL v2 (loaded last; refines type, spacing, motion)
+   ════════════════════════════════════════════════════════════════════════ */
+
+/* ── Typography: a proper modern stack + tuned rendering ── */
+body,button,input,select,textarea{
+  font-family:'Inter','SF Pro Display',-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+  -webkit-font-smoothing:antialiased;text-rendering:optimizeLegibility;
+  letter-spacing:.01em}
+#tb-name{font-weight:700;letter-spacing:.28em}
+
+/* ── Chat: real bubbles with breathing room ── */
+#chat{padding-top:22px !important}
+#chat .u{
+  display:inline-block;max-width:72%;margin:7px 0 7px auto !important;
+  padding:9px 14px !important;border-radius:16px 16px 4px 16px;
+  background:rgba(var(--ac-rgb),.12);color:var(--tx-bright) !important;
+  font-size:13.5px !important;line-height:1.6 !important;
+  box-shadow:0 1px 2px rgba(0,0,0,.15);word-break:break-word}
+#chat .y{
+  display:block;max-width:88%;margin:7px 0 !important;
+  padding:2px 2px !important;font-size:14px !important;line-height:1.7 !important;
+  color:var(--tx-bright) !important;letter-spacing:.005em}
+#chat .s{
+  text-align:center;font-size:11px !important;color:var(--tx-faint) !important;
+  margin:10px auto !important;letter-spacing:.04em;text-transform:none;opacity:.7}
+#chat .u,#chat .y{animation:msgIn .28s cubic-bezier(.22,.9,.32,1)}
+@keyframes msgIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+
+/* ── Top bar: glassy, quieter ── */
+#tbar{
+  background:linear-gradient(180deg,rgba(0,0,0,.28),rgba(0,0,0,.08)) !important;
+  backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid rgba(var(--ac-rgb),.08) !important;height:40px !important}
+.tb-icon-btn{border-radius:9px;transition:background .14s,color .14s,transform .12s}
+.tb-icon-btn:hover{background:rgba(var(--ac-rgb),.12);transform:translateY(-1px)}
+.tb-icon-btn:active{transform:translateY(0) scale(.94)}
+
+/* ── Sidebar & settings: softer cards, better hierarchy ── */
+.sh{
+  font-size:11px !important;font-weight:700 !important;letter-spacing:.16em;
+  text-transform:uppercase;color:var(--ac) !important;
+  padding:16px 18px 12px !important}
+.sg{
+  margin:9px 14px !important;padding:14px 16px !important;
+  background:rgba(255,255,255,.02);border:1px solid rgba(var(--ac-rgb),.07) !important;
+  border-radius:14px !important}
+.sl{font-size:11.5px !important;color:var(--tx-dim) !important;letter-spacing:.02em;
+  margin-bottom:8px !important}
+.si2,.ss{
+  border-radius:10px !important;padding:9px 12px !important;font-size:13px !important;
+  background:rgba(0,0,0,.28) !important;border:1px solid rgba(var(--ac-rgb),.14) !important;
+  transition:border-color .16s,box-shadow .16s}
+.si2:focus,.ss:focus{
+  border-color:var(--ac) !important;
+  box-shadow:0 0 0 3px rgba(var(--ac-rgb),.14) !important;outline:none}
+.sbt{
+  border-radius:10px !important;padding:8px 14px !important;font-size:12.5px !important;
+  font-weight:500;background:rgba(var(--ac-rgb),.09);
+  border:1px solid rgba(var(--ac-rgb),.2) !important;color:var(--tx-bright);
+  transition:all .14s}
+.sbt:hover{background:rgba(var(--ac-rgb),.18) !important;
+  border-color:var(--ac);transform:translateY(-1px)}
+.sbt:active{transform:translateY(0) scale(.97)}
+input[type=range]{accent-color:var(--ac);height:20px;cursor:pointer}
+input[type=checkbox]{accent-color:var(--ac);width:16px;height:16px;cursor:pointer}
+.stog{font-size:12.5px !important;color:var(--tx) !important;
+  display:flex;align-items:center;gap:10px;cursor:pointer;padding:2px 0}
+
+/* ── Sidebar rows ── */
+.sb-conv-item,.sb-feat-btn,.sc-btn{border-radius:10px !important;transition:all .13s}
+.sb-conv-item:hover,.sb-feat-btn:hover{background:rgba(var(--ac-rgb),.08) !important;
+  padding-left:13px !important}
+.sb-conv-item.active{
+  background:rgba(var(--ac-rgb),.14) !important;
+  box-shadow:inset 3px 0 0 var(--ac)}
+
+/* ── Input bar: floaty and inviting ── */
+#inp-bar{
+  border-radius:18px !important;border:1px solid rgba(var(--ac-rgb),.18) !important;
+  background:rgba(15,18,24,.7) !important;backdrop-filter:blur(16px);
+  box-shadow:0 12px 44px rgba(0,0,0,.45) !important;transition:all .2s}
+#inp-bar.up{bottom:56px !important}
+#inp-bar:focus-within{
+  border-color:var(--ac) !important;
+  box-shadow:0 12px 44px rgba(0,0,0,.5),0 0 0 3px rgba(var(--ac-rgb),.14) !important}
+#inp-txt{font-size:14px !important}
+#btn-send{border-radius:12px !important;transition:all .14s}
+#btn-send:hover{transform:translateY(-1px) scale(1.05)}
+
+/* ── Command palette: crisp ── */
+#cmdpal{border-radius:16px !important;backdrop-filter:blur(20px) saturate(1.3);
+  background:rgba(16,20,28,.92) !important;
+  box-shadow:0 24px 64px rgba(0,0,0,.6),0 0 0 1px rgba(var(--ac-rgb),.1) !important}
+.cmdpal-item{border-radius:10px !important;transition:background .1s}
+.cmdpal-item.sel{background:rgba(var(--ac-rgb),.16) !important}
+
+/* ── Toast: refined ── */
+#toast{
+  border-radius:12px !important;backdrop-filter:blur(14px);
+  background:rgba(16,20,28,.92) !important;border:1px solid rgba(var(--ac-rgb),.22) !important;
+  box-shadow:0 8px 28px rgba(0,0,0,.5) !important;font-size:12.5px;
+  animation:toastIn .25s cubic-bezier(.22,.9,.32,1)}
+@keyframes toastIn{from{opacity:0;transform:translateX(-50%) translateY(10px)}
+  to{opacity:1;transform:translateX(-50%) translateY(0)}}
+
+/* ── Scrollbars: minimal ── */
+::-webkit-scrollbar{width:7px;height:7px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:rgba(var(--ac-rgb),.18);border-radius:4px}
+::-webkit-scrollbar-thumb:hover{background:rgba(var(--ac-rgb),.34)}
+
+/* ── Global easing on interactive things ── */
+button,.sb-conv-item,.tb-icon-btn,input,select{transition-timing-function:cubic-bezier(.22,.9,.32,1)}
+::selection{background:rgba(var(--ac-rgb),.28)}
+
+
+/* ── Empty chat: a calm invitation instead of blankness ── */
+#chat:empty::before{
+  content:'Say something, or press Ctrl+K';
+  position:absolute;top:44%;left:0;right:0;text-align:center;
+  color:var(--tx-faint);font-size:13px;letter-spacing:.02em;pointer-events:none;opacity:.55}
+
+/* ── Orb glow: a touch softer and more alive ── */
+#orbit-act-ring-inner{filter:saturate(1.1)}
+
+/* ── Status dot / mic pulse when listening ── */
+#btn-mic.on{color:var(--ac) !important;
+  animation:micPulse 1.4s ease-in-out infinite}
+@keyframes micPulse{0%,100%{opacity:1}50%{opacity:.55}}
+
+/* ── Update pill & profile: rounded, modern ── */
+.sb-update-pill{border-radius:999px !important}
+.sb-profile-row{border-radius:12px !important;transition:background .14s}
+.sb-profile-avatar{
+  background:radial-gradient(circle at 34% 30%,rgba(var(--ac-rgb),.4),rgba(var(--ac-rgb),.08)) !important;
+  box-shadow:0 0 14px rgba(var(--ac-rgb),.28),inset 0 0 8px rgba(var(--ac-rgb),.16) !important}
+
+/* ── Dropdowns animate in ── */
+.sb-dropdown{animation:ddIn .16s cubic-bezier(.22,.9,.32,1)}
+@keyframes ddIn{from{opacity:0;transform:translateY(6px) scale(.98)}to{opacity:1;transform:translateY(0) scale(1)}}
+
 </style>
 </head>
 <body>
@@ -1960,6 +2103,7 @@ body.overlay-mode.hide-chat #orb-wrap{zoom:.5}
         <option value="buddy">Buddy — chill friend</option>
         <option value="minimal">Minimal — pure signal</option>
       </select>
+      <button class="sbt" style="margin-top:8px" onclick="if(ttsMgr)ttsMgr.speak('Voice check. This is how I sound right now.')">Test voice</button>
     </div>
     <div class="sg">
       <label class="sl">Language</label>
@@ -7701,6 +7845,8 @@ async function dispatch(text) {
   if (_v9 !== false) return _v9
   var _game = _orbitGameIntents(t, text)
   if (_game !== false) return _game
+  var _vx = _orbitVoiceExtras(t, text)
+  if (_vx !== false) return _vx
 
   await queryAI(text)
 }
@@ -11448,6 +11594,43 @@ async function comboRun(name) {
 function comboList() {
   var c = _loadCombos(); var names = Object.keys(c)
   return respond(names.length ? 'Combos: ' + names.map(function(n){return n+' ('+c[n].join('+')+')'}).join(', ') : 'No combos yet. Try "combo fireball = down, right, e".')
+}
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  ORBIT VOICE EXTRAS — more genuinely useful spoken commands
+// ════════════════════════════════════════════════════════════════════════════
+function _orbitVoiceExtras(t, raw) {
+  // quick status / life
+  if (/^how are you\??$/i.test(t)) return respond(pick(['Running clean. What do you need?','All systems nominal. You?','Good — ready when you are.']))
+  if (/^good (morning|afternoon|evening|night)$/i.test(t)) { var p=t.match(/morning|afternoon|evening|night/i)[0]; return respond('Good ' + p + '. What\'s first?') }
+  if (/^(thanks|thank you|cheers|nice one)$/i.test(t)) return respond(pick(['Any time.','Sure thing.','Got you.']))
+  if (/^good ?bye$|^see you$|^later$/i.test(t)) return respond(pick(['Later.','Catch you soon.','I\'ll be here.']))
+
+  // window / desktop control
+  if (/^minimi[sz]e( everything| all)?$/i.test(t)) { orbit.system({action:'run-ps',value:"(New-Object -ComObject Shell.Application).MinimizeAll()"}).catch(function(){}); return respond('Minimized everything.') }
+  if (/^show (the )?desktop$/i.test(t)) { orbit.system({action:'run-ps',value:"(New-Object -ComObject Shell.Application).ToggleDesktop()"}).catch(function(){}); return respond('Here\'s your desktop.') }
+  if (/^lock it$|^lock( the)? (pc|computer|screen)$/i.test(t)) { orbit.system({action:'run-ps',value:'rundll32.exe user32.dll,LockWorkStation'}).catch(function(){}); return respond('Locking up.') }
+  if (/^(switch|next) (window|app)$|^alt tab$/i.test(t)) { orbit.system({action:'press-key',value:'tab'}).catch(function(){}); return respond('Switched.') }
+  if (/^close (this|the) (window|tab)$/i.test(t)) { orbit.system({action:'run-ps',value:"$w=New-Object -ComObject WScript.Shell;$w.SendKeys('%{F4}')"}).catch(function(){}); return respond('Closed.') }
+  if (/^copy (this|that)$/i.test(t)) { orbit.system({action:'run-ps',value:"$w=New-Object -ComObject WScript.Shell;$w.SendKeys('^c')"}).catch(function(){}); return respond('Copied.') }
+  if (/^paste (this|that|it)$/i.test(t)) { orbit.system({action:'run-ps',value:"$w=New-Object -ComObject WScript.Shell;$w.SendKeys('^v')"}).catch(function(){}); return respond('Pasted.') }
+  if (/^select all$/i.test(t)) { orbit.system({action:'run-ps',value:"$w=New-Object -ComObject WScript.Shell;$w.SendKeys('^a')"}).catch(function(){}); return respond('Selected all.') }
+  if (/^undo (that|it)?$/i.test(t)) { orbit.system({action:'run-ps',value:"$w=New-Object -ComObject WScript.Shell;$w.SendKeys('^z')"}).catch(function(){}); return respond('Undone.') }
+
+  // quick info
+  if (/^what day is it\??$/i.test(t)) return respond('It\'s ' + new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long'}) + '.')
+  if (/^how much (ram|memory)/i.test(t)) return topProcesses()
+  if (/^am i online\??$|^do i have internet\??$/i.test(t)) { orbit.system({action:'check-internet'}).then(function(r){ respond(String(r).includes('true')?'Yes, you\'re online.':'No connection detected.') }); return true }
+
+  // productivity quickies
+  if (/^what should i do\??$|^i'?m bored$/i.test(t)) return respond(pick(['Knock out one task — say "show my tasks".','Take a screenshot of something cool.','Ask me for a fun fact.','Start a focus session and get one thing done.']))
+  if (/^focus$/i.test(t)) return startPomodoro('25 min')
+  if (/^break$/i.test(t)) return startBreak()
+  if (/^clear my head$|^brain dump$/i.test(t)) return respond('Say "scratchpad" followed by whatever\'s on your mind — I\'ll hold it.')
+
+  return false
 }
 
 </script>
