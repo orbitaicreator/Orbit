@@ -53,7 +53,7 @@ echo  OK
 :: Bump version
 echo  [4/5] Releasing...
 
-:: Bump MINOR version: 1.0.0 → 1.1.0 → 1.2.0 ... 1.10.0 → 1.11.0
+:: Bump PATCH version: 1.0.0 -> 1.0.1 -> 1.0.2 ... 1.0.10 -> 1.0.11
 echo const fs=require('fs'); > "%TEMP%\orbit_bump.js"
 echo const p=JSON.parse(fs.readFileSync(process.cwd()+'/package.json','utf8')); >> "%TEMP%\orbit_bump.js"
 echo const a=p.version.split('.').map(Number); >> "%TEMP%\orbit_bump.js"
@@ -69,12 +69,13 @@ echo  Version: !NEW_VER!
 git rm -r --cached installer/ >nul 2>&1
 git rm -r --cached node_modules/ >nul 2>&1
 git rm -r --cached dist/ >nul 2>&1
+git rm -r --cached backups/ >nul 2>&1
 git rm -r --cached vosk-model-small-en-us/ >nul 2>&1
 git rm -r --cached vosk-model-small-en-us-0.15/ >nul 2>&1
 
 :: Git push
-:: Write credentials file directly
-echo https://orbitaicreator:!GH_TOKEN!@github.com>> "%USERPROFILE%\.git-credentials"
+:: Write credentials file directly (overwrite - the old >> appended a duplicate line every run)
+echo https://orbitaicreator:!GH_TOKEN!@github.com> "%USERPROFILE%\.git-credentials"
 git config --global credential.helper store >nul 2>&1
 git remote set-url origin "https://orbitaicreator:!GH_TOKEN!@github.com/orbitaicreator/Orbit.git" >nul 2>&1
 git add -A
