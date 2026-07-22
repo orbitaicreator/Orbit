@@ -1,6 +1,6 @@
 {
   "name": "orbit",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Orbit AI Assistant",
   "main": "main.js",
   "scripts": {
@@ -36,12 +36,16 @@
       "runAfterFinish": false
     },
     "files": [
-      "main.js",
-      "preload.js",
-      "index.html",
-      "git_manager.js",
-      "package.json",
-      "assets/**/*",
+      "**/*",
+      "!installer/**",
+      "!dist/**",
+      "!backups/**",
+      "!vosk-model*/**",
+      "!__pycache__/**",
+      "!*.bat",
+      "!*.log",
+      "!*.zip",
+      "!*.bak*",
       "!node_modules/**/*.{map,md,ts,flow,txt,log}",
       "!node_modules/**/test{,s}/**",
       "!node_modules/**/__test{,s}__/**",
@@ -76,10 +80,8 @@
     "afterPack": null
   },
   "dependencies": {
-    "@anthropic-ai/sdk": "^0.20.0",
     "electron-log": "^5.1.0",
-    "electron-updater": "^6.3.0",
-    "jsdom": "^29.1.1"
+    "electron-updater": "^6.3.0"
   },
   "devDependencies": {
     "electron": "42.0.1",
