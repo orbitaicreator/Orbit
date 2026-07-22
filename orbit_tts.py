@@ -42,16 +42,15 @@ except Exception as e:
     print(f'[TTS] pygame init failed: {e}')
     sys.exit(1)
 
-# Voice map — natural neural voices
-VOICES = {
-    'en-GB-RyanNeural':        'en-GB-RyanNeural',
-    'en-GB-ThomasNeural':      'en-GB-ThomasNeural',
-    'en-US-GuyNeural':         'en-US-GuyNeural',
-    'en-US-ChristopherNeural': 'en-US-ChristopherNeural',
-    'nb-NO-FinnNeural':        'nb-NO-FinnNeural',
-    'de-DE-ConradNeural':      'de-DE-ConradNeural',
-    'fr-FR-HenriNeural':       'fr-FR-HenriNeural',
-}
+# Voice validation — accept any well-formed edge-tts neural voice name
+# (the old hardcoded whitelist silently swapped Andrew/Brian for Ryan)
+import re as _re
+_VOICE_PATTERN = _re.compile(r'^[a-z]{2,3}-[A-Z]{2}-[A-Za-z]+(Neural|MultilingualNeural)$')
+DEFAULT_VOICE  = 'en-US-AndrewNeural'
+
+def resolve_voice(name):
+    name = (name or '').strip()
+    return name if _VOICE_PATTERN.match(name) else DEFAULT_VOICE
 
 def clean(text):
     """Strip markdown, URLs, code blocks before speaking"""
@@ -72,7 +71,7 @@ async def generate_and_play(text, voice, rate='+0%', pitch='+0Hz'):
     fd, tmp = tempfile.mkstemp(suffix='.mp3')
     os.close(fd)
     try:
-        # Generate with edge-tts (rate/pitch adjustable from Orbit settings)
+        # Generate with edge-tts
         communicate = edge_tts.Communicate(
             text=text,
             voice=voice,
@@ -89,7 +88,6 @@ async def generate_and_play(text, voice, rate='+0%', pitch='+0Hz'):
 
         # Play with pygame
         pygame.mixer.music.load(tmp)
-        print('[TTS] PLAYING', flush=True)  # Orbit's orb waits for this to start moving
         pygame.mixer.music.play()
         while pygame.mixer.music.get_busy():
             time.sleep(0.05)
@@ -104,10 +102,10 @@ async def generate_and_play(text, voice, rate='+0%', pitch='+0Hz'):
 
 if __name__ == '__main__':
     text  = sys.argv[1] if len(sys.argv) > 1 else 'Orbit online.'
-    voice = sys.argv[2] if len(sys.argv) > 2 else 'en-GB-RyanNeural'
+    voice = sys.argv[2] if len(sys.argv) > 2 else DEFAULT_VOICE
 
-    # Use known voice or default
-    voice = VOICES.get(voice, 'en-GB-RyanNeural')
+    # Validate voice name pattern, fall back to default
+    voice = resolve_voice(voice)
     text  = clean(text)
 
     if not text:

@@ -8,7 +8,10 @@ const os        = require('os')
 class GitManager {
   constructor(mainWindow) {
     this.mainWindow = mainWindow
-    this.repoPath   = path.join(__dirname, '..')
+    // Repo root = wherever package.json lives (flat layout or src/ layout)
+    this.repoPath = fs.existsSync(path.join(__dirname, 'package.json'))
+      ? __dirname
+      : path.join(__dirname, '..')
   }
 
   // Always reload config fresh

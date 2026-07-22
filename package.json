@@ -1,8 +1,8 @@
 {
   "name": "orbit",
-  "version": "1.0.35",
+  "version": "1.0.1",
   "description": "Orbit AI Assistant",
-  "main": "src/main.js",
+  "main": "main.js",
   "scripts": {
     "start": "electron .",
     "build": "electron-builder --win --x64",
@@ -36,9 +36,12 @@
       "runAfterFinish": false
     },
     "files": [
-      "src/**/*",
-      "assets/**/*",
+      "main.js",
+      "preload.js",
+      "index.html",
+      "git_manager.js",
       "package.json",
+      "assets/**/*",
       "!node_modules/**/*.{map,md,ts,flow,txt,log}",
       "!node_modules/**/test{,s}/**",
       "!node_modules/**/__test{,s}__/**",
@@ -75,11 +78,13 @@
   "dependencies": {
     "@anthropic-ai/sdk": "^0.20.0",
     "electron-log": "^5.1.0",
-    "electron-updater": "^6.3.0"
+    "electron-updater": "^6.3.0",
+    "jsdom": "^29.1.1"
   },
   "devDependencies": {
-    "electron": "^42.0.1",
+    "electron": "42.0.1",
     "electron-builder": "^26.8.1"
   },
-  "author": "Kristian Relbe-Moe"
+  "author": "Kristian",
+  "license": "ISC"
 }

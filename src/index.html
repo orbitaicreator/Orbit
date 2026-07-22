@@ -2297,6 +2297,9 @@ function _ORB_AC(){ return window._orbAccentRGB || '0,186,255' }
 function _ORB_HEX(){ return window._orbAccentHEX || '#00BAFF' }
 
 
+// ── Boot timestamp — used by emotion engine + session recorder ──────────
+var _aeBoot = Date.now()
+
 // ── Orbit Virtual Mouse helpers ─────────────────────────────────────────
 function vm_send(cmd) { try { if (window.vm) vm.send(cmd) } catch {} }
 
@@ -2318,6 +2321,17 @@ function vmClick(x, y)          { vm_send(`CLICK ${x} ${y}`) }
 function vmMove(x, y, dur=0.4)  { vm_send(`MOVE ${x} ${y} ${dur}`) }
 function vmType(text)            { vm_send(`TYPE ${text}`) }
 function vmKey(key)              { vm_send(`KEY ${key}`) }
+function vmShow()                { vm_send('SHOW') }
+function vmHide()                { vm_send('HIDE') }
+function vmState(s)              { vm_send(`STATE ${s}`) }
+// Cosmetic cursor animation while an app opens in the background
+function vmOpenApp(appName) {
+  try {
+    vmShow(); vmState('thinking')
+    vmMove(POS.start[0], POS.start[1], 0.5)
+    setTimeout(() => { vmState('idle'); vmHide() }, 2500)
+  } catch(e) {}
+}
 
 
 
@@ -2442,7 +2456,7 @@ function newConversation() {
 
 // ── DOM helper — defined first ────────────────────────
 const _els = {}
-function clearElCache(id) { if(id) delete _els[id]; else { _els={}; console.log("[Cache] cleared") } }
+function clearElCache(id) { if(id) delete _els[id]; else { for(const k in _els) delete _els[k]; console.log("[Cache] cleared") } }
 const el = id => {
   // Always re-look if not cached — never cache null
   if (!_els[id]) {
@@ -2566,7 +2580,7 @@ function _healthCheck(sys,testFn,healFn){
 }
 function _runDiagnostics(){
   _healthCheck('IPC',function(){return!!(window.orbit&&orbit.system)},null)
-  _healthCheck('BUSY',function(){return!busy||(Date.now()-(_busyAt||Date.now()))<12000},function(){busy=false;hideTyping&&hideTyping();window._setOrb&&_setOrb('idle')})
+  _healthCheck('BUSY',function(){return!busy||(Date.now()-(window._busyAt||Date.now()))<12000},function(){busy=false;hideTyping&&hideTyping();window._setOrb&&window._setOrb('idle')})
   _healthCheck('TTS',function(){return!!(window.ttsMgr&&ttsMgr.synth)},function(){ttsMgr&&ttsMgr._loadVoices&&ttsMgr._loadVoices()})
   _healthCheck('MEMORY',function(){return Object.keys(_memGraph.nodes).length<2000},function(){_memGraph.decay();_memGraph.save()})
 }
@@ -5598,10 +5612,11 @@ document.addEventListener('keydown',function(e){
   if(e.ctrlKey && e.key==='-') adjustFontSize(-1)
 })
 
-// QOL 6: Auto-save chat to localStorage every 30s
-setInterval(function(){
+// QOL 6: Auto-save chat to localStorage (also called throttled from addMsg)
+function saveChatLog(){
   try{localStorage.setItem('orbit_chat_backup',JSON.stringify(chatLog.slice(-50)))}catch(e){}
-}, 30000)
+}
+setInterval(saveChatLog, 30000)
 
 // QOL 7: Show typing indicator when thinking
 function showTyping(){
@@ -6917,7 +6932,6 @@ async function dispatch(text) {
     'sok etter':'search for','fokusmode':'focus mode','start fokus':'focus mode',
     'vits':'tell me a joke','motiver meg':'motivate me',
     'apne innstillinger':'open settings','avslutt orbit':'quit orbit',
-    'apne':'open','lukk':'close','stopp':'stop','hei':'hello',
     // Numbers
     'won':'one','fore':'four','ate':'eight',
     // Tech
@@ -6931,7 +6945,7 @@ async function dispatch(text) {
     'set a timer':'set timer','set alarm for':'set alarm',
     'take a note':'take note','read my notes':'read notes',
     'read my to do list':'read todo','add to my to do list':'add todo',
-    'power shell':'powershell','note pad plus plus':'notepad++',
+    'note pad plus plus':'notepad++',
     'whisper mode on':'whisper mode on','whisper mode off':'whisper mode off',
     'conversation mode':'conversation mode','screen capture':'screenshot',
     'turn off display':'turn off display','shut off display':'turn off display',
@@ -7130,7 +7144,6 @@ async function dispatch(text) {
     'spotify':'Spotify','discord':'Discord','steam':'Steam',
     'chrome':'Google Chrome','google chrome':'Google Chrome',
     'brave':'brave','brave browser':'brave','opera':'opera','opera gx':'opera',
-    'edge':'msedge','microsoft edge':'msedge','firefox':'firefox',
     'firefox':'Firefox','edge':'Microsoft Edge',
     'microsoft edge':'Microsoft Edge',
     'vscode':'Visual Studio Code','vs code':'Visual Studio Code',
@@ -7845,6 +7858,12 @@ async function dispatch(text) {
   if (_v9 !== false) return _v9
   var _game = _orbitGameIntents(t, text)
   if (_game !== false) return _game
+
+  // ── Voice shortcuts: say a shortcut's name to run it ──
+  var _vsc = _matchVoiceShortcut(t)
+  if (_vsc) return _vsc
+  var _vpi = _voicePhraseIntent(t, text)
+  if (_vpi !== false) return _vpi
   var _vx = _orbitVoiceExtras(t, text)
   if (_vx !== false) return _vx
 
@@ -7992,6 +8011,7 @@ async function queryAI(text) {
   // Always reset busy first, then set it
   busy = false
   busy = true
+  window._busyAt = Date.now()
   setStatus('thinking...','thinking')
   try { showTyping() } catch(e) {}
 
@@ -9197,26 +9217,7 @@ async function vmFillInput(text) {
   setTimeout(() => vmState('idle'), 1000)
 }
 // ── KEYBOARD ──────────────────────────────────────────
-// Taskbar hover trigger
-if (false) {
-  let tbHideTimer = null
-  const showTb = () => {
-    clearTimeout(tbHideTimer)
-    tbBar.style.transform = 'translate(-50%,0)'
-  }
-  const hideTb = () => {
-    tbHideTimer = setTimeout(() => {
-      tbBar.style.transform = 'translate(-50%,200%)'
-    }, 400)
-  }
-  tbTrigger.addEventListener('mouseenter', showTb)
-  // Also restore taskbar position for pill shape
-  tbBar.style.left='50%'
-  tbBar.style.transform='translate(-50%,200%)'
-  tbTrigger.addEventListener('mouseleave', hideTb)
-  tbBar.addEventListener('mouseenter', showTb)
-  tbBar.addEventListener('mouseleave', hideTb)
-}
+// Taskbar hover trigger — removed (dead code referencing missing tbBar)
 
 // Sidebar is always visible — no hover zone needed
 
@@ -10071,6 +10072,7 @@ function _cmdpalActions() {
   add('Anti-AFK', '', typeof startAntiAFK==='function' ? startAntiAFK : null, 'game idle kick prevent')
   add('List macros', '', typeof macroList==='function' ? macroList : null, 'game record replay')
   add('List combos', '', typeof comboList==='function' ? comboList : null, 'game fighting sequence')
+  add('My voice shortcuts', '', function(){ ask('list phrases') }, 'voice phrase custom say trigger')
   add('Wi-Fi password', '', typeof wifiPassword==='function' ? wifiPassword : null, 'network key')
   add('OpenClaw: status', '', typeof clawStatus==='function' ? clawStatus : null, 'agent gateway claw')
   add('OpenClaw: start gateway', '', typeof clawStart==='function' ? clawStart : null, 'agent claw boot')
@@ -11165,13 +11167,13 @@ function micMute(mute) {
     restartMic(); return respond('Microphone back on.')
   } catch(e){ return respond('Mic control failed.') }
 }
-var _SITE_SEARCH = {
+var _SITE_SEARCH_URLS = {
   youtube:'https://www.youtube.com/results?search_query=', google:'https://www.google.com/search?q=',
   spotify:'https://open.spotify.com/search/', github:'https://github.com/search?q=',
   reddit:'https://www.reddit.com/search/?q=', twitch:'https://www.twitch.tv/search?term=',
   wikipedia:'https://en.wikipedia.org/wiki/Special:Search?search=' }
 function searchSite(site, q) {
-  orbit.system({action:'open-url', value:_SITE_SEARCH[site] + encodeURIComponent(q)})
+  orbit.system({action:'open-url', value:(_SITE_SEARCH_URLS[site]||_SITE_SEARCH_URLS.google) + encodeURIComponent(q)})
   return respond('Searching ' + site + ' for "' + q + '".')
 }
 function genPasswordV9(len) {
@@ -11630,6 +11632,71 @@ function _orbitVoiceExtras(t, raw) {
   if (/^break$/i.test(t)) return startBreak()
   if (/^clear my head$|^brain dump$/i.test(t)) return respond('Say "scratchpad" followed by whatever\'s on your mind — I\'ll hold it.')
 
+  return false
+}
+
+
+
+// ════════════════════════════════════════════════════════════════════════════
+//  VOICE SHORTCUTS — say a shortcut's name to trigger it, plus custom phrases
+// ════════════════════════════════════════════════════════════════════════════
+
+// 1. Match spoken text against the user's saved sidebar shortcuts (fuzzy).
+function _matchVoiceShortcut(t) {
+  try {
+    if (!window.shortcuts || !shortcuts.length) {
+      // fall through to custom voice phrases even if no sidebar shortcuts
+    } else {
+      var tl = t.trim().toLowerCase()
+      for (var i = 0; i < shortcuts.length; i++) {
+        var name = (shortcuts[i].label || '').trim().toLowerCase()
+        if (!name) continue
+        // "open browser", "run spotify", "launch calculator", or just the name
+        if (tl === name || tl === 'open ' + name || tl === 'run ' + name ||
+            tl === 'launch ' + name || tl === 'start ' + name || tl === 'do ' + name) {
+          runSc(shortcuts[i])
+          return respond('Running ' + shortcuts[i].label + '.')
+        }
+      }
+    }
+    // 2. Custom voice phrases the user defined ("when I say X do Y")
+    var vp = _loadVoicePhrases()
+    var tl2 = t.trim().toLowerCase()
+    for (var p in vp) {
+      if (tl2 === p || tl2 === p + ' please') {
+        ask(vp[p], true)   // run the mapped command as a step
+        return true
+      }
+    }
+  } catch(e) {}
+  return null
+}
+
+function _loadVoicePhrases(){ try { return JSON.parse(localStorage.getItem('orbit_voice_phrases')||'{}') } catch(e){ return {} } }
+function _saveVoicePhrases(v){ try { localStorage.setItem('orbit_voice_phrases', JSON.stringify(v)) } catch(e){} }
+
+// "when I say goodnight do lock the pc"  /  "make <phrase> do <command>"
+function _voicePhraseIntent(t, raw) {
+  var m = raw.match(/^(?:when i say|make(?: the phrase)?|create shortcut) ["']?(.+?)["']? (?:do|run|means?|to) ["']?(.+?)["']?$/i)
+  if (m) {
+    var phrase = m[1].trim().toLowerCase(), cmd = m[2].trim()
+    var vp = _loadVoicePhrases(); vp[phrase] = cmd; _saveVoicePhrases(vp)
+    return respond('Done. Now when you say "' + phrase + '", I\'ll ' + cmd + '.')
+  }
+  if (/^(list|show) (my )?(voice )?(phrases|shortcuts?)$/i.test(t)) {
+    var vp2 = _loadVoicePhrases(); var keys = Object.keys(vp2)
+    var scNames = (window.shortcuts||[]).map(function(s){return s.label}).filter(Boolean)
+    var out = []
+    if (scNames.length) out.push('Sidebar shortcuts (say the name): ' + scNames.join(', '))
+    if (keys.length) out.push('Voice phrases: ' + keys.map(function(k){return '"'+k+'" → '+vp2[k]}).join('; '))
+    return respond(out.length ? out.join('\n') : 'No shortcuts yet. Try "when I say goodnight do lock the pc".')
+  }
+  var d = t.match(/^(?:delete|remove) (?:voice )?phrase ["']?(.+?)["']?$/i)
+  if (d) {
+    var vp3 = _loadVoicePhrases(); var k = d[1].trim().toLowerCase()
+    if (vp3[k]) { delete vp3[k]; _saveVoicePhrases(vp3); return respond('Removed "' + k + '".') }
+    return respond('No phrase called "' + k + '".')
+  }
   return false
 }
 

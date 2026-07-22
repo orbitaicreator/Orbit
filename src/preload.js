@@ -28,7 +28,7 @@ contextBridge.exposeInMainWorld('orbit', {
     browserTabs:   ()  => ipcRenderer.invoke('perception-browser-tabs'),
   },
   openClawCli: cmd    => ipcRenderer.invoke('openclaw-cli', cmd),
-  speak:      (t,v)    => ipcRenderer.invoke('speak', t, v),
+  speak:      (t,v,r,p)=> ipcRenderer.invoke('speak', t, v, r, p),
   startMic:   (w,l)    => ipcRenderer.invoke('start-mic', w, l),
   setOverlay: on       => ipcRenderer.invoke('set-overlay', on),
   stopMic:    ()       => ipcRenderer.invoke('stop-mic'),
@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('git', {
   init:      url         => ipcRenderer.invoke('git-init', url),
   setRemote: (url, tok)  => ipcRenderer.invoke('git-set-remote', url, tok),
   update:    ()          => ipcRenderer.invoke('git-update'),
+  checkForUpdates: ()    => ipcRenderer.invoke('git-check-updates'),
   onEvent:   cb          => ipcRenderer.on('git-event', (_, data) => cb(data)),
   onUpdateAvailable: cb  => ipcRenderer.on('update-available', (_, data) => cb(data)),
 })

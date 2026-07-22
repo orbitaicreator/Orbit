@@ -11,7 +11,11 @@ def ensure(pkg, pip_name=None):
 ensure("vosk"); ensure("sounddevice"); ensure("numpy")
 
 WAKE_WORD  = (sys.argv[1] if len(sys.argv)>1 else "orbit").lower().strip()
-SCRIPT_DIR = sys.argv[2] if len(sys.argv)>2 else os.path.dirname(os.path.abspath(__file__))
+# main.js passes: wake_word, lang, script_dir  ->  argv[1], argv[2], argv[3]
+# (older builds passed the dir as argv[2]; accept either, but only if it's a real path)
+LANG       = sys.argv[2] if len(sys.argv)>2 else "en-US"
+_dir_arg   = sys.argv[3] if len(sys.argv)>3 else (sys.argv[2] if len(sys.argv)>2 else "")
+SCRIPT_DIR = _dir_arg if _dir_arg and os.path.isdir(_dir_arg) else os.path.dirname(os.path.abspath(__file__))
 
 # All the ways Vosk mishears "orbit" — checked BEFORE normalization
 # CLEANED: legacy wake variants removed — they caused
@@ -103,19 +107,145 @@ def _dirs():
 import difflib
 
 KNOWN_COMMANDS = [
-    "diagnostics report", "daily briefing", "system stats", "system report",
-    "take a screenshot", "analyze my screen", "what time is it", "weather",
-    "set a timer", "set a timer for five minutes", "set a timer for ten minutes",
-    "start focus mode", "stop focus mode", "start pomodoro",
-    "new conversation", "clear chat", "export chat", "open settings",
-    "lock the pc", "go to sleep", "volume up", "volume down", "mute",
-    "next track", "previous track", "pause music", "play music",
-    "take a note", "show my notes", "add a task", "show my tasks",
-    "whisper mode", "stop talking", "repeat that", "help",
-    "open youtube", "open spotify", "open discord", "open chrome",
-    "open explorer", "open notepad", "open vscode", "check internet",
-    "battery status", "good morning", "good night", "who are you",
+    "what time is it",
+    "what's the date",
+    "weather",
+    "system stats",
+    "top processes",
+    "battery status",
+    "check internet",
+    "network info",
+    "show my ip",
+    "ping test",
+    "take a screenshot",
+    "analyze my screen",
+    "lock the pc",
+    "go to sleep",
+    "restart the pc",
+    "volume up",
+    "volume down",
+    "mute",
+    "volume fifty",
+    "next track",
+    "previous track",
+    "pause music",
+    "play music",
+    "what's playing",
+    "set a timer for five minutes",
+    "set a timer for ten minutes",
+    "cancel timer",
+    "tea timer",
+    "pizza timer",
+    "egg timer",
+    "start focus mode",
+    "end focus",
+    "start pomodoro",
+    "take a break",
+    "remind me",
+    "list reminders",
+    "posture check",
+    "new conversation",
+    "clear chat",
+    "export chat",
+    "summarize this chat",
+    "open settings",
+    "self diagnose",
+    "diagnostics report",
+    "export diagnostics",
+    "error log",
+    "daily brief",
+    "who are you",
+    "what can you do",
+    "help",
+    "shortcuts",
+    "version",
+    "open youtube",
+    "open spotify",
+    "open discord",
+    "open chrome",
+    "open brave",
+    "open notepad",
+    "open downloads",
+    "open documents",
+    "open pictures",
+    "open explorer",
+    "search youtube for",
+    "search google for",
+    "take a note",
+    "show my notes",
+    "add a task",
+    "show my tasks",
+    "remember that",
+    "what do you know about me",
+    "forget everything",
+    "whisper mode",
+    "stop talking",
+    "repeat that",
+    "speak slower",
+    "speak faster",
+    "translate",
+    "word of the day",
+    "fun fact",
+    "tell me a joke",
+    "motivate me",
+    "flip a coin",
+    "roll a dice",
+    "magic eight ball",
+    "rock paper scissors",
+    "random color",
+    "generate password",
+    "new uuid",
+    "spell",
+    "word count",
+    "clean temp files",
+    "empty recycle bin",
+    "clear clipboard",
+    "read my clipboard",
+    "caffeine on",
+    "caffeine off",
+    "uptime",
+    "screen resolution",
+    "wifi password",
+    "buddy mode",
+    "normal mode",
+    "lite mode",
+    "full mode",
+    "personality buddy",
+    "claw status",
+    "start openclaw",
+    "claw dashboard",
+    "claw agents",
+    "claw audit",
+    "recording checklist",
+    "stream stats",
+    "streamer mode",
+    "go live checklist",
+    "auto click",
+    "stop clicking",
+    "anti afk",
+    "hold w",
+    "release all",
+    "record macro",
+    "stop recording",
+    "run macro",
+    "list macros",
+    "stop macro",
+    "list combos",
+    "time in tokyo",
+    "time in london",
+    "days until christmas",
+    "week number",
+    "calculate",
+    "convert",
+    "tip for",
+    "random number",
+    "map of oslo",
+    "close map",
+    "where am i",
+    "good morning",
+    "good night",
 ]
+KNOWN_SET = set(KNOWN_COMMANDS)
 
 def snap_command(cmd):
     # exact or prefix hits pass straight through
@@ -126,7 +256,7 @@ def snap_command(cmd):
     first = cmd.split()[0] if cmd.split() else ""
     if first in ("open","play","search","google","type","write","say","remind"):
         return cmd
-    m = difflib.get_close_matches(cmd, KNOWN_COMMANDS, n=1, cutoff=0.75)
+    m = difflib.get_close_matches(cmd, KNOWN_COMMANDS, n=1, cutoff=0.68)
     if m:
         sys.stderr.write(f"[Mic] snapped {cmd!r} -> {m[0]!r}\n")
         sys.stderr.flush()
@@ -174,6 +304,8 @@ def run():
     vosk.SetLogLevel(-1)
     model = vosk.Model(model_path)
     rec   = vosk.KaldiRecognizer(model, 16000)
+    try: rec.SetMaxAlternatives(3)   # N-best: gives us 3 guesses to pick the best from
+    except Exception: pass
     try:
         dev = sd.query_devices(kind="input")
         sys.stderr.write(f"[Mic] Input: {dev['name']}\n")
@@ -209,9 +341,21 @@ def run():
                 continue
             if not rec.AcceptWaveform(data): continue
             result = json.loads(rec.Result())
-            raw    = result.get("text","").strip()
+            # N-best: choose the alternative that best matches a known command
+            alts = result.get("alternatives")
+            if alts:
+                raw  = (alts[0].get("text") or "").strip()
+                conf = alts[0].get("confidence", 1.0)
+                # if a lower-ranked guess snaps cleanly to a command, prefer it
+                best_snap = snap_command(normalize(raw)) if raw else ""
+                for a in alts[1:]:
+                    at = normalize((a.get("text") or "").strip())
+                    if at and at in KNOWN_SET:
+                        raw = a.get("text").strip(); best_snap = at; break
+            else:
+                raw  = result.get("text","").strip()
+                conf = confidence(result)
             if not raw: continue
-            conf = confidence(result)
             sys.stderr.write(f"[Mic] raw={raw!r} conf={conf:.2f}\n")
             sys.stderr.flush()
             if not wake_active:

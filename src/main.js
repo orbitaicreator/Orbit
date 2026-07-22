@@ -45,18 +45,12 @@ const readFile  = (p, fb='')  => { try { return fs.existsSync(p) ? fs.readFileSy
 const writeFile = (p, d)      => { try { fs.writeFileSync(p, d, 'utf8'); return true } catch { return false } }
 const readJSON  = (p, fb={})  => { try { const t = readFile(p); return t ? JSON.parse(t) : fb } catch { return fb } }
 const writeJSON = (p, d)      => writeFile(p, JSON.stringify(d, null, 2))
-// FIX: quote-escaping broke on apostrophes/nested quotes and threw
-// "TerminatorExpectedAtEndOfString". -EncodedCommand (base64 UTF-16LE)
-// makes any command string safe — no escaping needed at all.
 const _stripCLIXML = s => String(s || '').replace(/#<\s*CLIXML[\s\S]*?<\/Objs>/g, '').trim()
 const ps        = cmd => new Promise(resolve => {
-  // $ProgressPreference silences the "Preparing modules for first use" progress
-  // records that PowerShell serializes as CLIXML garbage into the output.
   const enc = Buffer.from("$ProgressPreference='SilentlyContinue';" + cmd, 'utf16le').toString('base64')
   exec(`powershell -NoProfile -NonInteractive -WindowStyle Hidden -EncodedCommand ${enc}`,
     { windowsHide:true, timeout:8000 }, (_, out) => resolve(_stripCLIXML(out)))
 })
-// Synchronous variant for the perception handlers — same crash-proof encoding
 const psSync = (cmd, timeout=5000) => {
   const { execSync } = require('child_process')
   const enc = Buffer.from("$ProgressPreference='SilentlyContinue';" + cmd, 'utf16le').toString('base64')
@@ -72,7 +66,9 @@ let localServer = null
 function startLocalServer() {
   return new Promise(resolve => {
     const handler = (req, res) => {
-      let filePath = path.join(__dirname, req.url === '/' ? 'index.html' : req.url)
+      let urlPath = req.url.split('?')[0]
+      try { urlPath = decodeURIComponent(urlPath) } catch {}
+      let filePath = path.join(__dirname, urlPath === '/' ? 'index.html' : urlPath)
       if (!filePath.startsWith(__dirname)) { res.writeHead(403); res.end(); return }
       fs.readFile(filePath, (err, data) => {
         if (err) { res.writeHead(404); res.end(); return }
@@ -121,12 +117,26 @@ function findPythonScript(name) {
   return found || null
 }
 
+let micStopRequested = false
+
+function killProcTree(proc) {
+  // With shell-less spawn, kill() reaches python directly; taskkill /T catches any children
+  if (!proc) return
+  try {
+    if (process.platform === 'win32' && proc.pid)
+      cp.exec(`taskkill /PID ${proc.pid} /T /F`, { windowsHide: true })
+    else proc.kill('SIGTERM')
+  } catch {}
+}
+
 function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
   // Kill existing process first
   if (micProcess) {
-    try { micProcess.kill() } catch {}
+    micStopRequested = true
+    killProcTree(micProcess)
     micProcess = null
   }
+  micStopRequested = false
 
   const script = findPythonScript('orbit_mic.py')
   if (!script) { console.log('[Mic] orbit_mic.py not found'); return }
@@ -138,12 +148,10 @@ function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
     if (tried >= pythons.length) { console.log('[Mic] No Python found'); return }
     const py = pythons[tried++]
 
-    // Build full command string so spaces in paths are handled correctly
+    // spawn without shell — args with spaces are handled safely, and kill() works
     const scriptDir = path.dirname(script)
-    const cmd = py + ' "' + script + '" ' + wakeWord + ' ' + lang + ' "' + scriptDir + '"'
-    const proc = cp.spawn(cmd, [], {
+    const proc = cp.spawn(py, [script, wakeWord, lang, scriptDir], {
       windowsHide: true,
-      shell: true,
     })
 
     proc.on('error', e => {
@@ -173,13 +181,10 @@ function startPythonMic(wakeWord = 'orbit', lang = 'en-US') {
     proc.on('exit', (code, signal) => {
       console.log(`[Mic] exited code=${code} signal=${signal}`)
       micProcess = null
-      // FIX: with shell:true a missing interpreter never fires ENOENT —
-      // Windows exits with 9009 ("not recognized"), Unix with 127.
-      // Try the next Python instead of restart-looping the same one forever.
-      if (code === 9009 || code === 127) { tryNext(); return }
       // Auto-restart after 3s ONLY if not deliberately killed
-      if (signal !== 'SIGTERM' && signal !== 'SIGKILL') {
-        setTimeout(() => { if (win && micProcess === null) startPythonMic(wakeWord, lang) }, 3000)
+      // (on Windows, taskkill reports signal=null — use the explicit flag instead)
+      if (!micStopRequested && signal !== 'SIGTERM' && signal !== 'SIGKILL') {
+        setTimeout(() => { if (win && micProcess === null && !micStopRequested) startPythonMic(wakeWord, lang) }, 3000)
       }
     })
 
@@ -204,8 +209,7 @@ function startVirtualMouse() {
   function tryNext() {
     if (tried >= pythons.length) { console.log('[Mouse] No Python found'); return }
     const py = pythons[tried++]
-    const mouseCmd = py + ' "' + script + '"'
-    const proc = cp.spawn(mouseCmd, [], { windowsHide: true, shell: true })
+    const proc = cp.spawn(py, [script], { windowsHide: true })
     mouseProcess = proc
 
     proc.on('error', e => { if (e.code === 'ENOENT') tryNext() })
@@ -236,8 +240,6 @@ function startVirtualMouse() {
     proc.on('exit', (code) => {
       mouseReady = false; mouseProcess = null
       console.log('[Mouse] exited code=' + code)
-      // FIX: same shell:true issue — try next Python if interpreter missing
-      if (code === 9009 || code === 127) tryNext()
     })
 
     mouseProcess = proc
@@ -258,9 +260,7 @@ ipcMain.handle('mouse-send', (_, cmd) => {
   return mouseReady
 })
 
-// FIX: sendCursor() never existed — this would throw a ReferenceError
-// in the main process. Cursor commands now route to the virtual mouse.
-ipcMain.on('cursor-cmd', (_, cmd) => sendMouse(cmd))
+ipcMain.on('cursor-cmd', (_, cmd) => sendMouse(cmd))  // cursor commands route to the virtual mouse
 
 // ── Window ────────────────────────────────────────────
 let win  = null
@@ -329,9 +329,17 @@ function createWindow() {
   })
 }
 
+function getAppVersion() {
+  try { return app.getVersion() } catch {}
+  for (const p of ['./package.json', '../package.json']) {
+    try { return require(p).version } catch {}
+  }
+  return '0.0.0'
+}
+
 function checkVersionOnGitHub() {
   try {
-    const cur = require('../package.json').version
+    const cur = getAppVersion()
     https.get('https://raw.githubusercontent.com/orbitaicreator/orbit/main/package.json',
       { headers: { 'User-Agent': 'OrbitApp' } }, res => {
         let d = ''
@@ -352,7 +360,7 @@ function buildAppMenu() {
     { label:'Orbit', submenu:[
       { label:'Settings', accelerator:'CmdOrCtrl+,', click:()=>win&&win.webContents.send('nav','settings') },
       { type:'separator' },
-      { label:'Quit', accelerator:'CmdOrCtrl+Q', click:()=>app.exit(0) }
+      { label:'Quit', accelerator:'CmdOrCtrl+Q', click:()=>cleanupAndExit() }
     ]},
     { label:'View', submenu:[
       { label:'Toggle Sidebar', accelerator:'CmdOrCtrl+B', click:()=>win&&win.webContents.send('nav','toggle-sidebar') },
@@ -380,7 +388,7 @@ function createTray() {
       { label:'Open Orbit', click: showWin },
       { label:'Settings',  click: () => { showWin(); win.webContents.send('nav','settings') } },
       { type:'separator' },
-      { label:'Quit',      click: () => app.exit(0) },
+      { label:'Quit',      click: () => cleanupAndExit() },
     ]))
     tray.on('double-click', showWin)
   } catch(e) { console.log('[Tray]', e.message) }
@@ -408,6 +416,21 @@ function setupUpdaterEvents() {
 }
 
 // ── App lifecycle ─────────────────────────────────────
+// Only one Orbit at a time — a second launch focuses the existing window
+if (!app.requestSingleInstanceLock()) {
+  app.exit(0)
+}
+app.on('second-instance', () => showWin())
+
+function cleanupAndExit() {
+  try { globalShortcut.unregisterAll() } catch {}
+  try { if (localServer) localServer.close() } catch {}
+  micStopRequested = true
+  if (micProcess)   { killProcTree(micProcess);   micProcess = null }
+  if (mouseProcess) { try { sendMouse('QUIT') } catch {}; killProcTree(mouseProcess); mouseProcess = null }
+  app.exit(0)
+}
+
 app.whenReady().then(async () => {
   await startLocalServer()
   createWindow()
@@ -421,8 +444,9 @@ app.on('window-all-closed', () => {})
 app.on('will-quit', () => {
   globalShortcut.unregisterAll()
   if (localServer) localServer.close()
-  if (micProcess)  { try { micProcess.kill('SIGTERM') } catch {} }
-  if (mouseProcess)  { try { sendMouse('QUIT'); mouseProcess.kill('SIGTERM') } catch {} }
+  micStopRequested = true
+  if (micProcess)   { killProcTree(micProcess) }
+  if (mouseProcess) { try { sendMouse('QUIT') } catch {}; killProcTree(mouseProcess) }
 })
 
 
@@ -440,7 +464,7 @@ ipcMain.handle('save-key',    (_,k) => writeFile(KEY_FILES[0], k.trim()))
 ipcMain.handle('load-config', () => {
   const cfg = readJSON(CONFIG_FILE)
   // Inject current version so renderer can show it
-  try { cfg.version = require('../package.json').version } catch{}
+  cfg.version = getAppVersion()
   return cfg
 })
 ipcMain.handle('save-config', (_,d) => { const c=readJSON(CONFIG_FILE); Object.assign(c,d); return writeJSON(CONFIG_FILE,c) })
@@ -452,14 +476,15 @@ ipcMain.handle('log-crash',   (_,m) => { try{fs.appendFileSync(CRASH_FILE,`\n[${
 ipcMain.handle('show-window', ()    => showWin())
 ipcMain.handle('hide-window', ()    => win && win.hide())
 ipcMain.handle('minimize',    ()    => win && win.minimize())
-ipcMain.handle('quit',        ()    => app.exit(0))
+ipcMain.handle('quit',        ()    => cleanupAndExit())
 
 // ── IPC: Mic ──────────────────────────────────────────
 ipcMain.handle('start-mic', (_, wakeWord, lang) => {
   startPythonMic(wakeWord || 'orbit', lang || 'en-US')
 })
 ipcMain.handle('stop-mic', () => {
-  if (micProcess) { try { micProcess.kill('SIGTERM') } catch {} micProcess = null }
+  micStopRequested = true
+  if (micProcess) { killProcTree(micProcess); micProcess = null }
 })
 
 // ── IPC: Git ──────────────────────────────────────────
@@ -471,31 +496,26 @@ ipcMain.handle('git-history',    ()         => gitManager ? gitManager.getHistor
 ipcMain.handle('git-init',       (_, url)   => gitManager ? gitManager.init(url)          : { success:false })
 ipcMain.handle('git-set-remote', (_,url,tok)=> gitManager ? gitManager.setRemote(url,tok) : { success:false })
 ipcMain.handle('git-update',     ()         => gitManager ? gitManager.update()           : { success:false })
+ipcMain.handle('git-check-updates', ()      => gitManager ? gitManager.checkForUpdates()  : { hasUpdates:false })
 
 // ── IPC: System commands ──────────────────────────────
 
-// ── AI API handler (bypasses CORS) ──────────────────────────────────────
-// FIX: loadApiKey() was never defined — every ai-chat call threw
-// "loadApiKey is not defined" and Orbit silently fell back to canned replies.
-function loadApiKey() {
-  for (const f of KEY_FILES) {
-    const k = readFile(f).trim()
-    if (k) return k
-  }
+// Read the API key from disk (same logic as the 'load-key' IPC handler)
+async function loadApiKey() {
+  for (const f of KEY_FILES) { const k = readFile(f).trim(); if (k) return k }
   return null
 }
 
-ipcMain.handle('ai-chat', async (_, { messages, system, max_tokens }) => {
+// ── AI API handler (bypasses CORS) ──────────────────────────────────────
+ipcMain.handle('ai-chat', async (_, { messages, system }) => {
   try {
-    const apiKey = loadApiKey()
+    const apiKey = await loadApiKey()
     if (!apiKey) return { error: 'no_key' }
 
     const https = require('https')
-    // FIX: renderer sends max_tokens (perf modes) but it was hardcoded to 200
-    const tokens = Math.max(50, Math.min(1024, parseInt(max_tokens) || 300))
     const body  = JSON.stringify({
       model: 'claude-haiku-4-5-20251001',
-      max_tokens: tokens,
+      max_tokens: 512,
       system: system || '',
       messages: messages || []
     })
@@ -523,7 +543,7 @@ ipcMain.handle('ai-chat', async (_, { messages, system, max_tokens }) => {
         })
       })
       req.on('error', e => resolve({ error: e.message }))
-      req.setTimeout(10000, () => { req.destroy(); resolve({ error: 'timeout' }) })
+      req.setTimeout(30000, () => { req.destroy(); resolve({ error: 'timeout' }) })
       req.write(body)
       req.end()
     })
@@ -593,11 +613,18 @@ ipcMain.handle('openclaw-cli', async (_, command) => {
 
 // ══ PERCEPTION ENGINE — Desktop awareness IPC handlers ════════════════════
 
-// Active window + foreground process
+// Active window + foreground process — uses the real foreground window handle
 ipcMain.handle('perception-active-window', async () => {
   try {
-    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
-    const result = psSync(`$w = Get-Process | Where-Object {$_.MainWindowHandle -ne 0 -and $_.MainWindowTitle -ne ''} | Sort-Object CPU -Descending | Select-Object -First 1; [PSCustomObject]@{Name=$w.ProcessName;Title=$w.MainWindowTitle;CPU=[math]::Round($w.CPU,1);Id=$w.Id} | ConvertTo-Json`, 3000)
+    const result = await ps(`
+Add-Type @"
+using System;using System.Runtime.InteropServices;
+public class FG{[DllImport("user32.dll")]public static extern IntPtr GetForegroundWindow();
+[DllImport("user32.dll")]public static extern uint GetWindowThreadProcessId(IntPtr h,out uint pid);}
+"@
+$h=[FG]::GetForegroundWindow();$fpid=0;[FG]::GetWindowThreadProcessId($h,[ref]$fpid)|Out-Null
+$w=Get-Process -Id $fpid -EA SilentlyContinue
+[PSCustomObject]@{Name=$w.ProcessName;Title=$w.MainWindowTitle;CPU=[math]::Round($w.CPU,1);Id=$w.Id}|ConvertTo-Json -Compress`)
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -605,8 +632,10 @@ ipcMain.handle('perception-active-window', async () => {
 // Full process list with window titles
 ipcMain.handle('perception-processes', async () => {
   try {
-    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
-    const result = psSync(`Get-Process | Where-Object {$_.MainWindowTitle -ne ''} | Select-Object ProcessName,MainWindowTitle,@{N='CPU';E={[math]::Round($_.CPU,1)}} | ConvertTo-Json -Compress`, 5000)
+    const result = await ps(
+      "Get-Process | Where-Object {$_.MainWindowTitle -ne ''} | " +
+      "Select-Object ProcessName,MainWindowTitle,@{N='CPU';E={[math]::Round($_.CPU,1)}} | " +
+      "ConvertTo-Json -Compress")
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -614,8 +643,14 @@ ipcMain.handle('perception-processes', async () => {
 // System performance snapshot
 ipcMain.handle('perception-system', async () => {
   try {
-    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
-    const result = psSync(`$cpu = (Get-CimInstance Win32_Processor | Measure-Object -Property LoadPercentage -Average).Average; $ram = Get-CimInstance Win32_OperatingSystem; $disk = Get-PSDrive C; [PSCustomObject]@{CPU=[math]::Round($cpu,0);RAMUsed=[math]::Round(($ram.TotalVisibleMemorySize-$ram.FreePhysicalMemory)/1MB,1);RAMTotal=[math]::Round($ram.TotalVisibleMemorySize/1MB,1);DiskFree=[math]::Round($disk.Free/1GB,1);DiskTotal=[math]::Round(($disk.Free+$disk.Used)/1GB,1)} | ConvertTo-Json`, 5000)
+    const result = await ps(
+      "$cpu=(Get-CimInstance Win32_Processor|Measure-Object -Property LoadPercentage -Average).Average;" +
+      "$ram=Get-CimInstance Win32_OperatingSystem;$disk=Get-PSDrive C;" +
+      "[PSCustomObject]@{CPU=[math]::Round($cpu,0);" +
+      "RAMUsed=[math]::Round(($ram.TotalVisibleMemorySize-$ram.FreePhysicalMemory)/1MB,1);" +
+      "RAMTotal=[math]::Round($ram.TotalVisibleMemorySize/1MB,1);" +
+      "DiskFree=[math]::Round($disk.Free/1GB,1);" +
+      "DiskTotal=[math]::Round(($disk.Free+$disk.Used)/1GB,1)}|ConvertTo-Json -Compress")
     return { ok: true, data: JSON.parse(result) }
   } catch(e) { return { ok: false, error: e.message } }
 })
@@ -645,8 +680,9 @@ ipcMain.handle('perception-clipboard', async () => {
 // Browser tabs via PowerShell window titles
 ipcMain.handle('perception-browser-tabs', async () => {
   try {
-    // FIX: quote-escaping crashed with TerminatorExpectedAtEndOfString — EncodedCommand is immune
-    const result = psSync(`Get-Process | Where-Object {$_.ProcessName -match 'chrome|firefox|edge|zen|brave' -and $_.MainWindowTitle -ne ''} | Select-Object -ExpandProperty MainWindowTitle | ConvertTo-Json -Compress`, 3000)
+    const result = await ps(
+      "Get-Process | Where-Object {$_.ProcessName -match 'chrome|firefox|edge|zen|brave' -and $_.MainWindowTitle -ne ''} | " +
+      "Select-Object -ExpandProperty MainWindowTitle | ConvertTo-Json -Compress")
     const tabs = JSON.parse(result)
     return { ok: true, data: Array.isArray(tabs) ? tabs : [tabs] }
   } catch(e) { return { ok: false, error: e.message } }
@@ -683,18 +719,19 @@ ipcMain.handle('system', async (_, cmd) => {
         return 'Opening.'
       }
       case 'type-text': {
-        // Types into whatever app is focused — used by compound commands
-        // like "open notepad and write hello". SendKeys special chars escaped.
-        const txt = String(cmd.value || '').slice(0, 500)
-          .replace(/([+^%~(){}\[\]])/g, '{$1}')
+        const txt = String(cmd.value || '').slice(0, 500).replace(/([+^%~(){}\[\]])/g, '{$1}')
         await ps(`Start-Sleep -Milliseconds 250; (New-Object -ComObject WScript.Shell).SendKeys('${txt.replace(/'/g, "''")}')`)
         return `Typed: ${String(cmd.value || '').slice(0, 60)}`
       }
+      case 'press-key': {
+        const keys = { enter:'{ENTER}', tab:'{TAB}', escape:'{ESC}', space:' ', backspace:'{BACKSPACE}', delete:'{DELETE}', up:'{UP}', down:'{DOWN}', left:'{LEFT}', right:'{RIGHT}' }
+        const k = keys[String(cmd.value || '').toLowerCase()]
+        if (!k) return 'Unknown key.'
+        await ps(`Start-Sleep -Milliseconds 150; (New-Object -ComObject WScript.Shell).SendKeys('${k}')`)
+        return `Pressed ${cmd.value}.`
+      }
       case 'key-hold': case 'key-release': {
-        // Real key press/release (SendKeys can't HOLD a key). Uses Win32 keybd_event.
-        const VK = { w:0x57,a:0x41,s:0x53,d:0x44,space:0x20,shift:0x10,ctrl:0x11,
-          e:0x45,q:0x51,r:0x52,f:0x46,tab:0x09,enter:0x0D,up:0x26,down:0x28,left:0x25,right:0x27,
-          '1':0x31,'2':0x32,'3':0x33,'4':0x34,'5':0x35 }
+        const VK = { w:0x57,a:0x41,s:0x53,d:0x44,space:0x20,shift:0x10,ctrl:0x11,e:0x45,q:0x51,r:0x52,f:0x46,tab:0x09,enter:0x0D,up:0x26,down:0x28,left:0x25,right:0x27,'1':0x31,'2':0x32,'3':0x33,'4':0x34,'5':0x35 }
         const vk = VK[String(cmd.value||'').toLowerCase()]
         if (!vk) return 'Unknown key.'
         const flag = cmd.action === 'key-release' ? 0x0002 : 0x0000
@@ -706,22 +743,12 @@ public class K{[DllImport("user32.dll")]public static extern void keybd_event(by
         return (cmd.action==='key-hold'?'Holding ':'Released ') + cmd.value
       }
       case 'click-at': {
-        // Left-click at the current cursor position (auto-clicker). No move.
         await ps(`Add-Type @"
 using System;using System.Runtime.InteropServices;
-public class M{[DllImport(""user32.dll"")]public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);}
+public class M{[DllImport("user32.dll")]public static extern void mouse_event(uint f,uint x,uint y,uint d,int e);}
 "@
 [M]::mouse_event(0x02,0,0,0,0);[M]::mouse_event(0x04,0,0,0,0)`)
         return 'clicked'
-      }
-      case 'press-key': {
-        const keys = { enter:'{ENTER}', tab:'{TAB}', escape:'{ESC}', space:' ',
-                       backspace:'{BACKSPACE}', delete:'{DELETE}',
-                       up:'{UP}', down:'{DOWN}', left:'{LEFT}', right:'{RIGHT}' }
-        const k = keys[String(cmd.value || '').toLowerCase()]
-        if (!k) return 'Unknown key.'
-        await ps(`Start-Sleep -Milliseconds 150; (New-Object -ComObject WScript.Shell).SendKeys('${k}')`)
-        return `Pressed ${cmd.value}.`
       }
       case 'run-ps':   return await ps(cmd.value || 'echo ok')
       case 'check-internet':
@@ -749,31 +776,9 @@ public class M{[DllImport(""user32.dll"")]public static extern void mouse_event(
         await ps(`$w=New-Object -ComObject WScript.Shell;for($i=0;$i-lt50;$i++){$w.SendKeys([char]174)};for($i=0;$i-lt${Math.floor(v/2)};$i++){$w.SendKeys([char]175)}`)
         return `Volume ${v}%.`
       }
-      case 'focus-app': {
-        const fr = await focusApp(cmd.value || '')
-        return fr.startsWith('FOCUSED:') ? `${cmd.value} is on top now.` : `${cmd.value} isn't running.`
-      }
-      case 'close-app': {
-        const cn = cleanAppName(cmd.value || '')
-        const ch = (APP_EXES[cn] || cn).replace(/'/g, "''")
-        const r = await ps(`$c=0; Get-Process -ErrorAction SilentlyContinue | Where-Object { ($_.ProcessName -like '*${ch}*' -or $_.MainWindowTitle -like '*${cn.replace(/'/g, "''")}*') -and $_.MainWindowHandle -ne 0 } | ForEach-Object { if ($_.CloseMainWindow()) { $c++ } }; Write-Output $c`)
-        const n = parseInt(r) || 0
-        return n > 0 ? `Closed ${cmd.value}.` : `${cmd.value} isn't running (or has no window to close).`
-      }
-      case 'force-close-app': {
-        const kn = cleanAppName(cmd.value || '')
-        const kh = (APP_EXES[kn] || kn).replace(/'/g, "''")
-        await ps(`Get-Process -ErrorAction SilentlyContinue | Where-Object { $_.ProcessName -like '*${kh}*' } | Stop-Process -Force`)
-        return `Force-closed ${cmd.value}.`
-      }
       case 'open-app': {
-        const appValRaw = (cmd.value || '').trim()
-        // Already running? Bring it over everything else instead of relaunching.
-        const focused = await focusApp(appValRaw)
-        if (focused.startsWith('FOCUSED:')) return `${appValRaw} is already open — bringing it to the front.`
-        const cleaned = cleanAppName(appValRaw)
-        const appVal  = APP_EXES[cleaned] || appValRaw
-        const name    = cleanAppName(appVal) || cleaned
+        const appVal = (cmd.value || '').trim()
+        const name   = appVal.replace(/\.exe$/i, '').toLowerCase()
         // Built-in Windows executables — run directly
         const builtins = {
           'notepad':'notepad','calc':'calc','calculator':'calc',
@@ -813,15 +818,10 @@ else{
   Write-Output "NOTFOUND"
 }`.trim()
           const result = await ps(nameSearch)
-          if (result.startsWith('OK:')) return `Opening ${appValRaw}.`
-          // FIX: the old fallback shell-executed the raw display name, which
-          // popped Windows "cannot find 'brave browser'" error dialogs. Retry
-          // the search with the cleaned name instead, then give up politely.
-          if (cleaned && cleaned !== appVal.toLowerCase()) {
-            const retry = await ps(nameSearch.replace(`$n='${safeName}'`, `$n='${cleaned.replace(/'/g, "''")}'`))
-            if (retry.startsWith('OK:')) return `Opening ${appValRaw}.`
-          }
-          return `Couldn't find "${appValRaw}" — is it installed?`
+          if (result.startsWith('OK:')) return `Opening ${appVal}.`
+          // Last resort — try shell execute with the display name
+          exec(`start "" "${appVal}"`, {shell:true}, ()=>{})
+          return `Searching for ${appVal}...`
         }
         // Search Start Menu, Desktop, Steam, AppData
         const safe = name.replace(/'/g, "''")
@@ -831,7 +831,7 @@ $dirs=@("$env:APPDATA\\Microsoft\\Windows\\Start Menu","$env:ProgramData\\Micros
 foreach($d in $dirs){if(Test-Path $d){Get-ChildItem -Path $d -Recurse -Include *.lnk -EA SilentlyContinue|?{$_.BaseName -like "*$n*"}|%{$r+=$_.FullName}}}
 $steam=@("C:\\Program Files (x86)\\Steam\\steamapps\\common","D:\\Steam\\steamapps\\common","E:\\Steam\\steamapps\\common")
 foreach($d in $steam){if(Test-Path $d){Get-ChildItem $d -Directory|?{$_.Name -like "*$n*"}|%{$e=Get-ChildItem $_.FullName -Filter *.exe -EA SilentlyContinue|?{$_.BaseName -notlike "*uninstall*" -and $_.BaseName -notlike "*crash*"}|Select -First 1;if($e){$r+=$e.FullName}}}}
-$inst=@("$env:LOCALAPPDATA","$env:ProgramFiles"," + '%ProgramFiles(x86)%' + ")
+$inst=@("$env:LOCALAPPDATA","$env:ProgramFiles","\${env:ProgramFiles(x86)}")
 foreach($d in $inst){if(Test-Path $d){Get-ChildItem $d -Recurse -Depth 3 -Include *.exe -EA SilentlyContinue|?{$_.BaseName -like "*$n*" -and $_.BaseName -notlike "*uninstall*" -and $_.BaseName -notlike "*setup*"}|%{$r+=$_.FullName}}}
 if($r.Count -gt 0){Start-Process $r[0];Write-Output "FOUND:$($r[0])"}else{Start-Process $n -EA SilentlyContinue;Write-Output "NOTFOUND"}`
         const result = await ps(psSearch)
@@ -843,60 +843,11 @@ if($r.Count -gt 0){Start-Process $r[0];Write-Output "FOUND:$($r[0])"}else{Start-
 })
 
 // ── IPC: TTS ──────────────────────────────────────────
-
-// ── App-name intelligence ────────────────────────────────────────────────
-// "open brave browser" used to shell-execute the literal string "brave browser"
-// and Windows popped an error dialog. Now we clean the name, map aliases,
-// focus the app if it's already running, and only then search & launch.
-const APP_EXES = {
-  'brave':'brave', 'chrome':'chrome', 'google chrome':'chrome', 'edge':'msedge',
-  'microsoft edge':'msedge', 'firefox':'firefox', 'opera':'opera', 'opera gx':'opera',
-  'discord':'Discord', 'spotify':'Spotify', 'steam':'steam',
-  'obs':'obs64', 'obs studio':'obs64', 'code':'Code', 'vscode':'Code',
-  'visual studio code':'Code', 'epic games':'EpicGamesLauncher',
-  'epic games launcher':'EpicGamesLauncher', 'word':'WINWORD', 'excel':'EXCEL',
-  'powerpoint':'POWERPNT', 'outlook':'OUTLOOK', 'whatsapp':'WhatsApp',
-  'telegram':'Telegram', 'minecraft':'Minecraft', 'minecraft launcher':'Minecraft',
-  'fortnite':'FortniteClient-Win64-Shipping', 'roblox':'RobloxPlayerBeta',
-}
-const cleanAppName = v => String(v || '').toLowerCase().replace(/\.exe$/,'')
-  .replace(/\b(the|app|application|program|browser|please)\b/g, ' ')
-  .replace(/\s+/g, ' ').trim()
-
-// Bring a running app's window to the foreground (restores if minimized)
-async function focusApp(rawName) {
-  const clean = cleanAppName(rawName)
-  const hint  = APP_EXES[clean] || clean
-  const cands = [...new Set([hint, clean, String(rawName).trim()])].filter(Boolean)
-  const list  = cands.map(c => `'${c.replace(/'/g, "''")}'`).join(',')
-  const script = `
-Add-Type @"
-using System;using System.Runtime.InteropServices;
-public class W {
-  [DllImport("user32.dll")] public static extern bool SetForegroundWindow(IntPtr h);
-  [DllImport("user32.dll")] public static extern bool ShowWindowAsync(IntPtr h, int n);
-}
-"@
-foreach($n in @(${list})){
-  $p = Get-Process -ErrorAction SilentlyContinue | Where-Object {
-    ($_.ProcessName -like "*$n*" -or $_.MainWindowTitle -like "*$n*") -and $_.MainWindowHandle -ne 0
-  } | Select-Object -First 1
-  if ($p) {
-    [W]::ShowWindowAsync($p.MainWindowHandle, 9) | Out-Null
-    [W]::SetForegroundWindow($p.MainWindowHandle) | Out-Null
-    Write-Output "FOCUSED:$($p.ProcessName)"
-    exit
-  }
-}
-Write-Output "NOTRUNNING"`
-  return await ps(script)
-}
-
-// ── Buddy overlay mode: small always-on-top companion window ────────────
 let _savedBounds = null
 ipcMain.handle('set-overlay', (_, on) => {
   if (!win) return false
   try {
+    const { screen } = require('electron')
     if (on) {
       _savedBounds = win.getBounds()
       const { width: sw, height: sh } = screen.getPrimaryDisplay().workAreaSize
@@ -925,28 +876,10 @@ ipcMain.handle('speak', (_, text, voice, rate, pitch) => {
     const next = () => {
       if (t >= pys.length) { resolve('error:no_python'); return }
       const py = pys[t++]
-      // notify the renderer the moment playback actually begins (PLAYING marker)
-      const { spawn } = require('child_process')
-      try {
-        const proc = spawn(py, [script, clean, v, rt, pt], { windowsHide:true, shell:false })
-        let notified = false
-        const watch = d => {
-          if (!notified && String(d).includes('PLAYING')) {
-            notified = true
-            try { if (win) win.webContents.send('tts-playing') } catch(e){}
-          }
-        }
-        proc.stdout.on('data', watch); proc.stderr.on('data', watch)
-        const killT = setTimeout(() => { try { proc.kill() } catch(e){}; resolve('error:timeout') }, 30000)
-        proc.on('close', code => { clearTimeout(killT); resolve(code === 0 ? 'ok' : 'error:' + code) })
-        proc.on('error', () => { clearTimeout(killT); next() })
-        return
-      } catch(e) { next(); return }
       exec(`${py} "${script}" "${clean}" "${v}" "${rt}" "${pt}"`,
         { windowsHide:true, timeout:30000, shell:true },
         err => {
-          // FIX: Windows says "is not recognized" (code 9009), not "not found"
-          if (err && (err.code==='ENOENT' || err.code===9009 || err.message.includes('not found') || err.message.includes('not recognized'))) { next(); return }
+          if (err && (err.code==='ENOENT' || err.message.includes('not found'))) { next(); return }
           resolve(err ? 'error:'+err.message : 'ok')
         })
     }
